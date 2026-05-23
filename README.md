@@ -39,6 +39,16 @@ O frontend ordena o cronograma por `startTime` e permite filtrar por:
 
 Ao adicionar uma nova sessao, informe ao menos `startTime`, `endTime`, `title`, `track` e `period` para manter a agenda consistente.
 
+Os perfis de palestrantes da mesma pagina tambem sao dirigidos por [assets/js/schedule-data.js](assets/js/schedule-data.js).
+
+Cada perfil aceita:
+
+- `name`
+- `institution`
+- `area`
+- `bio`
+- `links[]`
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 

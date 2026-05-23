@@ -164,6 +164,7 @@
   var scheduleListRoot = document.querySelector("[data-schedule-list]");
   var scheduleSummaryRoot = document.querySelector("[data-schedule-summary]");
   var scheduleFilterNodes = document.querySelectorAll("[data-schedule-filter]");
+  var speakerListRoot = document.querySelector("[data-speaker-list]");
   var apiConfig = appConfig.registrationApi || {};
   var registrationCore = window.ConectaRegistrationCore || {};
   var registrationGuidance = window.ConectaRegistrationGuidance || {};
@@ -349,6 +350,71 @@
   }
 
   renderScheduleAgenda();
+
+  function renderSpeakerProfiles() {
+    if (!(speakerListRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    var speakers = Array.isArray(scheduleData.speakers) ? scheduleData.speakers : [];
+    speakerListRoot.textContent = "";
+
+    if (!speakers.length) {
+      var empty = document.createElement("p");
+      empty.className = "guidance-loading";
+      empty.textContent = "Perfis de palestrantes indisponiveis no momento.";
+      speakerListRoot.appendChild(empty);
+      return;
+    }
+
+    speakers.forEach(function (speaker) {
+      var article = document.createElement("article");
+      article.className = "speaker-card";
+      article.setAttribute("data-speaker-id", speaker.id || "unknown");
+
+      var name = document.createElement("h3");
+      name.textContent = speaker.name || "Palestrante";
+      article.appendChild(name);
+
+      var institution = document.createElement("p");
+      institution.className = "speaker-institution";
+      institution.textContent = speaker.institution || "Instituicao nao informada";
+      article.appendChild(institution);
+
+      var area = document.createElement("p");
+      area.className = "speaker-area";
+      area.textContent = speaker.area || "Area nao informada";
+      article.appendChild(area);
+
+      var bio = document.createElement("p");
+      bio.className = "speaker-bio";
+      bio.textContent = speaker.bio || "Bio indisponivel.";
+      article.appendChild(bio);
+
+      if (Array.isArray(speaker.links) && speaker.links.length) {
+        var links = document.createElement("div");
+        links.className = "speaker-links";
+        speaker.links.forEach(function (link) {
+          if (!link || !link.url) {
+            return;
+          }
+
+          var anchor = document.createElement("a");
+          anchor.href = link.url;
+          anchor.target = "_blank";
+          anchor.rel = "noreferrer";
+          anchor.textContent = link.label || "Link";
+          anchor.setAttribute("data-track-click", "speaker_profile_link");
+          links.appendChild(anchor);
+        });
+        article.appendChild(links);
+      }
+
+      speakerListRoot.appendChild(article);
+    });
+  }
+
+  renderSpeakerProfiles();
 
   function appendTextList(root, title, items) {
     if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {

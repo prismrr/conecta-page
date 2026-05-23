@@ -441,15 +441,58 @@ h1 {
   gap: 0.9rem;
 }
 
+.speaker-shell {
+  display: grid;
+  gap: 1rem;
+}
+
 .speaker-card {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem;
   background: rgba(8, 10, 43, 0.75);
+  display: grid;
+  gap: 0.75rem;
 }
 
 .speaker-card h3 {
   margin: 0 0 0.35rem;
+}
+
+.speaker-card p {
+  margin: 0;
+}
+
+.speaker-institution {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.speaker-area {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.speaker-bio {
+  color: var(--muted);
+}
+
+.speaker-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.speaker-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .policy .info-card {

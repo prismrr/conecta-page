@@ -66,5 +66,75 @@ window.ConectaScheduleData = {
       format: "closing",
       room: "Palco Conecta"
     }
+  ],
+  speakers: [
+    {
+      id: "speaker-ana-moura",
+      name: "Dra. Ana Moura",
+      institution: "Laboratorio de Sistemas Embarcados da UFRR",
+      area: "Intelligent Embedded Systems",
+      bio: "Pesquisa arquiteturas embarcadas para monitoramento clinico e lidera projetos de validacao em edge computing aplicada.",
+      links: [
+        {
+          label: "Perfil institucional",
+          url: "https://www.ufrr.br/"
+        },
+        {
+          label: "Publicacoes",
+          url: "https://scholar.google.com/"
+        }
+      ]
+    },
+    {
+      id: "speaker-caio-lins",
+      name: "Prof. Caio Lins",
+      institution: "Nucleo de Sistemas Ciber-Fisicos do IFRR",
+      area: "Cyber-Physical Systems",
+      bio: "Atua na integracao entre automacao, sensores e observabilidade para ambientes fisicos conectados de alta criticidade.",
+      links: [
+        {
+          label: "Perfil institucional",
+          url: "https://www.ifrr.edu.br/"
+        },
+        {
+          label: "Repositorio tecnico",
+          url: "https://github.com/"
+        }
+      ]
+    },
+    {
+      id: "speaker-luiza-viana",
+      name: "Dra. Luiza Viana",
+      institution: "Centro de Qualidade de Software Aplicado da UFAM",
+      area: "Verification and Automated Testing",
+      bio: "Especialista em estrategia de testes, confiabilidade de pipelines e desenho de validacao automatizada para plataformas digitais.",
+      links: [
+        {
+          label: "Perfil institucional",
+          url: "https://www.ufam.edu.br/"
+        },
+        {
+          label: "Artigos selecionados",
+          url: "https://orcid.org/"
+        }
+      ]
+    },
+    {
+      id: "speaker-rafael-pires",
+      name: "Prof. Rafael Pires",
+      institution: "Observatorio de Sistemas de Decisao da UEA",
+      area: "Decision Systems in Applied Engineering",
+      bio: "Conduz iniciativas de apoio a decisao com foco em governanca de dados, impacto operacional e transferencia tecnologica.",
+      links: [
+        {
+          label: "Perfil institucional",
+          url: "https://www.uea.edu.br/"
+        },
+        {
+          label: "LinkedIn",
+          url: "https://www.linkedin.com/"
+        }
+      ]
+    }
   ]
 };
