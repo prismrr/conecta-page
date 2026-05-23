@@ -6,16 +6,19 @@ MVP inicial do portal oficial do PRISM Conecta.
 - Pagina inicial com descricao geral do evento.
 - Pagina de inscricoes com orientacoes versionadas e consulta de resultado em modo demo.
 - Pagina de programacao com agenda ordenada por horario, filtros por trilha e turno, e palestrantes.
+- Pagina de FAQ curada com respostas oficiais.
 - Pagina de privacidade com resumo de controles LGPD para o MVP.
-- Banner de consentimento para cookies opcionais.
+- Preferencias de consentimento granulares e revogaveis por categoria.
 
 ## Estrutura
 - index.html
 - pages/inscricoes.html
 - pages/programacao.html
+- pages/faq.html
 - pages/politica-privacidade.html
 - assets/css/styles.css
 - assets/js/registration-guidance.js
+- assets/js/faq-data.js
 - assets/js/site.js
 - .SPECS/ (fonte de verdade para requisitos de produto, qualidade e compliance)
 
@@ -59,6 +62,25 @@ Cada entrada da base curada define:
 - `answer`
 
 As respostas atuais foram consolidadas a partir do conteudo oficial das paginas Home, Inscricoes, Programacao e Privacidade.
+
+## Consentimento granular (PRD-RQ06)
+As preferencias de consentimento sao acessiveis em todas as paginas pelo atalho "Preferencias de consentimento".
+
+Categorias atuais:
+
+- `essential` (sempre ativo)
+- `analytics_optional`
+- `communication_optional`
+
+Persistencia local:
+
+- chave: `conecta_consent_preferences_v2`
+- campos: `version`, `updatedAt`, `status`, `categories`
+
+Comportamento de telemetria:
+
+- eventos nao essenciais so sao emitidos com `analytics_optional = true`
+- eventos de consentimento (`consent_granted`, `consent_revoked`, `consent_updated`) permanecem auditaveis
 
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.

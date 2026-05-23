@@ -63,6 +63,57 @@
       <p><a href="../index.html">Voltar ao inicio</a></p>
     </footer>
 
+    <button class="consent-launcher" type="button" data-consent-open>
+      Preferencias de consentimento
+    </button>
+
+    <section class="consent-banner" data-consent-banner hidden>
+      <p class="consent-title">Preferencias LGPD</p>
+      <p>
+        Escolha por finalidade quais itens opcionais deseja ativar. Itens
+        essenciais permanecem habilitados para funcionamento do portal.
+      </p>
+      <p class="consent-status" data-consent-status></p>
+
+      <div class="consent-actions">
+        <button class="btn btn-primary" type="button" data-consent-action="accept-all">Aceitar opcionais</button>
+        <button class="btn btn-ghost" type="button" data-consent-action="reject-optional">Recusar opcionais</button>
+        <button class="btn btn-ghost" type="button" data-consent-action="open-panel">Gerenciar categorias</button>
+      </div>
+
+      <div class="consent-panel" data-consent-panel hidden>
+        <label class="consent-option">
+          <input type="checkbox" checked disabled />
+          <span>
+            <strong>Essenciais</strong>
+            Necessarios para navegacao e seguranca basica do site.
+          </span>
+        </label>
+
+        <label class="consent-option">
+          <input type="checkbox" data-consent-category="analytics_optional" />
+          <span>
+            <strong>Analytics opcional</strong>
+            Permite medir uso de paginas e desempenho da jornada.
+          </span>
+        </label>
+
+        <label class="consent-option">
+          <input type="checkbox" data-consent-category="communication_optional" />
+          <span>
+            <strong>Comunicacao opcional</strong>
+            Autoriza comunicacoes nao essenciais sobre novidades do ciclo.
+          </span>
+        </label>
+
+        <div class="consent-actions">
+          <button class="btn btn-primary" type="button" data-consent-action="save">Salvar preferencias</button>
+          <button class="btn btn-ghost" type="button" data-consent-action="revoke">Revogar opcionais</button>
+          <button class="btn btn-ghost" type="button" data-consent-action="close">Fechar</button>
+        </div>
+      </div>
+    </section>
+
     <script src="../assets/js/faq-data.js"></script>
     <script src="../assets/js/registration-core.js"></script>
     <script src="../assets/js/site.js"></script>

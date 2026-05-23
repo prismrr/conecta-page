@@ -2,6 +2,82 @@
   var appConfig = window.CONectaConfig || {};
   var telemetryConfig = appConfig.telemetry || {};
   var telemetrySessionKey = "conecta_telemetry_session_v1";
+  var consentStorageKey = "conecta_consent_preferences_v2";
+  var consentLegacyKey = "conecta_consent_v1";
+  var consentVersion = "consent-v2-2026-05";
+
+  function normalizeConsentCategories(categories) {
+    return {
+      essential: true,
+      analytics_optional: !!(categories && categories.analytics_optional),
+      communication_optional: !!(categories && categories.communication_optional)
+    };
+  }
+
+  function deriveConsentStatus(categories) {
+    if (categories.analytics_optional || categories.communication_optional) {
+      return "granted";
+    }
+
+    return "revoked";
+  }
+
+  function buildConsentRecord(categories, source) {
+    var normalizedCategories = normalizeConsentCategories(categories);
+    return {
+      version: consentVersion,
+      updatedAt: new Date().toISOString(),
+      source: source || "banner",
+      status: deriveConsentStatus(normalizedCategories),
+      categories: normalizedCategories
+    };
+  }
+
+  function writeConsentRecord(record) {
+    try {
+      localStorage.setItem(consentStorageKey, JSON.stringify(record));
+      localStorage.removeItem(consentLegacyKey);
+    } catch (_error) {
+      // No-op: browser storage may be unavailable in private contexts.
+    }
+  }
+
+  function readConsentRecord() {
+    try {
+      var stored = localStorage.getItem(consentStorageKey);
+      if (stored) {
+        var parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === "object") {
+          return {
+            version: parsed.version || consentVersion,
+            updatedAt: parsed.updatedAt || null,
+            source: parsed.source || "banner",
+            status: parsed.status || deriveConsentStatus(normalizeConsentCategories(parsed.categories)),
+            categories: normalizeConsentCategories(parsed.categories)
+          };
+        }
+      }
+
+      var legacyValue = localStorage.getItem(consentLegacyKey);
+      if (legacyValue === "accept" || legacyValue === "reject") {
+        var migrated = buildConsentRecord(
+          {
+            analytics_optional: legacyValue === "accept",
+            communication_optional: false
+          },
+          "legacy_migration"
+        );
+        writeConsentRecord(migrated);
+        return migrated;
+      }
+
+      return null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  var consentRecord = readConsentRecord();
 
   function createSessionId() {
     return "sess-" + Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
@@ -39,8 +115,28 @@
     };
   }
 
+  function isConsentEvent(eventName) {
+    return eventName === "consent_granted" || eventName === "consent_revoked" || eventName === "consent_updated";
+  }
+
+  function hasTelemetryConsent(eventName) {
+    if (isConsentEvent(eventName)) {
+      return true;
+    }
+
+    if (!consentRecord || !consentRecord.categories) {
+      return false;
+    }
+
+    return !!consentRecord.categories.analytics_optional;
+  }
+
   function emitTelemetry(eventName, data) {
     if (!telemetryConfig.enabled) {
+      return;
+    }
+
+    if (!hasTelemetryConsent(eventName)) {
       return;
     }
 
@@ -116,13 +212,122 @@
     });
   });
 
-  var consentKey = "conecta_consent_v1";
   var consentBanner = document.querySelector("[data-consent-banner]");
+  var consentOpenButtons = document.querySelectorAll("[data-consent-open]");
 
   if (consentBanner) {
-    var storedConsent = localStorage.getItem(consentKey);
-    if (!storedConsent) {
+    var consentPanel = consentBanner.querySelector("[data-consent-panel]");
+    var consentStatus = consentBanner.querySelector("[data-consent-status]");
+    var analyticsCheckbox = consentBanner.querySelector('[data-consent-category="analytics_optional"]');
+    var communicationCheckbox = consentBanner.querySelector('[data-consent-category="communication_optional"]');
+
+    function setConsentPanelOpen(isOpen) {
+      if (consentPanel instanceof HTMLElement) {
+        consentPanel.hidden = !isOpen;
+      }
+    }
+
+    function setConsentStatusText() {
+      if (!(consentStatus instanceof HTMLElement)) {
+        return;
+      }
+
+      if (!consentRecord || !consentRecord.categories) {
+        consentStatus.textContent = "Status atual: preferencia ainda nao definida.";
+        return;
+      }
+
+      var enabledCategories = [];
+      if (consentRecord.categories.analytics_optional) {
+        enabledCategories.push("analytics opcional");
+      }
+      if (consentRecord.categories.communication_optional) {
+        enabledCategories.push("comunicacao opcional");
+      }
+
+      if (!enabledCategories.length) {
+        consentStatus.textContent = "Status atual: opcionais revogados.";
+        return;
+      }
+
+      consentStatus.textContent = "Status atual: " + enabledCategories.join(" e ") + " ativado(s).";
+    }
+
+    function syncConsentInputs() {
+      if (analyticsCheckbox instanceof HTMLInputElement) {
+        analyticsCheckbox.checked = !!(consentRecord && consentRecord.categories && consentRecord.categories.analytics_optional);
+      }
+      if (communicationCheckbox instanceof HTMLInputElement) {
+        communicationCheckbox.checked = !!(consentRecord && consentRecord.categories && consentRecord.categories.communication_optional);
+      }
+    }
+
+    function openConsentBanner() {
       consentBanner.hidden = false;
+      setConsentPanelOpen(true);
+      syncConsentInputs();
+      setConsentStatusText();
+    }
+
+    function closeConsentBanner() {
+      consentBanner.hidden = true;
+      setConsentPanelOpen(false);
+    }
+
+    function applyConsentRecord(nextRecord, reason) {
+      var hadAnalyticsConsent = !!(consentRecord && consentRecord.categories && consentRecord.categories.analytics_optional);
+      consentRecord = nextRecord;
+      writeConsentRecord(nextRecord);
+      syncConsentInputs();
+      setConsentStatusText();
+      closeConsentBanner();
+
+      var enabledCategories = [];
+      if (nextRecord.categories.analytics_optional) {
+        enabledCategories.push("analytics_optional");
+      }
+      if (nextRecord.categories.communication_optional) {
+        enabledCategories.push("communication_optional");
+      }
+
+      emitTelemetry(nextRecord.status === "revoked" ? "consent_revoked" : "consent_granted", {
+        channel: "banner",
+        version: nextRecord.version,
+        status: nextRecord.status,
+        categories: enabledCategories,
+        reason: reason || "manual_update",
+        updated_at: nextRecord.updatedAt
+      });
+
+      emitTelemetry("consent_updated", {
+        channel: "banner",
+        version: nextRecord.version,
+        status: nextRecord.status,
+        categories: enabledCategories,
+        reason: reason || "manual_update",
+        updated_at: nextRecord.updatedAt
+      });
+
+      if (!hadAnalyticsConsent && nextRecord.categories.analytics_optional) {
+        emitTelemetry("page_view", {
+          title: document.title,
+          trigger: "post_consent"
+        });
+      }
+    }
+
+    consentOpenButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        openConsentBanner();
+      });
+    });
+
+    if (!consentRecord) {
+      openConsentBanner();
+    } else {
+      syncConsentInputs();
+      setConsentStatusText();
+      closeConsentBanner();
     }
 
     consentBanner.addEventListener("click", function (event) {
@@ -131,26 +336,60 @@
         return;
       }
 
-      var value = target.getAttribute("data-consent");
-      if (!value) {
+      var action = target.getAttribute("data-consent-action");
+      if (!action) {
         return;
       }
 
-      localStorage.setItem(consentKey, value);
-      consentBanner.hidden = true;
-
-      if (value === "accept") {
-        emitTelemetry("consent_granted", {
-          channel: "banner",
-          categories: ["essential", "analytics_optional"]
-        });
+      if (action === "close") {
+        closeConsentBanner();
+        return;
       }
 
-      if (value === "reject") {
-        emitTelemetry("consent_revoked", {
-          channel: "banner",
-          categories: ["analytics_optional"]
-        });
+      if (action === "open-panel") {
+        setConsentPanelOpen(true);
+        return;
+      }
+
+      if (action === "accept-all") {
+        applyConsentRecord(
+          buildConsentRecord(
+            {
+              analytics_optional: true,
+              communication_optional: true
+            },
+            "banner"
+          ),
+          "accept_all"
+        );
+        return;
+      }
+
+      if (action === "reject-optional" || action === "revoke") {
+        applyConsentRecord(
+          buildConsentRecord(
+            {
+              analytics_optional: false,
+              communication_optional: false
+            },
+            "banner"
+          ),
+          action === "revoke" ? "revoke_optional" : "reject_optional"
+        );
+        return;
+      }
+
+      if (action === "save") {
+        applyConsentRecord(
+          buildConsentRecord(
+            {
+              analytics_optional: analyticsCheckbox instanceof HTMLInputElement ? analyticsCheckbox.checked : false,
+              communication_optional: communicationCheckbox instanceof HTMLInputElement ? communicationCheckbox.checked : false
+            },
+            "banner"
+          ),
+          "save_preferences"
+        );
       }
     });
   }

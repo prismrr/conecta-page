@@ -104,14 +104,54 @@
       </p>
     </footer>
 
+    <button class="consent-launcher" type="button" data-consent-open>
+      Preferencias de consentimento
+    </button>
+
     <section class="consent-banner" data-consent-banner hidden>
+      <p class="consent-title">Preferencias LGPD</p>
       <p>
-        Usamos cookies essenciais para funcionamento e opcionalmente analytics.
-        Voce pode gerenciar preferencias a qualquer momento.
+        Escolha por finalidade quais itens opcionais deseja ativar. Itens
+        essenciais permanecem habilitados para funcionamento do portal.
       </p>
-      <div>
-        <button class="btn btn-ghost" data-consent="reject">Recusar opcionais</button>
-        <button class="btn btn-primary" data-consent="accept">Aceitar opcionais</button>
+      <p class="consent-status" data-consent-status></p>
+
+      <div class="consent-actions">
+        <button class="btn btn-primary" type="button" data-consent-action="accept-all">Aceitar opcionais</button>
+        <button class="btn btn-ghost" type="button" data-consent-action="reject-optional">Recusar opcionais</button>
+        <button class="btn btn-ghost" type="button" data-consent-action="open-panel">Gerenciar categorias</button>
+      </div>
+
+      <div class="consent-panel" data-consent-panel hidden>
+        <label class="consent-option">
+          <input type="checkbox" checked disabled />
+          <span>
+            <strong>Essenciais</strong>
+            Necessarios para navegacao e seguranca basica do site.
+          </span>
+        </label>
+
+        <label class="consent-option">
+          <input type="checkbox" data-consent-category="analytics_optional" />
+          <span>
+            <strong>Analytics opcional</strong>
+            Permite medir uso de paginas e desempenho da jornada.
+          </span>
+        </label>
+
+        <label class="consent-option">
+          <input type="checkbox" data-consent-category="communication_optional" />
+          <span>
+            <strong>Comunicacao opcional</strong>
+            Autoriza comunicacoes nao essenciais sobre novidades do ciclo.
+          </span>
+        </label>
+
+        <div class="consent-actions">
+          <button class="btn btn-primary" type="button" data-consent-action="save">Salvar preferencias</button>
+          <button class="btn btn-ghost" type="button" data-consent-action="revoke">Revogar opcionais</button>
+          <button class="btn btn-ghost" type="button" data-consent-action="close">Fechar</button>
+        </div>
       </div>
     </section>
 

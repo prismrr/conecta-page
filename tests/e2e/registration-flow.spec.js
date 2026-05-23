@@ -26,6 +26,23 @@ test.describe("registration flow e2e", () => {
   });
 
   test("should emit telemetry page_view to dataLayer", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "conecta_consent_preferences_v2",
+        JSON.stringify({
+          version: "consent-v2-2026-05",
+          updatedAt: "2026-05-23T00:00:00.000Z",
+          source: "e2e",
+          status: "granted",
+          categories: {
+            essential: true,
+            analytics_optional: true,
+            communication_optional: false
+          }
+        })
+      );
+    });
+
     await page.goto("/pages/inscricoes.html");
 
     const dataLayerSize = await page.evaluate(() => {

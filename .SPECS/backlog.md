@@ -10,8 +10,7 @@ Completar cards com bio curta, instituição, área e links relevantes.
 Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetitivas.
 
 **Sprint 2**
-1. `PRD-RQ06` Consentimento granular  
-Substituir o banner binário por preferências por categoria.
+1. [DONE] `PRD-RQ06` Consentimento granular. Substituir o banner binário por preferências por categoria.
 2. `PRD-RQ07` Gestão de cookies por categoria  
 Garantir controle explícito de essenciais versus opcionais, com persistência consistente.
 3. `PRD-RQ11` Política e Termo versionados  

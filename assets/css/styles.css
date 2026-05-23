@@ -566,7 +566,7 @@ h1 {
 
 .consent-banner {
   position: fixed;
-  bottom: 1rem;
+  bottom: 4.6rem;
   right: 1rem;
   width: min(440px, calc(100% - 2rem));
   border-radius: 16px;
@@ -581,10 +581,65 @@ h1 {
   color: var(--muted);
 }
 
-.consent-banner div {
+.consent-title {
+  color: var(--text);
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.consent-status {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.consent-launcher {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(11, 13, 48, 0.96);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+}
+
+.consent-actions {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
+}
+
+.consent-panel {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.consent-option {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 0.6rem;
+  align-items: start;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.65rem;
+}
+
+.consent-option input {
+  margin-top: 0.2rem;
+}
+
+.consent-option strong {
+  color: var(--text);
+  display: block;
+  margin-bottom: 0.15rem;
 }
 
 @media (max-width: 920px) {
@@ -627,6 +682,15 @@ h1 {
 
   .schedule-filters {
     grid-template-columns: 1fr;
+  }
+
+  .consent-banner {
+    bottom: 4.3rem;
+  }
+
+  .consent-launcher {
+    width: calc(100% - 2rem);
+    text-align: center;
   }
 }
 
