@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Run smoke test
+        run: npm run test:smoke
+
+      - name: Upload Playwright artifacts on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          retention-days: 7
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+
+      - name: Build sanitized telemetry artifact on failure
+        if: ${{ failure() }}
+        run: |
+          mkdir -p artifacts
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          source = Path("logs/telemetry-events.ndjson")
+          output = Path("artifacts/telemetry-sanitized.ndjson")
+          summary = Path("artifacts/telemetry-summary.json")
+
+          event_counts = {}
+          sanitized_count = 0
+
+          if source.exists():
+            with source.open("r", encoding="utf-8") as src, output.open("w", encoding="utf-8") as dst:
+              for line in src:
+                line = line.strip()
+                if not line:
+                  continue
+                try:
+                  entry = json.loads(line)
+                except json.JSONDecodeError:
+                  continue
+
+                payload = entry.get("payload") or {}
+                event_name = payload.get("event", "unknown")
+                event_counts[event_name] = event_counts.get(event_name, 0) + 1
+
+                data = payload.get("data") or {}
+                sanitized = {
+                  "receivedAt": entry.get("receivedAt"),
+                  "clientIp": "redacted",
+                  "event": event_name,
+                  "page": payload.get("page"),
+                  "path": payload.get("path"),
+                  "environment": payload.get("environment"),
+                  "release_id": payload.get("release_id"),
+                  "outcome": data.get("outcome"),
+                  "reason": data.get("reason")
+                }
+                dst.write(json.dumps(sanitized, ensure_ascii=True) + "\n")
+                sanitized_count += 1
+
+          summary_payload = {
+            "source_exists": source.exists(),
+            "sanitized_records": sanitized_count,
+            "event_counts": event_counts
+          }
+          summary.write_text(json.dumps(summary_payload, ensure_ascii=True, indent=2), encoding="utf-8")
+          PY
+
+      - name: Upload sanitized telemetry logs on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: telemetry-logs-sanitized
+          retention-days: 7
+          path: |
+            artifacts/telemetry-sanitized.ndjson
+            artifacts/telemetry-summary.json
+          if-no-files-found: ignore

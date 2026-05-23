@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inscricoes | Conecta PrismRR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+  </head>
+  <body data-page="inscricoes">
+    <div class="bg-glow bg-glow-a"></div>
+    <div class="bg-glow bg-glow-b"></div>
+
+    <header class="site-header">
+      <a class="brand" href="../index.html">
+        <span class="brand-dot"></span>
+        <span>Conecta PrismRR</span>
+      </a>
+      <button class="menu-toggle" aria-label="Abrir menu" data-menu-toggle>
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" data-menu>
+        <a href="../index.html">Inicio</a>
+        <a class="active" href="inscricoes.html">Inscricoes</a>
+        <a href="programacao.html">Programacao</a>
+        <a href="politica-privacidade.html">Privacidade</a>
+      </nav>
+    </header>
+
+    <main class="container page-main">
+      <section class="page-head">
+        <p class="eyebrow">Inscricoes</p>
+        <h1>Orientacoes e resultado</h1>
+        <p>
+          Esta pagina centraliza criterios, prazos e o acesso ao resultado das
+          inscricoes enviadas em sistema externo.
+        </p>
+      </section>
+
+      <section class="info-card">
+        <h2>Como se inscrever</h2>
+        <ol>
+          <li>Leia os criterios de elegibilidade da chamada atual.</li>
+          <li>Submeta sua inscricao no sistema externo oficial.</li>
+          <li>Acompanhe o prazo limite e aguarde validacao.</li>
+          <li>Consulte resultado final por codigo de inscricao.</li>
+        </ol>
+        <a
+          class="btn btn-primary"
+          href="#"
+          data-external-registration-link
+          data-track-click="registration_external_system"
+        >
+          Ir para sistema de inscricao externo
+        </a>
+      </section>
+
+      <section class="info-card">
+        <h2>Consultar resultado (integracao API)</h2>
+        <p>
+          Informe o codigo da inscricao para consultar o resultado oficial no
+          sistema externo integrado.
+        </p>
+        <form class="lookup-form" data-lookup-form>
+          <label for="inscricaoId">Codigo da inscricao</label>
+          <input id="inscricaoId" name="inscricaoId" type="text" placeholder="EX: PRISM-2026-001" required />
+          <button class="btn btn-primary" type="submit" data-track-click="registration_lookup_submit">
+            Consultar
+          </button>
+        </form>
+        <p class="lookup-result" data-lookup-result role="status"></p>
+        <p class="lookup-help">
+          Em caso de indisponibilidade da API, o sistema exibira modo degradado
+          com orientacao de suporte.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer container">
+      <p>Conecta PrismRR · PRISM Conecta</p>
+      <p><a href="politica-privacidade.html">Politica de Privacidade</a></p>
+    </footer>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/registration-core.js"></script>
+    <script src="../assets/js/site.js"></script>
+  </body>
+</html>

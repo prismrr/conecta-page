@@ -1,0 +1,26 @@
+{
+  "contractVersion": "1.0.0",
+  "description": "Consumer contract for registration result payload",
+  "type": "object",
+  "required": ["registrationId", "status", "updatedAt"],
+  "properties": {
+    "registrationId": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 64
+    },
+    "status": {
+      "type": "string",
+      "enum": ["APPROVED", "UNDER_REVIEW", "REJECTED"]
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "detail": {
+      "type": "string",
+      "maxLength": 280
+    }
+  },
+  "additionalProperties": true
+}
