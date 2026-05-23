@@ -82,6 +82,17 @@ Comportamento de telemetria:
 - eventos nao essenciais so sao emitidos com `analytics_optional = true`
 - eventos de consentimento (`consent_granted`, `consent_revoked`, `consent_updated`) permanecem auditaveis
 
+## Gestao de cookies por categoria (PRD-RQ07)
+As categorias de cookies usam a mesma base de preferencias de consentimento (`conecta_consent_preferences_v2`).
+
+Cookies atualmente gerenciados:
+
+- `conecta_cookie_essential` (sempre ativo)
+- `conecta_cookie_analytics_optin` (ativo apenas com `analytics_optional = true`)
+- `conecta_cookie_communication_optin` (ativo apenas com `communication_optional = true`)
+
+Ao revogar categorias opcionais, os cookies opcionais correspondentes sao removidos imediatamente no navegador.
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 

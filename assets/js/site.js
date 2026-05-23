@@ -5,6 +5,64 @@
   var consentStorageKey = "conecta_consent_preferences_v2";
   var consentLegacyKey = "conecta_consent_v1";
   var consentVersion = "consent-v2-2026-05";
+  var cookieDefinitions = {
+    essential: {
+      name: "conecta_cookie_essential",
+      value: "1",
+      maxAgeDays: 180
+    },
+    analytics_optional: {
+      name: "conecta_cookie_analytics_optin",
+      value: "1",
+      maxAgeDays: 180
+    },
+    communication_optional: {
+      name: "conecta_cookie_communication_optin",
+      value: "1",
+      maxAgeDays: 180
+    }
+  };
+
+  function setCookie(name, value, maxAgeDays) {
+    var maxAgeSeconds = Math.max(0, Math.floor(Number(maxAgeDays || 0) * 24 * 60 * 60));
+    document.cookie =
+      name +
+      "=" +
+      encodeURIComponent(String(value)) +
+      "; Path=/; Max-Age=" +
+      maxAgeSeconds +
+      "; SameSite=Lax";
+  }
+
+  function removeCookie(name) {
+    document.cookie = name + "=; Path=/; Max-Age=0; SameSite=Lax";
+  }
+
+  function syncCookiesFromConsent(record) {
+    var categories = normalizeConsentCategories(record && record.categories ? record.categories : null);
+
+    setCookie(cookieDefinitions.essential.name, cookieDefinitions.essential.value, cookieDefinitions.essential.maxAgeDays);
+
+    if (categories.analytics_optional) {
+      setCookie(
+        cookieDefinitions.analytics_optional.name,
+        cookieDefinitions.analytics_optional.value,
+        cookieDefinitions.analytics_optional.maxAgeDays
+      );
+    } else {
+      removeCookie(cookieDefinitions.analytics_optional.name);
+    }
+
+    if (categories.communication_optional) {
+      setCookie(
+        cookieDefinitions.communication_optional.name,
+        cookieDefinitions.communication_optional.value,
+        cookieDefinitions.communication_optional.maxAgeDays
+      );
+    } else {
+      removeCookie(cookieDefinitions.communication_optional.name);
+    }
+  }
 
   function normalizeConsentCategories(categories) {
     return {
@@ -78,6 +136,7 @@
   }
 
   var consentRecord = readConsentRecord();
+  syncCookiesFromConsent(consentRecord);
 
   function createSessionId() {
     return "sess-" + Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
@@ -278,6 +337,7 @@
       var hadAnalyticsConsent = !!(consentRecord && consentRecord.categories && consentRecord.categories.analytics_optional);
       consentRecord = nextRecord;
       writeConsentRecord(nextRecord);
+      syncCookiesFromConsent(nextRecord);
       syncConsentInputs();
       setConsentStatusText();
       closeConsentBanner();

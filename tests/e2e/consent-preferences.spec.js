@@ -22,6 +22,11 @@ test.describe("consent preferences e2e", () => {
     expect(savedConsent.categories.analytics_optional).toBe(true);
     expect(savedConsent.categories.communication_optional).toBe(false);
 
+    const cookiesAfterSave = await page.evaluate(() => document.cookie);
+    expect(cookiesAfterSave).toContain("conecta_cookie_essential=1");
+    expect(cookiesAfterSave).toContain("conecta_cookie_analytics_optin=1");
+    expect(cookiesAfterSave).not.toContain("conecta_cookie_communication_optin=1");
+
     await page.click("[data-consent-open]");
     await page.click('[data-consent-action="revoke"]');
 
@@ -34,5 +39,10 @@ test.describe("consent preferences e2e", () => {
     expect(revokedConsent.status).toBe("revoked");
     expect(revokedConsent.categories.analytics_optional).toBe(false);
     expect(revokedConsent.categories.communication_optional).toBe(false);
+
+    const cookiesAfterRevoke = await page.evaluate(() => document.cookie);
+    expect(cookiesAfterRevoke).toContain("conecta_cookie_essential=1");
+    expect(cookiesAfterRevoke).not.toContain("conecta_cookie_analytics_optin=1");
+    expect(cookiesAfterRevoke).not.toContain("conecta_cookie_communication_optin=1");
   });
 });

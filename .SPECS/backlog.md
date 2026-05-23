@@ -11,8 +11,7 @@ Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetiti
 
 **Sprint 2**
 1. [DONE] `PRD-RQ06` Consentimento granular. Substituir o banner binário por preferências por categoria.
-2. `PRD-RQ07` Gestão de cookies por categoria  
-Garantir controle explícito de essenciais versus opcionais, com persistência consistente.
+2. `PRD-RQ07` Gestão de cookies por categoria. Garantir controle explícito de essenciais versus opcionais, com persistência consistente.
 3. `PRD-RQ11` Política e Termo versionados  
 Adicionar versão, data de vigência e changelog visível.
 4. `PRD-RQ09` Canal de direitos do titular  
