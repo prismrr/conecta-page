@@ -158,12 +158,222 @@
   var lookupForm = document.querySelector("[data-lookup-form]");
   var lookupResult = document.querySelector("[data-lookup-result]");
   var externalRegistrationLink = document.querySelector("[data-external-registration-link]");
+  var guidanceCurrentRoot = document.querySelector("[data-guidance-current]");
+  var guidanceHistoryRoot = document.querySelector("[data-guidance-history]");
+  var guidanceCurrentMeta = document.querySelector("[data-guidance-current-meta]");
   var apiConfig = appConfig.registrationApi || {};
   var registrationCore = window.ConectaRegistrationCore || {};
+  var registrationGuidance = window.ConectaRegistrationGuidance || {};
 
   if (externalRegistrationLink && apiConfig.externalRegistrationUrl) {
     externalRegistrationLink.setAttribute("href", apiConfig.externalRegistrationUrl);
   }
+
+  function formatDateLabel(dateIso) {
+    if (!dateIso) {
+      return "Data nao informada";
+    }
+
+    try {
+      var dateParts = String(dateIso).split("-");
+      if (dateParts.length === 3) {
+        return new Intl.DateTimeFormat("pt-BR", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric"
+        }).format(new Date(Date.UTC(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2]), 12)));
+      }
+
+      return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      }).format(new Date(dateIso));
+    } catch (_error) {
+      return dateIso;
+    }
+  }
+
+  function appendTextList(root, title, items) {
+    if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {
+      return;
+    }
+
+    var panel = document.createElement("div");
+    panel.className = "guidance-panel";
+
+    var heading = document.createElement("h3");
+    heading.textContent = title;
+    panel.appendChild(heading);
+
+    var list = document.createElement("ul");
+    items.forEach(function (item) {
+      var listItem = document.createElement("li");
+      listItem.textContent = item;
+      list.appendChild(listItem);
+    });
+
+    panel.appendChild(list);
+    root.appendChild(panel);
+  }
+
+  function renderVersionCard(version) {
+    var article = document.createElement("article");
+    article.className = "version-card";
+
+    var title = document.createElement("h3");
+    title.textContent = version.versionLabel + " · " + version.title;
+    article.appendChild(title);
+
+    var meta = document.createElement("p");
+    meta.className = "guidance-meta";
+    meta.textContent =
+      "Publicada em " +
+      formatDateLabel(version.publishedAt) +
+      " por " +
+      (version.author || "Equipe editorial") +
+      ". Aprovacao: " +
+      (version.approver || "Coordenacao");
+    article.appendChild(meta);
+
+    var summary = document.createElement("p");
+    summary.textContent = version.summary || "Versao sem resumo editorial.";
+    article.appendChild(summary);
+
+    if (Array.isArray(version.changes) && version.changes.length) {
+      var changesTitle = document.createElement("h3");
+      changesTitle.textContent = "Principais ajustes";
+      article.appendChild(changesTitle);
+
+      var changesList = document.createElement("ul");
+      version.changes.forEach(function (item) {
+        var listItem = document.createElement("li");
+        listItem.textContent = item;
+        changesList.appendChild(listItem);
+      });
+      article.appendChild(changesList);
+    }
+
+    return article;
+  }
+
+  function renderRegistrationGuidance() {
+    if (!(guidanceCurrentRoot instanceof HTMLElement)) {
+      return null;
+    }
+
+    var versions = Array.isArray(registrationGuidance.versions)
+      ? registrationGuidance.versions.filter(function (version) {
+          return version && version.status === "published";
+        })
+      : [];
+
+    if (!versions.length) {
+      var emptyNode = guidanceCurrentRoot.querySelector(".guidance-loading");
+      if (emptyNode) {
+        emptyNode.textContent = "Nenhuma versao publicada disponivel no momento.";
+      }
+      if (guidanceHistoryRoot instanceof HTMLElement) {
+        guidanceHistoryRoot.textContent = "Historico editorial indisponivel.";
+      }
+      return null;
+    }
+
+    var currentVersion = versions.find(function (version) {
+      return version.id === registrationGuidance.currentVersionId;
+    }) || versions[0];
+
+    var loadingNode = guidanceCurrentRoot.querySelector(".guidance-loading");
+    if (loadingNode) {
+      loadingNode.remove();
+    }
+
+    var insertionTarget = externalRegistrationLink || null;
+
+    var versionTitle = document.createElement("h3");
+    versionTitle.textContent = currentVersion.title || "Versao publicada";
+    guidanceCurrentRoot.insertBefore(versionTitle, insertionTarget);
+
+    var meta = document.createElement("p");
+    meta.className = "guidance-meta";
+    meta.textContent =
+      currentVersion.versionLabel +
+      " · Publicada em " +
+      formatDateLabel(currentVersion.publishedAt) +
+      " · Autoria: " +
+      (currentVersion.author || "Equipe editorial") +
+      " · Aprovacao: " +
+      (currentVersion.approver || "Coordenacao");
+    guidanceCurrentRoot.insertBefore(meta, insertionTarget);
+
+    var summary = document.createElement("p");
+    summary.className = "guidance-summary";
+    summary.textContent = currentVersion.summary || "Orientacoes oficiais publicadas.";
+    guidanceCurrentRoot.insertBefore(summary, insertionTarget);
+
+    var windowLine = document.createElement("p");
+    windowLine.className = "guidance-window";
+    windowLine.textContent =
+      "Janela oficial: " +
+      formatDateLabel(currentVersion.applicationWindow && currentVersion.applicationWindow.opensAt) +
+      " a " +
+      formatDateLabel(currentVersion.applicationWindow && currentVersion.applicationWindow.closesAt);
+    guidanceCurrentRoot.insertBefore(windowLine, insertionTarget);
+
+    var columns = document.createElement("div");
+    columns.className = "guidance-columns";
+    appendTextList(columns, "Criterios de elegibilidade", currentVersion.eligibility || []);
+    appendTextList(columns, "Passo a passo oficial", currentVersion.steps || []);
+    guidanceCurrentRoot.insertBefore(columns, insertionTarget);
+
+    if (Array.isArray(currentVersion.changes) && currentVersion.changes.length) {
+      var changesRoot = document.createElement("div");
+      changesRoot.className = "guidance-grid";
+      appendTextList(changesRoot, "O que mudou nesta versao", currentVersion.changes);
+      guidanceCurrentRoot.insertBefore(changesRoot, insertionTarget);
+    }
+
+    if (currentVersion.support && (currentVersion.support.email || currentVersion.support.hours)) {
+      var support = document.createElement("p");
+      support.className = "guidance-support";
+      support.textContent =
+        "Suporte editorial: " +
+        (currentVersion.support.email || "contato indisponivel") +
+        " · Atendimento: " +
+        (currentVersion.support.hours || "horario nao informado");
+      guidanceCurrentRoot.insertBefore(support, insertionTarget);
+    }
+
+    if (guidanceCurrentMeta instanceof HTMLElement) {
+      guidanceCurrentMeta.textContent =
+        "Versao vigente: " +
+        currentVersion.versionLabel +
+        " · em vigor desde " +
+        formatDateLabel(currentVersion.effectiveFrom || currentVersion.publishedAt);
+    }
+
+    if (guidanceHistoryRoot instanceof HTMLElement) {
+      guidanceHistoryRoot.textContent = "";
+      versions
+        .filter(function (version) {
+          return version.id !== currentVersion.id;
+        })
+        .forEach(function (version) {
+          guidanceHistoryRoot.appendChild(renderVersionCard(version));
+        });
+
+      if (!guidanceHistoryRoot.children.length) {
+        var emptyHistory = document.createElement("p");
+        emptyHistory.className = "guidance-loading";
+        emptyHistory.textContent = "Ainda nao ha versoes anteriores arquivadas.";
+        guidanceHistoryRoot.appendChild(emptyHistory);
+      }
+    }
+
+    return currentVersion;
+  }
+
+  var currentGuidanceVersion = renderRegistrationGuidance();
 
   function wait(ms) {
     return new Promise(function (resolve) {
@@ -271,7 +481,8 @@
 
   if (lookupForm && lookupResult) {
     emitTelemetry("registration_guideline_view", {
-      page: "inscricoes"
+      page: "inscricoes",
+      current_guidance_version: currentGuidanceVersion ? currentGuidanceVersion.id : "unknown"
     });
 
     lookupForm.addEventListener("submit", async function (event) {

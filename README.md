@@ -4,7 +4,7 @@ MVP inicial do portal oficial do PRISM Conecta.
 
 ## Escopo implementado
 - Pagina inicial com descricao geral do evento.
-- Pagina de inscricoes com orientacoes e consulta de resultado em modo demo.
+- Pagina de inscricoes com orientacoes versionadas e consulta de resultado em modo demo.
 - Pagina de programacao com agenda e palestrantes.
 - Pagina de privacidade com resumo de controles LGPD para o MVP.
 - Banner de consentimento para cookies opcionais.
@@ -15,8 +15,19 @@ MVP inicial do portal oficial do PRISM Conecta.
 - pages/programacao.html
 - pages/politica-privacidade.html
 - assets/css/styles.css
+- assets/js/registration-guidance.js
 - assets/js/site.js
 - .SPECS/ (fonte de verdade para requisitos de produto, qualidade e compliance)
+
+## Orientacoes de inscricao versionadas
+As versoes publicadas da chamada ficam em [assets/js/registration-guidance.js](assets/js/registration-guidance.js).
+
+O modelo atual define:
+
+- `currentVersionId`: versao vigente exibida na pagina
+- `versions`: historico de versoes publicadas com vigencia, autoria, aprovacao e changelog
+
+Ao atualizar a chamada, publique uma nova entrada e mova o `currentVersionId` para a versao aprovada.
 
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.

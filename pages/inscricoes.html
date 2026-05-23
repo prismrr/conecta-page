@@ -40,16 +40,12 @@
           Esta pagina centraliza criterios, prazos e o acesso ao resultado das
           inscricoes enviadas em sistema externo.
         </p>
+        <p class="page-version-note" data-guidance-current-meta></p>
       </section>
 
-      <section class="info-card">
+      <section class="info-card" data-guidance-current>
         <h2>Como se inscrever</h2>
-        <ol>
-          <li>Leia os criterios de elegibilidade da chamada atual.</li>
-          <li>Submeta sua inscricao no sistema externo oficial.</li>
-          <li>Acompanhe o prazo limite e aguarde validacao.</li>
-          <li>Consulte resultado final por codigo de inscricao.</li>
-        </ol>
+        <p class="guidance-loading">Carregando orientacoes publicadas...</p>
         <a
           class="btn btn-primary"
           href="#"
@@ -58,6 +54,19 @@
         >
           Ir para sistema de inscricao externo
         </a>
+      </section>
+
+      <section class="info-card" data-guidance-history-section>
+        <div class="section-heading">
+          <h2>Historico de versoes publicadas</h2>
+          <p>
+            Cada atualizacao registra vigencia, autoria editorial e principais
+            ajustes da chamada.
+          </p>
+        </div>
+        <div class="history-grid" data-guidance-history>
+          <p class="guidance-loading">Carregando historico editorial...</p>
+        </div>
       </section>
 
       <section class="info-card">
@@ -88,6 +97,7 @@
 
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/registration-core.js"></script>
+    <script src="../assets/js/registration-guidance.js"></script>
     <script src="../assets/js/site.js"></script>
   </body>
 </html>

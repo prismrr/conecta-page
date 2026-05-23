@@ -1,7 +1,7 @@
 # TODO
 
 **Sprint 1**
-1. `PRD-RQ02` Orientações de inscrição versionadas  
+1. [DONE] `PRD-RQ02` Orientações de inscrição versionadas  
 Entregar estrutura de conteúdo versionado para regras, prazos e instruções, com histórico mínimo e publicação controlada.
 2. `PRD-RQ04` Cronograma com ordenação e filtros  
 Adicionar filtro por trilha, turno ou tema, mantendo a agenda ordenada por horário.
