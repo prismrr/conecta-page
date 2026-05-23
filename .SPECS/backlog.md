@@ -16,8 +16,7 @@ Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetiti
 4. [DONE] `PRD-RQ09` Canal de direitos do titular. Criar fluxo mínimo de solicitação com formulário, protocolo e instruções de atendimento.
 
 **Sprint 3**
-1. `PRD-RQ08` Auditoria de conteúdo crítico  
-Registrar alteração de conteúdo relevante com autor, data e versão.
+1. [DONE] `PRD-RQ08` Auditoria de conteúdo crítico. Registrar alteração de conteúdo relevante com autor, data e versão.
 2. `PRD-RQ10` Monitoramento operacional da integração externa  
 Adicionar sinais de disponibilidade, falha de provider e resumo operacional.
 3. Persistência real para compliance  

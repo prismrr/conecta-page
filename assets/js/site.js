@@ -502,6 +502,7 @@
   var policyCurrentRoot = document.querySelector("[data-policy-current]");
   var policyCurrentMeta = document.querySelector("[data-policy-current-meta]");
   var policyChangelogRoot = document.querySelector("[data-policy-changelog]");
+  var auditListRoot = document.querySelector("[data-audit-list]");
   var termsCurrentRoot = document.querySelector("[data-terms-current]");
   var termsCurrentMeta = document.querySelector("[data-terms-current-meta]");
   var termsChangelogRoot = document.querySelector("[data-terms-changelog]");
@@ -511,6 +512,7 @@
   var scheduleData = window.ConectaScheduleData || {};
   var faqData = window.ConectaFaqData || {};
   var legalDocuments = window.ConectaLegalDocuments || {};
+  var contentAuditData = window.ConectaContentAudit || {};
 
   if (externalRegistrationLink && apiConfig.externalRegistrationUrl) {
     externalRegistrationLink.setAttribute("href", apiConfig.externalRegistrationUrl);
@@ -968,6 +970,65 @@
     termsChangelogRoot,
     "Termo de Uso"
   );
+
+  function renderContentAuditTrail() {
+    if (!(auditListRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    var events = Array.isArray(contentAuditData.events)
+      ? contentAuditData.events
+          .slice()
+          .sort(function (left, right) {
+            return String(right.changedAt || "").localeCompare(String(left.changedAt || ""));
+          })
+      : [];
+
+    auditListRoot.textContent = "";
+
+    if (!events.length) {
+      var empty = document.createElement("p");
+      empty.className = "guidance-loading";
+      empty.textContent = "Nenhum evento de auditoria registrado.";
+      auditListRoot.appendChild(empty);
+      return;
+    }
+
+    events.forEach(function (eventRecord) {
+      var card = document.createElement("article");
+      card.className = "audit-card";
+      card.setAttribute("data-audit-event-id", eventRecord.eventId || "unknown");
+
+      var title = document.createElement("h3");
+      title.textContent = (eventRecord.contentTitle || "Conteudo") + " · " + (eventRecord.version || "sem versao");
+      card.appendChild(title);
+
+      var meta = document.createElement("p");
+      meta.className = "audit-meta";
+      meta.textContent =
+        "Autor: " +
+        (eventRecord.author || "Nao informado") +
+        " · Data: " +
+        formatDateLabel((eventRecord.changedAt || "").slice(0, 10)) +
+        " · Tipo: " +
+        (eventRecord.changeType || "update");
+      card.appendChild(meta);
+
+      var summary = document.createElement("p");
+      summary.className = "audit-summary";
+      summary.textContent = eventRecord.changeSummary || "Sem resumo de alteracao.";
+      card.appendChild(summary);
+
+      var reference = document.createElement("p");
+      reference.className = "audit-reference";
+      reference.textContent = "Protocolo: " + (eventRecord.eventId || "N/A");
+      card.appendChild(reference);
+
+      auditListRoot.appendChild(card);
+    });
+  }
+
+  renderContentAuditTrail();
 
   function appendTextList(root, title, items) {
     if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {

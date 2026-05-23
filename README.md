@@ -119,6 +119,18 @@ Registro local de protocolo:
 - chave `conecta_dsar_requests_v1`
 - armazenamento minimizado (sem persistir email informado no formulario)
 
+## Trilha de auditoria de conteudo critico (PRD-RQ08)
+A trilha de auditoria e renderizada em [pages/politica-privacidade.html](pages/politica-privacidade.html) a partir de [assets/js/content-audit-log.js](assets/js/content-audit-log.js).
+
+Cada evento registra:
+
+- autor
+- data da alteracao
+- versao publicada
+- protocolo de auditoria
+
+O fluxo foi modelado como append-only no lado do cliente para manter historico de alteracoes criticas no MVP estatico.
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 
