@@ -3,8 +3,7 @@
 **Sprint 1**
 1. [DONE] `PRD-RQ02` Orientações de inscrição versionadas  
 Entregar estrutura de conteúdo versionado para regras, prazos e instruções, com histórico mínimo e publicação controlada.
-2. `PRD-RQ04` Cronograma com ordenação e filtros  
-Adicionar filtro por trilha, turno ou tema, mantendo a agenda ordenada por horário.
+2. [DONE] `PRD-RQ04` Cronograma com ordenação e filtros. Adicionar filtro por trilha, turno ou tema, mantendo a agenda ordenada por horário.
 3. `PRD-RQ05` Palestrantes com vínculo institucional  
 Completar cards com bio curta, instituição, área e links relevantes.
 4. `PRD-RQ12` FAQ curada  

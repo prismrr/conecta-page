@@ -360,6 +360,47 @@ h1 {
   font-weight: 600;
 }
 
+.schedule-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.schedule-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  gap: 0.9rem;
+}
+
+.filter-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.filter-field span {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.filter-field select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(3, 4, 25, 0.58);
+  color: var(--text);
+  padding: 0.65rem;
+  font: inherit;
+}
+
+.filter-field select:focus {
+  outline: 2px solid var(--ring);
+}
+
+.schedule-summary {
+  margin: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
 .timeline {
   display: grid;
   gap: 0.9rem;
@@ -378,6 +419,20 @@ h1 {
 .timeline-item span {
   font-weight: 700;
   color: var(--primary);
+}
+
+.timeline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.timeline-empty {
+  margin: 0;
+  color: var(--muted);
 }
 
 .speaker-grid {
@@ -469,6 +524,10 @@ h1 {
 
   .site-footer {
     flex-direction: column;
+  }
+
+  .schedule-filters {
+    grid-template-columns: 1fr;
   }
 }
 

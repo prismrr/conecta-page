@@ -161,9 +161,13 @@
   var guidanceCurrentRoot = document.querySelector("[data-guidance-current]");
   var guidanceHistoryRoot = document.querySelector("[data-guidance-history]");
   var guidanceCurrentMeta = document.querySelector("[data-guidance-current-meta]");
+  var scheduleListRoot = document.querySelector("[data-schedule-list]");
+  var scheduleSummaryRoot = document.querySelector("[data-schedule-summary]");
+  var scheduleFilterNodes = document.querySelectorAll("[data-schedule-filter]");
   var apiConfig = appConfig.registrationApi || {};
   var registrationCore = window.ConectaRegistrationCore || {};
   var registrationGuidance = window.ConectaRegistrationGuidance || {};
+  var scheduleData = window.ConectaScheduleData || {};
 
   if (externalRegistrationLink && apiConfig.externalRegistrationUrl) {
     externalRegistrationLink.setAttribute("href", apiConfig.externalRegistrationUrl);
@@ -193,6 +197,158 @@
       return dateIso;
     }
   }
+
+  function sortSessionsByStartTime(left, right) {
+    return String(left.startTime || "").localeCompare(String(right.startTime || ""));
+  }
+
+  function buildTrackOptions(sessions) {
+    var select = document.querySelector('[data-schedule-filter="track"]');
+    if (!(select instanceof HTMLSelectElement)) {
+      return;
+    }
+
+    var seenTracks = {};
+    sessions
+      .slice()
+      .sort(function (left, right) {
+        return String(left.track || "").localeCompare(String(right.track || ""));
+      })
+      .forEach(function (session) {
+        var track = session.track || "Sem trilha";
+        if (seenTracks[track]) {
+          return;
+        }
+
+        seenTracks[track] = true;
+        var option = document.createElement("option");
+        option.value = track;
+        option.textContent = track;
+        select.appendChild(option);
+      });
+  }
+
+  function createTimelineItem(session) {
+    var article = document.createElement("article");
+    article.className = "timeline-item";
+    article.setAttribute("data-session-id", session.id || "unknown");
+
+    var time = document.createElement("span");
+    time.textContent = (session.startTime || "--:--") + " - " + (session.endTime || "--:--");
+    article.appendChild(time);
+
+    var content = document.createElement("div");
+    var title = document.createElement("h2");
+    title.textContent = session.title || "Sessao sem titulo";
+    content.appendChild(title);
+
+    var summary = document.createElement("p");
+    summary.textContent = session.summary || "Resumo indisponivel.";
+    content.appendChild(summary);
+
+    var meta = document.createElement("p");
+    meta.className = "timeline-meta";
+    meta.textContent =
+      "Trilha: " +
+      (session.track || "Sem trilha") +
+      " · Turno: " +
+      (session.period || "na") +
+      " · Formato: " +
+      (session.format || "sessao") +
+      " · Sala: " +
+      (session.room || "a confirmar");
+    content.appendChild(meta);
+
+    article.appendChild(content);
+    return article;
+  }
+
+  function getScheduleFilters() {
+    var filters = {
+      track: "all",
+      period: "all"
+    };
+
+    scheduleFilterNodes.forEach(function (node) {
+      if (!(node instanceof HTMLSelectElement)) {
+        return;
+      }
+      var filterName = node.getAttribute("data-schedule-filter");
+      if (!filterName) {
+        return;
+      }
+      filters[filterName] = node.value || "all";
+    });
+
+    return filters;
+  }
+
+  function filterSessions(sessions, filters) {
+    return sessions.filter(function (session) {
+      if (filters.track !== "all" && session.track !== filters.track) {
+        return false;
+      }
+
+      if (filters.period !== "all" && session.period !== filters.period) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  function updateScheduleSummary(filters, count) {
+    if (!(scheduleSummaryRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    var parts = [count + (count === 1 ? " sessao exibida" : " sessoes exibidas")];
+    if (filters.track !== "all") {
+      parts.push("trilha " + filters.track);
+    }
+    if (filters.period !== "all") {
+      parts.push("turno " + filters.period);
+    }
+
+    scheduleSummaryRoot.textContent = parts.join(" · ");
+  }
+
+  function renderScheduleAgenda() {
+    if (!(scheduleListRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    var sessions = Array.isArray(scheduleData.sessions) ? scheduleData.sessions.slice().sort(sortSessionsByStartTime) : [];
+    buildTrackOptions(sessions);
+
+    function draw() {
+      var filters = getScheduleFilters();
+      var filteredSessions = filterSessions(sessions, filters);
+      scheduleListRoot.textContent = "";
+
+      if (!filteredSessions.length) {
+        var empty = document.createElement("p");
+        empty.className = "timeline-empty";
+        empty.textContent = "Nenhuma sessao encontrada para os filtros selecionados.";
+        scheduleListRoot.appendChild(empty);
+        updateScheduleSummary(filters, 0);
+        return;
+      }
+
+      filteredSessions.forEach(function (session) {
+        scheduleListRoot.appendChild(createTimelineItem(session));
+      });
+      updateScheduleSummary(filters, filteredSessions.length);
+    }
+
+    scheduleFilterNodes.forEach(function (node) {
+      node.addEventListener("change", draw);
+    });
+
+    draw();
+  }
+
+  renderScheduleAgenda();
 
   function appendTextList(root, title, items) {
     if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {

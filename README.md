@@ -5,7 +5,7 @@ MVP inicial do portal oficial do PRISM Conecta.
 ## Escopo implementado
 - Pagina inicial com descricao geral do evento.
 - Pagina de inscricoes com orientacoes versionadas e consulta de resultado em modo demo.
-- Pagina de programacao com agenda e palestrantes.
+- Pagina de programacao com agenda ordenada por horario, filtros por trilha e turno, e palestrantes.
 - Pagina de privacidade com resumo de controles LGPD para o MVP.
 - Banner de consentimento para cookies opcionais.
 
@@ -28,6 +28,16 @@ O modelo atual define:
 - `versions`: historico de versoes publicadas com vigencia, autoria, aprovacao e changelog
 
 Ao atualizar a chamada, publique uma nova entrada e mova o `currentVersionId` para a versao aprovada.
+
+## Agenda filtravel
+As sessoes da pagina [pages/programacao.html](pages/programacao.html) ficam em [assets/js/schedule-data.js](assets/js/schedule-data.js).
+
+O frontend ordena o cronograma por `startTime` e permite filtrar por:
+
+- `track`
+- `period`
+
+Ao adicionar uma nova sessao, informe ao menos `startTime`, `endTime`, `title`, `track` e `period` para manter a agenda consistente.
 
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
