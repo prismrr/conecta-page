@@ -107,6 +107,18 @@ Cada documento exibe:
 - data de vigencia
 - changelog visivel por versao publicada
 
+## Canal de direitos do titular (PRD-RQ09)
+Canal minimo implementado em [pages/politica-privacidade.html](pages/politica-privacidade.html) com:
+
+- formulario de solicitacao por tipo (acesso, correcao, exclusao, exportacao, revogacao)
+- geracao imediata de protocolo no formato `DSAR-YYYYMMDD-XXXXXX`
+- instrucoes de atendimento e prazo inicial de resposta
+
+Registro local de protocolo:
+
+- chave `conecta_dsar_requests_v1`
+- armazenamento minimizado (sem persistir email informado no formulario)
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 

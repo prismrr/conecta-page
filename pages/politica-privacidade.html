@@ -82,6 +82,60 @@
         <a class="btn btn-primary" href="termos-uso.html">Ver Termos de Uso</a>
       </section>
 
+      <section class="info-card dsar-shell">
+        <div class="section-heading">
+          <h2>Canal de direitos do titular</h2>
+          <p>
+            Use este formulario para solicitar acesso, correcao, exclusao,
+            exportacao ou revogacao de consentimento.
+          </p>
+        </div>
+
+        <form class="dsar-form" data-dsar-form>
+          <label>
+            Tipo da solicitacao
+            <select name="requestType" required>
+              <option value="">Selecione</option>
+              <option value="acesso">Acesso a dados</option>
+              <option value="correcao">Correcao de dados</option>
+              <option value="exclusao">Exclusao de dados</option>
+              <option value="exportacao">Exportacao de dados</option>
+              <option value="revogacao_consentimento">Revogacao de consentimento</option>
+            </select>
+          </label>
+
+          <label>
+            Email para retorno
+            <input name="contactEmail" type="email" placeholder="voce@instituicao.br" required />
+          </label>
+
+          <label>
+            Detalhes da solicitacao (opcional)
+            <textarea name="details" rows="4" placeholder="Inclua contexto para agilizar o atendimento."></textarea>
+          </label>
+
+          <label class="dsar-checkbox">
+            <input name="acknowledgement" type="checkbox" required />
+            <span>Confirmo que as informacoes enviadas sao verdadeiras e que o contato informado esta correto.</span>
+          </label>
+
+          <button class="btn btn-primary" type="submit">Gerar protocolo</button>
+        </form>
+
+        <div class="dsar-result" data-dsar-result role="status">
+          Preencha o formulario para gerar seu protocolo de atendimento.
+        </div>
+
+        <div class="dsar-instructions">
+          <h3>Instrucoes de atendimento</h3>
+          <ul>
+            <li>Protocolo gerado na hora para acompanhamento da solicitacao.</li>
+            <li>Prazo inicial de resposta: ate 15 dias corridos.</li>
+            <li>Guarde o protocolo e utilize o email dpo@conecta-prismrr.example para acompanhamento.</li>
+          </ul>
+        </div>
+      </section>
+
       <section class="info-card">
         <h2>Cookies por categoria</h2>
         <ul>

@@ -5,6 +5,7 @@
   var consentStorageKey = "conecta_consent_preferences_v2";
   var consentLegacyKey = "conecta_consent_v1";
   var consentVersion = "consent-v2-2026-05";
+  var dsarStorageKey = "conecta_dsar_requests_v1";
   var cookieDefinitions = {
     essential: {
       name: "conecta_cookie_essential",
@@ -233,6 +234,37 @@
       });
     } catch (_error) {
       // No-op: local fallback already pushed to dataLayer.
+    }
+  }
+
+  function createDsarProtocol() {
+    var now = new Date();
+    var y = now.getUTCFullYear();
+    var m = String(now.getUTCMonth() + 1).padStart(2, "0");
+    var d = String(now.getUTCDate()).padStart(2, "0");
+    var suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return "DSAR-" + y + m + d + "-" + suffix;
+  }
+
+  function readDsarRequests() {
+    try {
+      var raw = localStorage.getItem(dsarStorageKey);
+      if (!raw) {
+        return [];
+      }
+
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  function writeDsarRequests(requests) {
+    try {
+      localStorage.setItem(dsarStorageKey, JSON.stringify(requests));
+    } catch (_error) {
+      // No-op: browser storage may be unavailable in private contexts.
     }
   }
 
@@ -465,6 +497,8 @@
   var scheduleFilterNodes = document.querySelectorAll("[data-schedule-filter]");
   var speakerListRoot = document.querySelector("[data-speaker-list]");
   var faqListRoot = document.querySelector("[data-faq-list]");
+  var dsarForm = document.querySelector("[data-dsar-form]");
+  var dsarResult = document.querySelector("[data-dsar-result]");
   var policyCurrentRoot = document.querySelector("[data-policy-current]");
   var policyCurrentMeta = document.querySelector("[data-policy-current-meta]");
   var policyChangelogRoot = document.querySelector("[data-policy-changelog]");
@@ -769,6 +803,53 @@
   }
 
   renderFaqItems();
+
+  function renderDsarChannel() {
+    if (!(dsarForm instanceof HTMLFormElement) || !(dsarResult instanceof HTMLElement)) {
+      return;
+    }
+
+    dsarForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      var formData = new FormData(dsarForm);
+      var requestType = String(formData.get("requestType") || "").trim();
+      var contactEmail = String(formData.get("contactEmail") || "").trim();
+
+      if (!requestType || !contactEmail) {
+        dsarResult.textContent = "Informe tipo de solicitacao e email para gerar o protocolo.";
+        return;
+      }
+
+      var protocol = createDsarProtocol();
+      var createdAt = new Date().toISOString();
+
+      var history = readDsarRequests();
+      history.push({
+        protocol: protocol,
+        requestType: requestType,
+        createdAt: createdAt,
+        channel: "web_form",
+        status: "received"
+      });
+      writeDsarRequests(history);
+
+      dsarResult.textContent =
+        "Solicitacao registrada com sucesso. Protocolo: " +
+        protocol +
+        ". Prazo inicial de resposta: ate 15 dias corridos.";
+
+      emitTelemetry("dsar_request_created", {
+        channel: "web_form",
+        request_type: requestType,
+        protocol: protocol
+      });
+
+      dsarForm.reset();
+    });
+  }
+
+  renderDsarChannel();
 
   function getPublishedLegalVersions(documentData) {
     return Array.isArray(documentData && documentData.versions)
