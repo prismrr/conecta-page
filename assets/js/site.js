@@ -165,10 +165,12 @@
   var scheduleSummaryRoot = document.querySelector("[data-schedule-summary]");
   var scheduleFilterNodes = document.querySelectorAll("[data-schedule-filter]");
   var speakerListRoot = document.querySelector("[data-speaker-list]");
+  var faqListRoot = document.querySelector("[data-faq-list]");
   var apiConfig = appConfig.registrationApi || {};
   var registrationCore = window.ConectaRegistrationCore || {};
   var registrationGuidance = window.ConectaRegistrationGuidance || {};
   var scheduleData = window.ConectaScheduleData || {};
+  var faqData = window.ConectaFaqData || {};
 
   if (externalRegistrationLink && apiConfig.externalRegistrationUrl) {
     externalRegistrationLink.setAttribute("href", apiConfig.externalRegistrationUrl);
@@ -415,6 +417,52 @@
   }
 
   renderSpeakerProfiles();
+
+  function renderFaqItems() {
+    if (!(faqListRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    var items = Array.isArray(faqData.items) ? faqData.items : [];
+    faqListRoot.textContent = "";
+
+    if (!items.length) {
+      var empty = document.createElement("p");
+      empty.className = "guidance-loading";
+      empty.textContent = "FAQ indisponivel no momento.";
+      faqListRoot.appendChild(empty);
+      return;
+    }
+
+    items.forEach(function (item) {
+      var details = document.createElement("details");
+      details.className = "faq-item";
+      details.setAttribute("data-faq-id", item.id || "unknown");
+
+      var summary = document.createElement("summary");
+
+      var category = document.createElement("span");
+      category.className = "faq-category";
+      category.textContent = item.category || "FAQ";
+      summary.appendChild(category);
+
+      var question = document.createElement("span");
+      question.className = "faq-question";
+      question.textContent = item.question || "Pergunta frequente";
+      summary.appendChild(question);
+
+      details.appendChild(summary);
+
+      var answer = document.createElement("p");
+      answer.className = "faq-answer";
+      answer.textContent = item.answer || "Resposta indisponivel.";
+      details.appendChild(answer);
+
+      faqListRoot.appendChild(details);
+    });
+  }
+
+  renderFaqItems();
 
   function appendTextList(root, title, items) {
     if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {

@@ -495,6 +495,62 @@ h1 {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.faq-page {
+  gap: 1.25rem;
+}
+
+.faq-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.faq-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(8, 10, 43, 0.55);
+  padding: 1rem;
+}
+
+.faq-item[open] {
+  background: rgba(10, 12, 48, 0.78);
+}
+
+.faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-category {
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.faq-question {
+  color: var(--text);
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.faq-answer {
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+}
+
 .policy .info-card {
   max-width: 780px;
 }

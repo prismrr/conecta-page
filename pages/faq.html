@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Privacidade | Conecta PrismRR</title>
+    <title>FAQ | Conecta PrismRR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="../assets/css/styles.css" />
   </head>
-  <body data-page="privacidade">
+  <body data-page="faq">
     <div class="bg-glow bg-glow-a"></div>
     <div class="bg-glow bg-glow-b"></div>
 
@@ -28,43 +28,33 @@
         <a href="../index.html">Inicio</a>
         <a href="inscricoes.html">Inscricoes</a>
         <a href="programacao.html">Programacao</a>
-        <a href="faq.html">FAQ</a>
-        <a class="active" href="politica-privacidade.html">Privacidade</a>
+        <a class="active" href="faq.html">FAQ</a>
+        <a href="politica-privacidade.html">Privacidade</a>
       </nav>
     </header>
 
-    <main class="container page-main policy">
+    <main class="container page-main faq-page">
       <section class="page-head">
-        <p class="eyebrow">LGPD by design</p>
-        <h1>Politica de Privacidade (resumo MVP)</h1>
-      </section>
-
-      <section class="info-card">
-        <h2>Dados coletados</h2>
-        <p>Nome, email institucional e preferencias de comunicacao, quando aplicavel.</p>
-      </section>
-
-      <section class="info-card">
-        <h2>Finalidade</h2>
+        <p class="eyebrow">FAQ curada</p>
+        <h1>Perguntas frequentes oficiais</h1>
         <p>
-          Divulgar o evento, orientar inscricoes e comunicar resultados, com base em
-          necessidade, transparencia e minimizacao.
+          Respostas consolidadas a partir do conteudo oficial ja publicado no
+          portal para reduzir duvidas recorrentes e orientar a jornada do evento.
         </p>
       </section>
 
-      <section class="info-card">
-        <h2>Direitos do titular</h2>
-        <ul>
-          <li>Acesso e correcao de dados</li>
-          <li>Revogacao de consentimento</li>
-          <li>Solicitacao de exclusao quando cabivel</li>
-          <li>Exportacao de informacoes</li>
-        </ul>
-      </section>
+      <section class="info-card faq-shell">
+        <div class="section-heading">
+          <h2>Base inicial de respostas</h2>
+          <p>
+            Esta FAQ reune orientacoes de inscricao, agenda, escopo do evento e
+            informacoes de privacidade publicadas nas paginas oficiais.
+          </p>
+        </div>
 
-      <section class="info-card">
-        <h2>Contato DPO</h2>
-        <p>Email ficticio para ambiente de desenvolvimento: dpo@conecta-prismrr.example</p>
+        <div class="faq-grid" data-faq-list>
+          <p class="guidance-loading">Carregando perguntas frequentes...</p>
+        </div>
       </section>
     </main>
 
@@ -73,6 +63,7 @@
       <p><a href="../index.html">Voltar ao inicio</a></p>
     </footer>
 
+    <script src="../assets/js/faq-data.js"></script>
     <script src="../assets/js/registration-core.js"></script>
     <script src="../assets/js/site.js"></script>
   </body>

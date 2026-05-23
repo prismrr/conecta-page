@@ -49,6 +49,17 @@ Cada perfil aceita:
 - `bio`
 - `links[]`
 
+## FAQ curada
+A FAQ publicada em [pages/faq.html](pages/faq.html) usa como fonte [assets/js/faq-data.js](assets/js/faq-data.js).
+
+Cada entrada da base curada define:
+
+- `category`
+- `question`
+- `answer`
+
+As respostas atuais foram consolidadas a partir do conteudo oficial das paginas Home, Inscricoes, Programacao e Privacidade.
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 

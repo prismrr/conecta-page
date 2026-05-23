@@ -6,7 +6,7 @@ Entregar estrutura de conteúdo versionado para regras, prazos e instruções, c
 2. [DONE] `PRD-RQ04` Cronograma com ordenação e filtros. Adicionar filtro por trilha, turno ou tema, mantendo a agenda ordenada por horário.
 3. [DONE] `PRD-RQ05` Palestrantes com vínculo institucional  
 Completar cards com bio curta, instituição, área e links relevantes.
-4. `PRD-RQ12` FAQ curada  
+4. [DONE] `PRD-RQ12` FAQ curada  
 Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetitivas.
 
 **Sprint 2**
