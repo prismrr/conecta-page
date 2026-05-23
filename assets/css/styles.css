@@ -551,6 +551,54 @@ h1 {
   color: var(--muted);
 }
 
+.legal-doc-meta {
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.legal-doc-summary {
+  margin: 0 0 0.85rem;
+}
+
+.legal-doc-highlights {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.legal-doc-highlights li {
+  color: var(--muted);
+}
+
+.legal-changelog-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.legal-changelog-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(8, 10, 43, 0.55);
+  padding: 1rem;
+}
+
+.legal-changelog-card h3 {
+  margin: 0 0 0.45rem;
+}
+
+.legal-changelog-card p {
+  margin-top: 0;
+}
+
+.legal-changelog-card ul {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.legal-changelog-card li {
+  color: var(--muted);
+}
+
 .policy .info-card {
   max-width: 780px;
 }

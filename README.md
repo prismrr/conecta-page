@@ -93,6 +93,20 @@ Cookies atualmente gerenciados:
 
 Ao revogar categorias opcionais, os cookies opcionais correspondentes sao removidos imediatamente no navegador.
 
+## Politica e Termo versionados (PRD-RQ11)
+Os documentos legais versionados sao renderizados a partir de [assets/js/legal-documents.js](assets/js/legal-documents.js).
+
+Paginas:
+
+- [pages/politica-privacidade.html](pages/politica-privacidade.html)
+- [pages/termos-uso.html](pages/termos-uso.html)
+
+Cada documento exibe:
+
+- versao vigente
+- data de vigencia
+- changelog visivel por versao publicada
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 

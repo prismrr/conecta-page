@@ -465,11 +465,18 @@
   var scheduleFilterNodes = document.querySelectorAll("[data-schedule-filter]");
   var speakerListRoot = document.querySelector("[data-speaker-list]");
   var faqListRoot = document.querySelector("[data-faq-list]");
+  var policyCurrentRoot = document.querySelector("[data-policy-current]");
+  var policyCurrentMeta = document.querySelector("[data-policy-current-meta]");
+  var policyChangelogRoot = document.querySelector("[data-policy-changelog]");
+  var termsCurrentRoot = document.querySelector("[data-terms-current]");
+  var termsCurrentMeta = document.querySelector("[data-terms-current-meta]");
+  var termsChangelogRoot = document.querySelector("[data-terms-changelog]");
   var apiConfig = appConfig.registrationApi || {};
   var registrationCore = window.ConectaRegistrationCore || {};
   var registrationGuidance = window.ConectaRegistrationGuidance || {};
   var scheduleData = window.ConectaScheduleData || {};
   var faqData = window.ConectaFaqData || {};
+  var legalDocuments = window.ConectaLegalDocuments || {};
 
   if (externalRegistrationLink && apiConfig.externalRegistrationUrl) {
     externalRegistrationLink.setAttribute("href", apiConfig.externalRegistrationUrl);
@@ -762,6 +769,124 @@
   }
 
   renderFaqItems();
+
+  function getPublishedLegalVersions(documentData) {
+    return Array.isArray(documentData && documentData.versions)
+      ? documentData.versions.filter(function (version) {
+          return version && version.status === "published";
+        })
+      : [];
+  }
+
+  function findCurrentLegalVersion(documentData, publishedVersions) {
+    if (!publishedVersions.length) {
+      return null;
+    }
+
+    return (
+      publishedVersions.find(function (version) {
+        return version.id === documentData.currentVersionId;
+      }) || publishedVersions[0]
+    );
+  }
+
+  function createLegalChangelogCard(version) {
+    var card = document.createElement("article");
+    card.className = "legal-changelog-card";
+
+    var heading = document.createElement("h3");
+    heading.textContent = version.versionLabel || "Versao publicada";
+    card.appendChild(heading);
+
+    var meta = document.createElement("p");
+    meta.className = "guidance-meta";
+    meta.textContent = "Vigencia: " + formatDateLabel(version.effectiveFrom || version.publishedAt);
+    card.appendChild(meta);
+
+    if (Array.isArray(version.changes) && version.changes.length) {
+      var list = document.createElement("ul");
+      version.changes.forEach(function (change) {
+        var item = document.createElement("li");
+        item.textContent = change;
+        list.appendChild(item);
+      });
+      card.appendChild(list);
+    }
+
+    return card;
+  }
+
+  function renderLegalDocument(documentData, currentRoot, metaRoot, changelogRoot, label) {
+    if (!(currentRoot instanceof HTMLElement) || !(metaRoot instanceof HTMLElement) || !(changelogRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    var published = getPublishedLegalVersions(documentData);
+    var currentVersion = findCurrentLegalVersion(documentData, published);
+
+    if (!currentVersion) {
+      currentRoot.textContent = "Documento indisponivel no momento.";
+      changelogRoot.textContent = "Changelog indisponivel.";
+      return;
+    }
+
+    metaRoot.textContent =
+      "Versao vigente: " +
+      (currentVersion.versionLabel || "N/A") +
+      " · em vigor desde " +
+      formatDateLabel(currentVersion.effectiveFrom || currentVersion.publishedAt);
+
+    currentRoot.textContent = "";
+
+    var heading = document.createElement("h2");
+    heading.textContent = label + " vigente";
+    currentRoot.appendChild(heading);
+
+    var versionMeta = document.createElement("p");
+    versionMeta.className = "legal-doc-meta";
+    versionMeta.textContent =
+      (currentVersion.versionLabel || "") +
+      " · publicada em " +
+      formatDateLabel(currentVersion.publishedAt || currentVersion.effectiveFrom);
+    currentRoot.appendChild(versionMeta);
+
+    var summary = document.createElement("p");
+    summary.className = "legal-doc-summary";
+    summary.textContent = currentVersion.summary || "Resumo indisponivel.";
+    currentRoot.appendChild(summary);
+
+    if (Array.isArray(currentVersion.highlights) && currentVersion.highlights.length) {
+      var highlights = document.createElement("ul");
+      highlights.className = "legal-doc-highlights";
+      currentVersion.highlights.forEach(function (highlight) {
+        var item = document.createElement("li");
+        item.textContent = highlight;
+        highlights.appendChild(item);
+      });
+      currentRoot.appendChild(highlights);
+    }
+
+    changelogRoot.textContent = "";
+    published.forEach(function (version) {
+      changelogRoot.appendChild(createLegalChangelogCard(version));
+    });
+  }
+
+  renderLegalDocument(
+    legalDocuments.privacyPolicy || {},
+    policyCurrentRoot,
+    policyCurrentMeta,
+    policyChangelogRoot,
+    "Politica de Privacidade"
+  );
+
+  renderLegalDocument(
+    legalDocuments.termsOfUse || {},
+    termsCurrentRoot,
+    termsCurrentMeta,
+    termsChangelogRoot,
+    "Termo de Uso"
+  );
 
   function appendTextList(root, title, items) {
     if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {

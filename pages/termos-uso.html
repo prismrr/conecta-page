@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FAQ | Conecta PrismRR</title>
+    <title>Termos de Uso | Conecta PrismRR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,7 +12,7 @@
     />
     <link rel="stylesheet" href="../assets/css/styles.css" />
   </head>
-  <body data-page="faq">
+  <body data-page="termos">
     <div class="bg-glow bg-glow-a"></div>
     <div class="bg-glow bg-glow-b"></div>
 
@@ -28,34 +28,44 @@
         <a href="../index.html">Inicio</a>
         <a href="inscricoes.html">Inscricoes</a>
         <a href="programacao.html">Programacao</a>
-        <a class="active" href="faq.html">FAQ</a>
+        <a href="faq.html">FAQ</a>
         <a href="politica-privacidade.html">Privacidade</a>
-        <a href="termos-uso.html">Termos</a>
+        <a class="active" href="termos-uso.html">Termos</a>
       </nav>
     </header>
 
-    <main class="container page-main faq-page">
+    <main class="container page-main policy">
       <section class="page-head">
-        <p class="eyebrow">FAQ curada</p>
-        <h1>Perguntas frequentes oficiais</h1>
-        <p>
-          Respostas consolidadas a partir do conteudo oficial ja publicado no
-          portal para reduzir duvidas recorrentes e orientar a jornada do evento.
-        </p>
+        <p class="eyebrow">Documento legal</p>
+        <h1>Termos de Uso (versionados)</h1>
+        <p class="page-version-note" data-terms-current-meta></p>
       </section>
 
-      <section class="info-card faq-shell">
+      <section class="info-card" data-terms-current>
+        <h2>Termo vigente</h2>
+        <p class="guidance-loading">Carregando versao vigente dos termos...</p>
+      </section>
+
+      <section class="info-card">
         <div class="section-heading">
-          <h2>Base inicial de respostas</h2>
+          <h2>Changelog dos termos</h2>
           <p>
-            Esta FAQ reune orientacoes de inscricao, agenda, escopo do evento e
-            informacoes de privacidade publicadas nas paginas oficiais.
+            Alteracoes publicadas para acompanhamento de vigencia e clareza de
+            regras de uso do portal.
           </p>
         </div>
-
-        <div class="faq-grid" data-faq-list>
-          <p class="guidance-loading">Carregando perguntas frequentes...</p>
+        <div class="legal-changelog-grid" data-terms-changelog>
+          <p class="guidance-loading">Carregando changelog...</p>
         </div>
+      </section>
+
+      <section class="info-card">
+        <h2>Relacao com politica de privacidade</h2>
+        <p>
+          O tratamento de dados e consentimento por categoria permanece descrito
+          na Politica de Privacidade vigente.
+        </p>
+        <a class="btn btn-primary" href="politica-privacidade.html">Ver Politica de Privacidade</a>
       </section>
     </main>
 
@@ -115,8 +125,8 @@
       </div>
     </section>
 
-    <script src="../assets/js/faq-data.js"></script>
     <script src="../assets/js/registration-core.js"></script>
+    <script src="../assets/js/legal-documents.js"></script>
     <script src="../assets/js/site.js"></script>
   </body>
 </html>

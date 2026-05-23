@@ -30,26 +30,20 @@
         <a href="programacao.html">Programacao</a>
         <a href="faq.html">FAQ</a>
         <a class="active" href="politica-privacidade.html">Privacidade</a>
+        <a href="termos-uso.html">Termos</a>
       </nav>
     </header>
 
     <main class="container page-main policy">
       <section class="page-head">
         <p class="eyebrow">LGPD by design</p>
-        <h1>Politica de Privacidade (resumo MVP)</h1>
+        <h1>Politica de Privacidade (versionada)</h1>
+        <p class="page-version-note" data-policy-current-meta></p>
       </section>
 
-      <section class="info-card">
-        <h2>Dados coletados</h2>
-        <p>Nome, email institucional e preferencias de comunicacao, quando aplicavel.</p>
-      </section>
-
-      <section class="info-card">
-        <h2>Finalidade</h2>
-        <p>
-          Divulgar o evento, orientar inscricoes e comunicar resultados, com base em
-          necessidade, transparencia e minimizacao.
-        </p>
+      <section class="info-card" data-policy-current>
+        <h2>Politica vigente</h2>
+        <p class="guidance-loading">Carregando versao vigente da politica...</p>
       </section>
 
       <section class="info-card">
@@ -64,6 +58,28 @@
           As preferencias por categoria podem ser atualizadas a qualquer momento
           pelo atalho "Preferencias de consentimento" exibido no portal.
         </p>
+      </section>
+
+      <section class="info-card">
+        <div class="section-heading">
+          <h2>Changelog da politica</h2>
+          <p>
+            Historico de alteracoes publicadas para transparencia e
+            rastreabilidade do documento.
+          </p>
+        </div>
+        <div class="legal-changelog-grid" data-policy-changelog>
+          <p class="guidance-loading">Carregando changelog...</p>
+        </div>
+      </section>
+
+      <section class="info-card">
+        <h2>Termos de Uso versionados</h2>
+        <p>
+          Consulte o documento completo em sua versao vigente com data de
+          vigencia e historico de publicacao.
+        </p>
+        <a class="btn btn-primary" href="termos-uso.html">Ver Termos de Uso</a>
       </section>
 
       <section class="info-card">
@@ -142,6 +158,7 @@
     </section>
 
     <script src="../assets/js/registration-core.js"></script>
+    <script src="../assets/js/legal-documents.js"></script>
     <script src="../assets/js/site.js"></script>
   </body>
 </html>
