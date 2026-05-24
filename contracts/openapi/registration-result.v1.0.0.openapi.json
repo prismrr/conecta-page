@@ -1,0 +1,150 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Conecta Registration Result API",
+    "version": "1.0.0",
+    "description": "Versioned OpenAPI contract for external registration result integration.",
+    "x-contract-id": "registration-result",
+    "x-contract-version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/api/registrations/{registrationId}": {
+      "get": {
+        "summary": "Get registration result by identifier",
+        "operationId": "getRegistrationResult",
+        "parameters": [
+          {
+            "name": "registrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 64
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contract-valid registration result payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized access to provider",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden access to provider",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Registration ID not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Provider unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegistrationResult": {
+        "type": "object",
+        "required": [
+          "registrationId",
+          "status",
+          "updatedAt"
+        ],
+        "properties": {
+          "registrationId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 64,
+            "description": "External registration identifier"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "UNDER_REVIEW",
+              "REJECTED"
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 280
+          }
+        },
+        "additionalProperties": true
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "error"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "error": {
+            "type": "string",
+            "enum": [
+              "not_found",
+              "unauthorized",
+              "provider_unavailable",
+              "missing_registration_id"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

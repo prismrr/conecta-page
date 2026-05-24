@@ -214,7 +214,7 @@ baseUrl: "https://api.seudominio.br"
 endpointTemplate: "/api/registrations/{registrationId}"
 
 ### 2. Contrato esperado
-Arquivo de referencia: [contracts/registration-result.contract.json](contracts/registration-result.contract.json)
+Arquivo de referencia (OpenAPI versionado): [contracts/openapi/registration-result.v1.0.0.openapi.json](contracts/openapi/registration-result.v1.0.0.openapi.json)
 
 Payload esperado (JSON):
 
@@ -231,6 +231,18 @@ Campos obrigatorios:
 - updatedAt (date-time ISO)
 
 Se o payload violar o contrato, a tela entra em modo degradado com mensagem de indisponibilidade controlada.
+
+### 3. Teste de contrato dedicado
+Para validar o contrato formal da integracao externa de forma isolada:
+
+`npm run test:contract`
+
+O teste dedicado fica em [tests/contract/registration-openapi.contract.test.js](tests/contract/registration-openapi.contract.test.js) e valida:
+
+- metadados de versao do OpenAPI
+- payloads 200 contra schema `RegistrationResult`
+- payloads de erro (401/404/503) contra schema `ErrorResponse`
+- deteccao de payload invalido de contrato no cenario `PRISM-2026-999`
 
 ## Telemetria de eventos criticos do funil
 Implementada no frontend em [assets/js/site.js](assets/js/site.js), com configuracao em [assets/js/config.js](assets/js/config.js).
