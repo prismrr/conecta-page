@@ -1,0 +1,41 @@
+name: Compliance Incident Drill
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 1 * *"
+
+jobs:
+  incident-drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Execute incident drill playbook
+        run: |
+          mkdir -p artifacts
+          python3 scripts/incident_drill.py \
+            --db-file artifacts/compliance-incident-drill.db \
+            --report-file artifacts/compliance-incident-drill-report.json \
+            --summary-file artifacts/compliance-incident-drill-summary.md
+
+      - name: Upload incident drill evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-incident-drill-evidence
+          retention-days: 90
+          path: |
+            artifacts/compliance-incident-drill-report.json
+            artifacts/compliance-incident-drill-summary.md
+            artifacts/compliance-incident-drill.db
+          if-no-files-found: error

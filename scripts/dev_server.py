@@ -157,6 +157,14 @@ def init_database(db_file: Path) -> None:
                 mode TEXT NOT NULL,
                 report_json TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS compliance_incident_drills (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                executed_at TEXT NOT NULL,
+                scenario_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                report_json TEXT NOT NULL
+            );
             """
         )
 

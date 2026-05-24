@@ -199,6 +199,33 @@ Automacao periodica:
 - periodicidade diaria via `cron`
 - publicacao de artifact `compliance-retention-report`
 
+## Plano operacional de incidente e prova de exercicio (LGPD-RF12)
+Foi adicionado um playbook tecnico executavel em [scripts/incident_drill.py](scripts/incident_drill.py), com simulacao controlada de indisponibilidade do provider externo e evidencias auditaveis por execucao.
+
+Escopo do exercicio automatizado:
+
+- deteccao de falhas repetidas de sincronizacao externa
+- classificacao de severidade com alerta operacional
+- verificacao de acao de contencao (modo degradado)
+- checklist de notificacao para DPO/fluxo ANPD
+- criterios de recuperacao e revisao pos-incidente
+
+Evidencias geradas:
+
+- relatorio JSON em `logs/compliance-incident-drill-report.json` (ou caminho customizado)
+- trilha append-only na tabela `compliance_incident_drills`
+
+Comandos locais:
+
+- executar simulacao completa: `npm run compliance:incident:drill`
+- executar somente verificacao sem simular falha: `npm run compliance:incident:drill:observe`
+
+Integracao com pipeline operacional:
+
+- etapa bloqueante no CI principal em [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- workflow dedicado e agendado em [.github/workflows/compliance-incident-drill.yml](.github/workflows/compliance-incident-drill.yml)
+- artifact `compliance-incident-drill-evidence` com relatorio e base SQLite do exercicio
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 
