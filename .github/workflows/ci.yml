@@ -152,3 +152,61 @@ jobs:
         uses: google/osv-scanner-action@v1
         with:
           scan-args: -r .
+
+  dast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - test
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Start static server
+        run: |
+          python -m http.server 8080 --directory . >/tmp/conecta-http.log 2>&1 &
+          echo "SERVER_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for server readiness
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Static server did not become ready in time" >&2
+          exit 1
+
+      - name: Run DAST baseline (OWASP ZAP)
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "http://127.0.0.1:8080"
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report
+          cmd_options: "-a -m 5"
+
+      - name: Upload static server log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-server-log
+          retention-days: 7
+          path: /tmp/conecta-http.log
+          if-no-files-found: ignore
+
+      - name: Stop static server
+        if: ${{ always() }}
+        run: |
+          if [ -n "${SERVER_PID:-}" ]; then
+            kill "$SERVER_PID" || true
+          fi
