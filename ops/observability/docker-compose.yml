@@ -5,7 +5,7 @@ services:
     image: grafana/loki:3.0.0
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - ${PWD}/ops/observability/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
     ports:
       - "3100:3100"
@@ -18,7 +18,7 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ${PWD}/ops/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
     depends_on:
       - loki
     ports:

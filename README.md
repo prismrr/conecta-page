@@ -267,7 +267,7 @@ Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o flux
 
 2. Suba stack completa com forwarding para Loki:
 
-`TELEMETRY_FORWARD_URL=http://loki:3100/loki/api/v1/push TELEMETRY_FORWARD_PROVIDER=loki docker compose -f docker-compose.local.yml -f ops/observability/docker-compose.yml up -d`
+`PWD=$(pwd) TELEMETRY_FORWARD_URL=http://loki:3100/loki/api/v1/push TELEMETRY_FORWARD_PROVIDER=loki docker compose -f docker-compose.local.yml -f ops/observability/docker-compose.yml up -d`
 
 Atalho via npm:
 
