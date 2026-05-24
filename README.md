@@ -298,11 +298,6 @@ Atalho via npm:
 Observacao:
 - Se o forwarding estiver ativo para Loki, o endpoint `GET /observability/health` deve mostrar `forwarding.configured=true`.
 
-## Proximo incremento sugerido
-- Integrar consulta de inscricao com endpoint real e validacao de contrato.
-- Instrumentar eventos de telemetria do funil principal.
-- Adicionar suite de testes automatizados (unitario, integracao e E2E).
-
 ## Integracao real de consulta de inscricao
 O fluxo de consulta em [pages/inscricoes.html](pages/inscricoes.html) ja usa requisicao HTTP real com retry, timeout e validacao de contrato.
 
