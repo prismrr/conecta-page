@@ -122,3 +122,33 @@ jobs:
             artifacts/telemetry-sanitized.ndjson
             artifacts/telemetry-summary.json
           if-no-files-found: ignore
+
+  appsec:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run SAST (Semgrep)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: p/security-audit
+
+      - name: Run SCA (OSV Scanner)
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: -r .

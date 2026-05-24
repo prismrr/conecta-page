@@ -281,6 +281,14 @@ Cobertura inicial:
 
 O pipeline de PR em [/.github/workflows/ci.yml](.github/workflows/ci.yml) executa o VRT como etapa bloqueante antes do E2E completo.
 
+## AppSec no CI (Sprint 4 item 3)
+Foi adicionada uma esteira inicial de AppSec no pipeline de PR em [/.github/workflows/ci.yml](.github/workflows/ci.yml), com gates bloqueantes para:
+
+- SAST com Semgrep (`p/security-audit`)
+- SCA com OSV Scanner (`-r .`)
+
+Os checks rodam em job dedicado (`appsec`) e bloqueiam merge quando houver falhas.
+
 ### Eventos emitidos
 - page_view
 - cta_click

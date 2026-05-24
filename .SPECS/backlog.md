@@ -25,8 +25,7 @@ Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetiti
 1. [DONE] Acessibilidade automatizada em PR. Adicionar `axe-core` ao pipeline.
 2. [DONE] VRT e hardening visual  
 Adicionar visual regression para páginas críticas.
-3. AppSec no CI  
-Adicionar SAST, SCA e, se possível, baseline DAST.
+3. [DONE] AppSec no CI. Adicionar SAST, SCA e, se possível, baseline DAST.
 4. Observabilidade avançada  
 Estruturar destino real para telemetria, alertas básicos e correlação por release.
 
