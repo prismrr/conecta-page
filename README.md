@@ -247,6 +247,22 @@ O teste dedicado fica em [tests/contract/registration-openapi.contract.test.js](
 ## Telemetria de eventos criticos do funil
 Implementada no frontend em [assets/js/site.js](assets/js/site.js), com configuracao em [assets/js/config.js](assets/js/config.js).
 
+## Acessibilidade automatizada em PR (Sprint 4 item 1)
+Foi adicionada validacao automatizada com axe-core via Playwright para paginas criticas:
+
+- `/index.html`
+- `/pages/inscricoes.html`
+- `/pages/programacao.html`
+- `/pages/politica-privacidade.html`
+
+Comando dedicado:
+
+`npm run test:a11y`
+
+Arquivo de teste: [tests/e2e/accessibility.spec.js](tests/e2e/accessibility.spec.js)
+
+O pipeline de PR em [/.github/workflows/ci.yml](.github/workflows/ci.yml) executa esse stage de forma bloqueante antes do E2E completo.
+
 ### Eventos emitidos
 - page_view
 - cta_click

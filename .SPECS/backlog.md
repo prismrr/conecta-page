@@ -22,8 +22,7 @@ Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetiti
 4. [DONE] Contrato formal de integração. Evoluir do JSON contract atual para OpenAPI versionado e teste de contrato dedicado.
 
 **Sprint 4**
-1. Acessibilidade automatizada em PR  
-Adicionar `axe-core` ao pipeline.
+1. [DONE] Acessibilidade automatizada em PR. Adicionar `axe-core` ao pipeline.
 2. VRT e hardening visual  
 Adicionar visual regression para páginas críticas.
 3. AppSec no CI  
