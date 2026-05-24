@@ -306,6 +306,7 @@ Endpoints operacionais:
 
 - `GET /observability/summary?windowMinutes=60`
 - `GET /observability/alerts?limit=20`
+- `GET /observability/health`
 
 Detalhes do resumo operacional:
 
@@ -318,6 +319,14 @@ Regra inicial de alerta:
 
 - cria alerta `external_data_sync_failed_spike` com severidade `high`
 - dispara quando `external_data_sync_failed` atinge o limiar na janela configurada por release
+
+Health operacional:
+
+- status geral da camada de observabilidade (`ok` ou `degraded`)
+- status de conexao com banco local
+- estado de configuracao de forwarding
+- ultimo evento de telemetria e ultimo alerta
+- contagens das ultimas 24h
 
 ### Eventos emitidos
 - page_view

@@ -168,6 +168,21 @@ describe("dev server integration", () => {
     expect(failureAlert.severity).toBe("high");
   });
 
+  test("observability health should expose db, forwarding and recency metadata", async () => {
+    const response = await fetch(`${server.baseUrl}/observability/health`);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.health.status).toBe("ok");
+    expect(payload.health.database.ok).toBe(true);
+    expect(payload.health.forwarding.configured).toBe(false);
+    expect(typeof payload.health.telemetry.countLast24h).toBe("number");
+    expect(typeof payload.health.alerts.countLast24h).toBe("number");
+    expect(payload.health.alerts.rule.failureThreshold).toBe(2);
+    expect(payload.health.alerts.rule.windowMinutes).toBe(60);
+  });
+
   test("compliance consent endpoint should persist and list records", async () => {
     const createResponse = await fetch(`${server.baseUrl}/compliance/consent-records`, {
       method: "POST",

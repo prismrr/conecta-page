@@ -486,6 +486,101 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
 
         return alerts
 
+    def _read_observability_health(self) -> dict:
+        db_ok = True
+        db_error = None
+        latest_telemetry = None
+        latest_alert = None
+        telemetry_events_24h = 0
+        alerts_24h = 0
+
+        try:
+            cutoff_24h = (datetime.now(tz=timezone.utc) - timedelta(hours=24)).isoformat()
+            with create_connection(self.db_file) as conn:
+                conn.execute("SELECT 1")
+
+                telemetry_row = conn.execute(
+                    """
+                    SELECT recorded_at, release_id, event_name
+                    FROM telemetry_events
+                    ORDER BY id DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+
+                alert_row = conn.execute(
+                    """
+                    SELECT created_at, alert_type, severity, release_id
+                    FROM observability_alerts
+                    ORDER BY id DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+
+                telemetry_count_row = conn.execute(
+                    """
+                    SELECT COUNT(1) AS total
+                    FROM telemetry_events
+                    WHERE recorded_at >= ?
+                    """,
+                    (cutoff_24h,),
+                ).fetchone()
+
+                alerts_count_row = conn.execute(
+                    """
+                    SELECT COUNT(1) AS total
+                    FROM observability_alerts
+                    WHERE created_at >= ?
+                    """,
+                    (cutoff_24h,),
+                ).fetchone()
+
+                telemetry_events_24h = int(telemetry_count_row["total"] or 0)
+                alerts_24h = int(alerts_count_row["total"] or 0)
+
+                if telemetry_row:
+                    latest_telemetry = {
+                        "recordedAt": telemetry_row["recorded_at"],
+                        "releaseId": telemetry_row["release_id"],
+                        "event": telemetry_row["event_name"],
+                    }
+
+                if alert_row:
+                    latest_alert = {
+                        "createdAt": alert_row["created_at"],
+                        "alertType": alert_row["alert_type"],
+                        "severity": alert_row["severity"],
+                        "releaseId": alert_row["release_id"],
+                    }
+        except Exception as error:  # nosec B110 - health endpoint must stay resilient
+            db_ok = False
+            db_error = str(error)
+
+        return {
+            "status": "ok" if db_ok else "degraded",
+            "database": {
+                "ok": db_ok,
+                "error": db_error,
+                "path": str(self.db_file),
+            },
+            "forwarding": {
+                "configured": bool(self.telemetry_forward_url),
+                "destination": self.telemetry_forward_url or None,
+            },
+            "alerts": {
+                "rule": {
+                    "failureThreshold": self.alert_failure_threshold,
+                    "windowMinutes": self.alert_window_minutes,
+                },
+                "last": latest_alert,
+                "countLast24h": alerts_24h,
+            },
+            "telemetry": {
+                "last": latest_telemetry,
+                "countLast24h": telemetry_events_24h,
+            },
+        }
+
     def _store_consent_record(self, payload: dict) -> tuple[bool, dict]:
         categories = payload.get("categories")
         if not isinstance(categories, dict):
@@ -796,6 +891,11 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         if parsed_path.path == "/observability/alerts":
             limit = self._read_limit_param(parsed_path, default=20, maximum=200)
             self._write_json(200, {"ok": True, "alerts": self._read_observability_alerts(limit)})
+            return
+
+        if parsed_path.path == "/observability/health":
+            health = self._read_observability_health()
+            self._write_json(200, {"ok": True, "health": health})
             return
 
         registration_prefix = "/api/registrations/"
