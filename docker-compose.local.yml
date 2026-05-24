@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  conecta-local:
+    image: python:3.11-slim
+    container_name: conecta-local
+    working_dir: /workspace
+    command: ["python3", "scripts/dev_server.py", "--host", "0.0.0.0", "--port", "8080"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/workspace
+    environment:
+      PYTHONUNBUFFERED: "1"
+      TELEMETRY_FORWARD_URL: ${TELEMETRY_FORWARD_URL:-}
+      TELEMETRY_FORWARD_PROVIDER: ${TELEMETRY_FORWARD_PROVIDER:-raw}
+      TELEMETRY_FORWARD_AUTH_TYPE: ${TELEMETRY_FORWARD_AUTH_TYPE:-none}
+      TELEMETRY_FORWARD_AUTH_TOKEN: ${TELEMETRY_FORWARD_AUTH_TOKEN:-}
+      TELEMETRY_FORWARD_AUTH_HEADER: ${TELEMETRY_FORWARD_AUTH_HEADER:-X-API-Key}
+      TELEMETRY_FORWARD_USERNAME: ${TELEMETRY_FORWARD_USERNAME:-}
+      TELEMETRY_FORWARD_PASSWORD: ${TELEMETRY_FORWARD_PASSWORD:-}
+      TELEMETRY_FORWARD_TIMEOUT_SECONDS: ${TELEMETRY_FORWARD_TIMEOUT_SECONDS:-3}

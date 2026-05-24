@@ -245,6 +245,59 @@ Depois acesse:
 
 http://localhost:8080
 
+Opcao 4: Docker Compose para desenvolvedores:
+
+`bash scripts/dev_docker.sh up`
+
+Ou via npm:
+
+- `npm run dev:docker`
+- `npm run dev:docker:logs`
+- `npm run dev:docker:down`
+
+Com essa opcao, a aplicacao roda com o servidor [scripts/dev_server.py](scripts/dev_server.py) dentro do container e fica disponivel em `http://localhost:8080`.
+
+### Teste completo com Docker Compose (App + Loki + Grafana)
+Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o fluxo completo de telemetria e observabilidade.
+
+1. (Opcional) Defina credenciais locais do Grafana no `.env` (base: [.env.example](.env.example)):
+
+- `GRAFANA_ADMIN_USER=admin`
+- `GRAFANA_ADMIN_PASSWORD=admin`
+
+2. Suba stack completa com forwarding para Loki:
+
+`TELEMETRY_FORWARD_URL=http://loki:3100/loki/api/v1/push TELEMETRY_FORWARD_PROVIDER=loki docker compose -f docker-compose.local.yml -f ops/observability/docker-compose.yml up -d`
+
+Atalho via npm:
+
+- `npm run dev:docker:full`
+- `npm run dev:docker:full:logs`
+- `npm run dev:docker:full:down`
+
+3. Acesse os componentes:
+
+- Aplicacao: `http://localhost:8080`
+- Grafana: `http://localhost:3000`
+- Loki API (debug): `http://localhost:3100/ready`
+
+4. Gere eventos de telemetria (navegando na UI ou via curl):
+
+`curl -X POST http://localhost:8080/telemetry/events -H "Content-Type: application/json" -d '{"event":"page_view","timestamp":"2026-05-23T00:00:00Z","page":"home","path":"/index.html","release_id":"local-stack","environment":"development","source_channel":"web","session_id":"local-test","data":{"outcome":"ok"}}'`
+
+5. No Grafana, confirme ingestao:
+
+- Login com `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`
+- Explore -> Loki
+- Query sugerida: `{job="conecta-telemetry"}`
+
+6. Encerrar stack completa:
+
+`docker compose -f docker-compose.local.yml -f ops/observability/docker-compose.yml down`
+
+Observacao:
+- Se o forwarding estiver ativo para Loki, o endpoint `GET /observability/health` deve mostrar `forwarding.configured=true`.
+
 ## Proximo incremento sugerido
 - Integrar consulta de inscricao com endpoint real e validacao de contrato.
 - Instrumentar eventos de telemetria do funil principal.
@@ -543,6 +596,61 @@ Scripts npm:
 - `npm run deploy:build`
 - `npm run deploy:develop`
 - `npm run deploy:production`
+
+### Build local (develop e production)
+Use os comandos abaixo para validar o empacotamento local e, quando necessario, executar o deploy localmente para cada ambiente.
+
+#### Build local em develop (passo a passo)
+1. Troque para a branch de develop:
+
+`git checkout develop`
+
+2. Instale dependencias (se necessario):
+
+`npm ci`
+
+3. Gere o build estatico local para validacao:
+
+`npm run deploy:build`
+
+4. (Opcional) Execute deploy local para o alvo develop:
+
+`DEPLOY_HOST=staging.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-staging DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_staging)" npm run deploy:develop`
+
+1. Build local do pacote estatico (sem publicar):
+
+`npm run deploy:build`
+
+Artefato gerado:
+
+- `.deploy/dist/RELEASE_MANIFEST.json`
+
+2. Build e deploy local para develop:
+
+`DEPLOY_HOST=staging.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-staging DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_staging)" npm run deploy:develop`
+
+3. Build e deploy local para production:
+
+`DEPLOY_HOST=prod.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-prod DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_prod)" npm run deploy:production`
+
+Variaveis obrigatorias para deploy local:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PATH`
+- `DEPLOY_SSH_PRIVATE_KEY` (ou `DEPLOY_SSH_KEY_PATH`)
+
+Variaveis opcionais:
+
+- `DEPLOY_PORT` (padrao: 22)
+- `DEPLOY_TIMEOUT_SECONDS` (padrao: 20)
+- `DEPLOY_HEALTHCHECK_URL` (valida endpoint pos-deploy)
+
+Evidencias locais apos deploy:
+
+- `.deploy/dist/RELEASE_MANIFEST.json`
+- `.deploy/deploy-result-develop.json`
+- `.deploy/deploy-result-production.json`
 
 Fluxo de branch:
 
