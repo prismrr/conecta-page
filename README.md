@@ -299,8 +299,26 @@ Foi estruturada uma camada de observabilidade no servidor local [scripts/dev_ser
 Configuracao por argumentos do servidor:
 
 - `--telemetry-forward-url` destino HTTP externo (opcional)
+- `--telemetry-forward-provider` formato de envio (`raw` ou `loki`)
+- `--telemetry-forward-auth-type` autenticacao (`none`, `bearer`, `x-api-key`, `basic`)
+- `--telemetry-forward-auth-token` token para `bearer` ou `x-api-key`
+- `--telemetry-forward-auth-header` nome do header no modo `x-api-key`
+- `--telemetry-forward-username` usuario no modo `basic`
+- `--telemetry-forward-password` senha no modo `basic`
+- `--telemetry-forward-timeout-seconds` timeout do envio para destino externo
 - `--alert-failure-threshold` limiar de disparo de alerta (padrao 3)
 - `--alert-window-minutes` janela de avaliacao do alerta (padrao 15)
+
+As mesmas configuracoes podem ser carregadas por variaveis de ambiente em [.env.example](.env.example):
+
+- `TELEMETRY_FORWARD_URL`
+- `TELEMETRY_FORWARD_PROVIDER`
+- `TELEMETRY_FORWARD_AUTH_TYPE`
+- `TELEMETRY_FORWARD_AUTH_TOKEN`
+- `TELEMETRY_FORWARD_AUTH_HEADER`
+- `TELEMETRY_FORWARD_USERNAME`
+- `TELEMETRY_FORWARD_PASSWORD`
+- `TELEMETRY_FORWARD_TIMEOUT_SECONDS`
 
 Endpoints operacionais:
 
@@ -327,6 +345,27 @@ Health operacional:
 - estado de configuracao de forwarding
 - ultimo evento de telemetria e ultimo alerta
 - contagens das ultimas 24h
+
+### Destino real com persistencia (Loki + Grafana)
+Para operacionalizar observabilidade persistente com stack local, foi adicionada uma composicao em [ops/observability/docker-compose.yml](ops/observability/docker-compose.yml) com:
+
+- Loki para armazenamento persistente de logs de telemetria
+- Grafana para consulta e dashboards
+- Volumes nomeados (`loki-data`, `grafana-data`) para persistencia
+
+Suba a stack:
+
+`docker compose -f ops/observability/docker-compose.yml up -d`
+
+Configure o servidor para enviar eventos para Loki:
+
+`python3 scripts/dev_server.py --port 8080 --telemetry-forward-url http://127.0.0.1:3100/loki/api/v1/push --telemetry-forward-provider loki`
+
+Opcional com API key:
+
+`python3 scripts/dev_server.py --port 8080 --telemetry-forward-url https://seu-gateway-observability.example/loki/api/v1/push --telemetry-forward-provider loki --telemetry-forward-auth-type x-api-key --telemetry-forward-auth-token "$TELEMETRY_FORWARD_AUTH_TOKEN"`
+
+Acesse o Grafana em `http://127.0.0.1:3000` com as credenciais definidas em `.env` (`GRAFANA_ADMIN_USER` e `GRAFANA_ADMIN_PASSWORD`).
 
 ### Eventos emitidos
 - page_view

@@ -1,4 +1,5 @@
 const { startDevServer } = require("../helpers/dev-server.js");
+const { createServer } = require("node:http");
 
 describe("dev server integration", () => {
   let server;
@@ -65,6 +66,75 @@ describe("dev server integration", () => {
     expect(response.status).toBe(202);
     expect(payload.ok).toBe(true);
     expect(payload.forwardStatus).toBe("not_configured");
+  });
+
+  test("telemetry endpoint should forward to configured destination with api key auth", async () => {
+    const received = [];
+    const sinkServer = createServer((req, res) => {
+      if (req.method !== "POST" || req.url !== "/ingest") {
+        res.writeHead(404).end();
+        return;
+      }
+
+      const chunks = [];
+      req.on("data", (chunk) => chunks.push(chunk));
+      req.on("end", () => {
+        const body = Buffer.concat(chunks).toString("utf-8");
+        received.push({
+          apiKey: req.headers["x-api-key"],
+          body: JSON.parse(body)
+        });
+        res.writeHead(202, { "Content-Type": "application/json" });
+        res.end('{"ok":true}');
+      });
+    });
+
+    await new Promise((resolve) => sinkServer.listen(4199, "127.0.0.1", resolve));
+
+    const forwardServer = await startDevServer({
+      port: 4182,
+      telemetryForwardUrl: "http://127.0.0.1:4199/ingest",
+      telemetryForwardProvider: "raw",
+      telemetryForwardAuthType: "x-api-key",
+      telemetryForwardAuthToken: "test-forward-key"
+    });
+
+    try {
+      const response = await fetch(`${forwardServer.baseUrl}/telemetry/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event: "forward_test_event",
+          timestamp: "2026-05-23T21:00:00Z",
+          page: "integration",
+          path: "/",
+          release_id: "mvp-forward-test",
+          environment: "test",
+          source_channel: "integration",
+          session_id: "forward-session",
+          data: { ok: true }
+        })
+      });
+
+      const payload = await response.json();
+      expect(response.status).toBe(202);
+      expect(payload.forwardStatus).toBe("forwarded");
+      expect(received.length).toBe(1);
+      expect(received[0].apiKey).toBe("test-forward-key");
+      expect(received[0].body.event).toBe("forward_test_event");
+
+      const healthResponse = await fetch(`${forwardServer.baseUrl}/observability/health`);
+      const healthPayload = await healthResponse.json();
+      expect(healthResponse.status).toBe(200);
+      expect(healthPayload.health.forwarding.configured).toBe(true);
+      expect(healthPayload.health.forwarding.provider).toBe("raw");
+      expect(healthPayload.health.forwarding.authType).toBe("x-api-key");
+    } finally {
+      await forwardServer.stop();
+      await new Promise((resolve) => sinkServer.close(resolve));
+    }
   });
 
   test("observability summary should correlate events by release", async () => {

@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
+import os
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -18,6 +20,7 @@ DEFAULT_DB_FILE = ROOT_DIR / "data" / "compliance.db"
 MAX_BODY_BYTES = 1_000_000
 DEFAULT_ALERT_FAILURE_THRESHOLD = 3
 DEFAULT_ALERT_WINDOW_MINUTES = 15
+DEFAULT_FORWARD_TIMEOUT_SECONDS = 3
 
 DEFAULT_CONTENT_AUDIT_EVENTS = [
     {
@@ -188,6 +191,13 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         log_file: Path,
         db_file: Path,
         telemetry_forward_url: str,
+        telemetry_forward_provider: str,
+        telemetry_forward_auth_type: str,
+        telemetry_forward_auth_token: str,
+        telemetry_forward_auth_header: str,
+        telemetry_forward_username: str,
+        telemetry_forward_password: str,
+        telemetry_forward_timeout_seconds: int,
         alert_failure_threshold: int,
         alert_window_minutes: int,
         **kwargs,
@@ -195,6 +205,13 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         self.log_file = log_file
         self.db_file = db_file
         self.telemetry_forward_url = telemetry_forward_url.strip()
+        self.telemetry_forward_provider = telemetry_forward_provider.strip().lower() or "raw"
+        self.telemetry_forward_auth_type = telemetry_forward_auth_type.strip().lower() or "none"
+        self.telemetry_forward_auth_token = telemetry_forward_auth_token.strip()
+        self.telemetry_forward_auth_header = telemetry_forward_auth_header.strip() or "X-API-Key"
+        self.telemetry_forward_username = telemetry_forward_username.strip()
+        self.telemetry_forward_password = telemetry_forward_password.strip()
+        self.telemetry_forward_timeout_seconds = max(1, int(telemetry_forward_timeout_seconds))
         self.alert_failure_threshold = max(1, int(alert_failure_threshold))
         self.alert_window_minutes = max(1, int(alert_window_minutes))
         super().__init__(*args, directory=str(ROOT_DIR), **kwargs)
@@ -266,20 +283,80 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
             return default
         return max(1, min(parsed, maximum))
 
+    def _build_forward_headers(self) -> tuple[dict, str | None]:
+        headers = {"Content-Type": "application/json"}
+
+        if self.telemetry_forward_auth_type == "none":
+            return headers, None
+
+        if self.telemetry_forward_auth_type == "bearer":
+            if not self.telemetry_forward_auth_token:
+                return headers, "missing_bearer_token"
+            headers["Authorization"] = f"Bearer {self.telemetry_forward_auth_token}"
+            return headers, None
+
+        if self.telemetry_forward_auth_type == "x-api-key":
+            if not self.telemetry_forward_auth_token:
+                return headers, "missing_api_key_token"
+            headers[self.telemetry_forward_auth_header] = self.telemetry_forward_auth_token
+            return headers, None
+
+        if self.telemetry_forward_auth_type == "basic":
+            if not self.telemetry_forward_username or not self.telemetry_forward_password:
+                return headers, "missing_basic_credentials"
+            raw = f"{self.telemetry_forward_username}:{self.telemetry_forward_password}".encode("utf-8")
+            encoded = base64.b64encode(raw).decode("ascii")
+            headers["Authorization"] = f"Basic {encoded}"
+            return headers, None
+
+        return headers, "invalid_auth_type"
+
+    def _build_forward_payload(self, payload: dict) -> tuple[bytes, str | None]:
+        if self.telemetry_forward_provider == "raw":
+            return json.dumps(payload, ensure_ascii=True).encode("utf-8"), None
+
+        if self.telemetry_forward_provider == "loki":
+            now_ns = str(int(datetime.now(tz=timezone.utc).timestamp() * 1_000_000_000))
+            labels = {
+                "job": "conecta-telemetry",
+                "environment": str(payload.get("environment", "unknown")),
+                "release_id": str(payload.get("release_id", "unknown")),
+                "event": str(payload.get("event", "unknown")),
+                "source_channel": str(payload.get("source_channel", "unknown")),
+            }
+            loki_payload = {
+                "streams": [
+                    {
+                        "stream": labels,
+                        "values": [[now_ns, json.dumps(payload, ensure_ascii=True)]],
+                    }
+                ]
+            }
+            return json.dumps(loki_payload, ensure_ascii=True).encode("utf-8"), None
+
+        return b"", "invalid_provider"
+
     def _forward_telemetry(self, payload: dict) -> tuple[str, str | None]:
         if not self.telemetry_forward_url:
             return "not_configured", None
 
-        body = json.dumps(payload, ensure_ascii=True).encode("utf-8")
+        headers, auth_error = self._build_forward_headers()
+        if auth_error:
+            return "forward_config_error", auth_error
+
+        body, payload_error = self._build_forward_payload(payload)
+        if payload_error:
+            return "forward_config_error", payload_error
+
         request = Request(
             self.telemetry_forward_url,
             method="POST",
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             data=body,
         )
 
         try:
-            with urlopen(request, timeout=3) as response:
+            with urlopen(request, timeout=self.telemetry_forward_timeout_seconds) as response:
                 if 200 <= response.status < 300:
                     return "forwarded", None
                 return f"forward_failed_http_{response.status}", f"http_status_{response.status}"
@@ -566,6 +643,9 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
             "forwarding": {
                 "configured": bool(self.telemetry_forward_url),
                 "destination": self.telemetry_forward_url or None,
+                "provider": self.telemetry_forward_provider,
+                "authType": self.telemetry_forward_auth_type,
+                "timeoutSeconds": self.telemetry_forward_timeout_seconds,
             },
             "alerts": {
                 "rule": {
@@ -969,8 +1049,46 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--telemetry-forward-url",
-        default="",
+        default=os.getenv("TELEMETRY_FORWARD_URL", ""),
         help="Optional HTTP endpoint to forward telemetry events",
+    )
+    parser.add_argument(
+        "--telemetry-forward-provider",
+        default=os.getenv("TELEMETRY_FORWARD_PROVIDER", "raw"),
+        choices=["raw", "loki"],
+        help="Forwarding payload format/provider",
+    )
+    parser.add_argument(
+        "--telemetry-forward-auth-type",
+        default=os.getenv("TELEMETRY_FORWARD_AUTH_TYPE", "none"),
+        choices=["none", "bearer", "x-api-key", "basic"],
+        help="Authentication mode for forwarding destination",
+    )
+    parser.add_argument(
+        "--telemetry-forward-auth-token",
+        default=os.getenv("TELEMETRY_FORWARD_AUTH_TOKEN", ""),
+        help="Bearer token or API key for forwarding destination",
+    )
+    parser.add_argument(
+        "--telemetry-forward-auth-header",
+        default=os.getenv("TELEMETRY_FORWARD_AUTH_HEADER", "X-API-Key"),
+        help="Header name used when auth type is x-api-key",
+    )
+    parser.add_argument(
+        "--telemetry-forward-username",
+        default=os.getenv("TELEMETRY_FORWARD_USERNAME", ""),
+        help="Username used when auth type is basic",
+    )
+    parser.add_argument(
+        "--telemetry-forward-password",
+        default=os.getenv("TELEMETRY_FORWARD_PASSWORD", ""),
+        help="Password used when auth type is basic",
+    )
+    parser.add_argument(
+        "--telemetry-forward-timeout-seconds",
+        type=int,
+        default=int(os.getenv("TELEMETRY_FORWARD_TIMEOUT_SECONDS", str(DEFAULT_FORWARD_TIMEOUT_SECONDS))),
+        help="Timeout in seconds for outbound forwarding requests",
     )
     parser.add_argument(
         "--alert-failure-threshold",
@@ -999,6 +1117,13 @@ def main() -> None:
             log_file=log_file,
             db_file=db_file,
             telemetry_forward_url=args.telemetry_forward_url,
+            telemetry_forward_provider=args.telemetry_forward_provider,
+            telemetry_forward_auth_type=args.telemetry_forward_auth_type,
+            telemetry_forward_auth_token=args.telemetry_forward_auth_token,
+            telemetry_forward_auth_header=args.telemetry_forward_auth_header,
+            telemetry_forward_username=args.telemetry_forward_username,
+            telemetry_forward_password=args.telemetry_forward_password,
+            telemetry_forward_timeout_seconds=args.telemetry_forward_timeout_seconds,
             alert_failure_threshold=args.alert_failure_threshold,
             alert_window_minutes=args.alert_window_minutes,
             **handler_kwargs,
@@ -1011,6 +1136,8 @@ def main() -> None:
     print(f"Compliance database file: {db_file}")
     if args.telemetry_forward_url:
         print(f"Telemetry forwarding destination: {args.telemetry_forward_url}")
+        print(f"Telemetry forwarding provider: {args.telemetry_forward_provider}")
+        print(f"Telemetry forwarding auth type: {args.telemetry_forward_auth_type}")
 
     try:
         server.serve_forever()

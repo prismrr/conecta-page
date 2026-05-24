@@ -28,6 +28,13 @@ async function startDevServer({
   host = "127.0.0.1",
   port = 4180,
   telemetryForwardUrl = "",
+  telemetryForwardProvider = "raw",
+  telemetryForwardAuthType = "none",
+  telemetryForwardAuthToken = "",
+  telemetryForwardAuthHeader = "X-API-Key",
+  telemetryForwardUsername = "",
+  telemetryForwardPassword = "",
+  telemetryForwardTimeoutSeconds = 3,
   alertFailureThreshold = 3,
   alertWindowMinutes = 15
 } = {}) {
@@ -47,7 +54,30 @@ async function startDevServer({
   ];
 
   if (telemetryForwardUrl) {
-    args.push("--telemetry-forward-url", telemetryForwardUrl);
+    args.push(
+      "--telemetry-forward-url",
+      telemetryForwardUrl,
+      "--telemetry-forward-provider",
+      telemetryForwardProvider,
+      "--telemetry-forward-auth-type",
+      telemetryForwardAuthType,
+      "--telemetry-forward-auth-header",
+      telemetryForwardAuthHeader,
+      "--telemetry-forward-timeout-seconds",
+      String(telemetryForwardTimeoutSeconds)
+    );
+
+    if (telemetryForwardAuthToken) {
+      args.push("--telemetry-forward-auth-token", telemetryForwardAuthToken);
+    }
+
+    if (telemetryForwardUsername) {
+      args.push("--telemetry-forward-username", telemetryForwardUsername);
+    }
+
+    if (telemetryForwardPassword) {
+      args.push("--telemetry-forward-password", telemetryForwardPassword);
+    }
   }
 
   const processRef = spawn(
