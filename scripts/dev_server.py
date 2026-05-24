@@ -150,6 +150,13 @@ def init_database(db_file: Path) -> None:
                 details_json TEXT NOT NULL,
                 fingerprint TEXT NOT NULL UNIQUE
             );
+
+            CREATE TABLE IF NOT EXISTS compliance_retention_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                executed_at TEXT NOT NULL,
+                mode TEXT NOT NULL,
+                report_json TEXT NOT NULL
+            );
             """
         )
 

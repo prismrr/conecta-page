@@ -14,7 +14,9 @@
     "test:vrt": "playwright test tests/e2e/visual-regression.spec.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:smoke": "bash scripts/smoke_test.sh"
+    "test:smoke": "bash scripts/smoke_test.sh",
+    "compliance:retention": "python3 scripts/retention_job.py --db-file data/compliance.db --report-file logs/compliance-retention-report.json",
+    "compliance:retention:dry-run": "python3 scripts/retention_job.py --db-file data/compliance.db --report-file logs/compliance-retention-report.json --dry-run"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

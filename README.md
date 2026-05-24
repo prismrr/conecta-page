@@ -173,6 +173,32 @@ Integracoes no frontend:
 - resumo operacional da integracao externa passa a ser hidratado do endpoint `integration-summary`
 - trilha de auditoria tenta carregar eventos do endpoint SQL com fallback para dataset local
 
+## Retencao e descarte automatizados (LGPD-RF08)
+Foi adicionado um job de retencao para a base SQLite em [scripts/retention_job.py](scripts/retention_job.py), com relatorio auditavel por execucao.
+
+Politica inicial de temporalidade:
+
+- `consent_records`: 730 dias
+- `integration_monitor_events`: 365 dias
+- `telemetry_events`: 180 dias
+- `observability_alerts`: 180 dias
+
+Evidencias geradas por execucao:
+
+- relatorio JSON em `logs/compliance-retention-report.json` (ou caminho customizado)
+- trilha append-only na tabela `compliance_retention_runs`
+
+Comandos locais:
+
+- simulacao sem descarte: `npm run compliance:retention:dry-run`
+- execucao aplicando descarte: `npm run compliance:retention`
+
+Automacao periodica:
+
+- workflow agendado em [.github/workflows/compliance-retention.yml](.github/workflows/compliance-retention.yml)
+- periodicidade diaria via `cron`
+- publicacao de artifact `compliance-retention-report`
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 
