@@ -38,6 +38,9 @@ jobs:
       - name: Run contract tests
         run: npm run test:contract
 
+      - name: Run provider verification (Prism proxy)
+        run: npm run test:contract:provider
+
       - name: Run integration tests
         run: npm run test:integration
 
