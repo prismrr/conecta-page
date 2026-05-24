@@ -263,6 +263,24 @@ Arquivo de teste: [tests/e2e/accessibility.spec.js](tests/e2e/accessibility.spec
 
 O pipeline de PR em [/.github/workflows/ci.yml](.github/workflows/ci.yml) executa esse stage de forma bloqueante antes do E2E completo.
 
+## VRT e hardening visual (Sprint 4 item 2)
+Foi adicionada uma suite de visual regression para paginas criticas com baseline via Playwright snapshots.
+
+Comando dedicado:
+
+`npm run test:vrt`
+
+Arquivo de teste: [tests/e2e/visual-regression.spec.js](tests/e2e/visual-regression.spec.js)
+
+Cobertura inicial:
+
+- Home
+- Inscricoes
+- Programacao
+- Politica de Privacidade
+
+O pipeline de PR em [/.github/workflows/ci.yml](.github/workflows/ci.yml) executa o VRT como etapa bloqueante antes do E2E completo.
+
 ### Eventos emitidos
 - page_view
 - cta_click

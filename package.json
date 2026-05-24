@@ -4,11 +4,12 @@
   "private": true,
   "description": "Conecta PrismRR static site with contract-safe integration and telemetry.",
   "scripts": {
-    "test": "npm run test:unit && npm run test:contract && npm run test:integration && npm run test:a11y && npm run test:e2e",
+    "test": "npm run test:unit && npm run test:contract && npm run test:integration && npm run test:a11y && npm run test:vrt && npm run test:e2e",
     "test:unit": "vitest run tests/unit",
     "test:contract": "vitest run tests/contract",
     "test:integration": "vitest run tests/integration",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.js",
+    "test:vrt": "playwright test tests/e2e/visual-regression.spec.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:smoke": "bash scripts/smoke_test.sh"
