@@ -35,6 +35,9 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+      - name: Run component tests
+        run: npm run test:component
+
       - name: Run contract tests
         run: npm run test:contract
 
