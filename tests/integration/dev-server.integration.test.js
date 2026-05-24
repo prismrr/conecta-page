@@ -4,7 +4,11 @@ describe("dev server integration", () => {
   let server;
 
   beforeAll(async () => {
-    server = await startDevServer({ port: 4181 });
+    server = await startDevServer({
+      port: 4181,
+      alertFailureThreshold: 2,
+      alertWindowMinutes: 60
+    });
   });
 
   afterAll(async () => {
@@ -60,6 +64,108 @@ describe("dev server integration", () => {
     const payload = await response.json();
     expect(response.status).toBe(202);
     expect(payload.ok).toBe(true);
+    expect(payload.forwardStatus).toBe("not_configured");
+  });
+
+  test("observability summary should correlate events by release", async () => {
+    const events = [
+      {
+        event: "page_view",
+        release_id: "mvp-0.3.0",
+        data: {}
+      },
+      {
+        event: "external_data_sync_failed",
+        release_id: "mvp-0.3.0",
+        data: {
+          reason: "provider_unavailable",
+          outcome: "service_unavailable"
+        }
+      },
+      {
+        event: "page_view",
+        release_id: "mvp-0.2.0",
+        data: {}
+      }
+    ];
+
+    for (const telemetryEvent of events) {
+      const response = await fetch(`${server.baseUrl}/telemetry/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          event: telemetryEvent.event,
+          timestamp: "2026-05-23T20:00:00Z",
+          page: "integration",
+          path: "/",
+          release_id: telemetryEvent.release_id,
+          environment: "test",
+          source_channel: "integration",
+          session_id: "release-correlation",
+          data: telemetryEvent.data
+        })
+      });
+
+      expect(response.status).toBe(202);
+    }
+
+    const summaryResponse = await fetch(`${server.baseUrl}/observability/summary?windowMinutes=180`);
+    const summaryPayload = await summaryResponse.json();
+
+    expect(summaryResponse.status).toBe(200);
+    expect(summaryPayload.ok).toBe(true);
+    expect(summaryPayload.summary.totalEvents).toBeGreaterThanOrEqual(3);
+    expect(Array.isArray(summaryPayload.summary.byRelease)).toBe(true);
+
+    const releaseCurrent = summaryPayload.summary.byRelease.find((item) => item.releaseId === "mvp-0.3.0");
+    expect(releaseCurrent).toBeDefined();
+    expect(releaseCurrent.syncFailures).toBeGreaterThanOrEqual(1);
+  });
+
+  test("observability alerts should trigger on repeated sync failures", async () => {
+    const failureEvent = {
+      event: "external_data_sync_failed",
+      timestamp: "2026-05-23T20:05:00Z",
+      page: "inscricoes",
+      path: "/pages/inscricoes.html",
+      release_id: "mvp-alert-test",
+      environment: "test",
+      source_channel: "integration",
+      session_id: "alert-test-session",
+      data: {
+        reason: "contract_validation_failed",
+        outcome: "contract_error"
+      }
+    };
+
+    const first = await fetch(`${server.baseUrl}/telemetry/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(failureEvent)
+    });
+    const second = await fetch(`${server.baseUrl}/telemetry/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(failureEvent)
+    });
+
+    expect(first.status).toBe(202);
+    expect(second.status).toBe(202);
+
+    const alertsResponse = await fetch(`${server.baseUrl}/observability/alerts?limit=20`);
+    const alertsPayload = await alertsResponse.json();
+
+    expect(alertsResponse.status).toBe(200);
+    expect(alertsPayload.ok).toBe(true);
+    expect(Array.isArray(alertsPayload.alerts)).toBe(true);
+
+    const failureAlert = alertsPayload.alerts.find(
+      (alert) => alert.alertType === "external_data_sync_failed_spike" && alert.releaseId === "mvp-alert-test"
+    );
+    expect(failureAlert).toBeDefined();
+    expect(failureAlert.severity).toBe("high");
   });
 
   test("compliance consent endpoint should persist and list records", async () => {

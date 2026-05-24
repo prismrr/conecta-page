@@ -165,6 +165,42 @@ PY
   rm -f "$tmp_file"
 }
 
+assert_observability_summary() {
+  local tmp_file
+  tmp_file="$(mktemp)"
+
+  local http_code
+  http_code="$(curl -sS -o "$tmp_file" -w "%{http_code}" "${BASE_URL}/observability/summary?windowMinutes=120")"
+
+  if [[ "$http_code" != "200" ]]; then
+    echo "[smoke] FAIL observability summary GET: expected HTTP 200, got ${http_code}"
+    cat "$tmp_file"
+    rm -f "$tmp_file"
+    exit 1
+  fi
+
+  python3 - "$tmp_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    payload = json.load(f)
+
+if payload.get("ok") is not True:
+    print("[smoke] FAIL observability summary response: expected ok=true")
+    print(json.dumps(payload, ensure_ascii=True))
+    sys.exit(1)
+
+if "summary" not in payload:
+    print("[smoke] FAIL observability summary response: missing summary")
+    print(json.dumps(payload, ensure_ascii=True))
+    sys.exit(1)
+PY
+
+  echo "[smoke] PASS observability summary"
+  rm -f "$tmp_file"
+}
+
 main() {
   ensure_server
 
@@ -177,6 +213,7 @@ main() {
 
   assert_telemetry_post
   assert_compliance_endpoints
+  assert_observability_summary
 
   echo "[smoke] All checks passed"
 }

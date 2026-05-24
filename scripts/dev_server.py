@@ -6,15 +6,18 @@ from __future__ import annotations
 import argparse
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
+from urllib.request import Request, urlopen
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_LOG_FILE = ROOT_DIR / "logs" / "telemetry-events.ndjson"
 DEFAULT_DB_FILE = ROOT_DIR / "data" / "compliance.db"
 MAX_BODY_BYTES = 1_000_000
+DEFAULT_ALERT_FAILURE_THRESHOLD = 3
+DEFAULT_ALERT_WINDOW_MINUTES = 15
 
 DEFAULT_CONTENT_AUDIT_EVENTS = [
     {
@@ -116,6 +119,34 @@ def init_database(db_file: Path) -> None:
                 change_type TEXT NOT NULL,
                 recorded_at TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS telemetry_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                recorded_at TEXT NOT NULL,
+                event_name TEXT NOT NULL,
+                page TEXT,
+                path TEXT,
+                release_id TEXT,
+                environment TEXT,
+                source_channel TEXT,
+                session_id TEXT,
+                outcome TEXT,
+                reason TEXT,
+                payload_json TEXT NOT NULL,
+                forward_status TEXT NOT NULL,
+                forward_error TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS observability_alerts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                alert_type TEXT NOT NULL,
+                severity TEXT NOT NULL,
+                release_id TEXT,
+                message TEXT NOT NULL,
+                details_json TEXT NOT NULL,
+                fingerprint TEXT NOT NULL UNIQUE
+            );
             """
         )
 
@@ -151,9 +182,21 @@ def init_database(db_file: Path) -> None:
 
 
 class ConectaRequestHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, log_file: Path, db_file: Path, **kwargs):
+    def __init__(
+        self,
+        *args,
+        log_file: Path,
+        db_file: Path,
+        telemetry_forward_url: str,
+        alert_failure_threshold: int,
+        alert_window_minutes: int,
+        **kwargs,
+    ):
         self.log_file = log_file
         self.db_file = db_file
+        self.telemetry_forward_url = telemetry_forward_url.strip()
+        self.alert_failure_threshold = max(1, int(alert_failure_threshold))
+        self.alert_window_minutes = max(1, int(alert_window_minutes))
         super().__init__(*args, directory=str(ROOT_DIR), **kwargs)
 
     def _write_json(self, status_code: int, payload: dict) -> None:
@@ -213,6 +256,235 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         except ValueError:
             return default
         return max(1, min(parsed, maximum))
+
+    def _read_window_minutes_param(self, parsed_path, default: int = 60, maximum: int = 1440) -> int:
+        query = parse_qs(parsed_path.query)
+        value = query.get("windowMinutes", [str(default)])[0]
+        try:
+            parsed = int(value)
+        except ValueError:
+            return default
+        return max(1, min(parsed, maximum))
+
+    def _forward_telemetry(self, payload: dict) -> tuple[str, str | None]:
+        if not self.telemetry_forward_url:
+            return "not_configured", None
+
+        body = json.dumps(payload, ensure_ascii=True).encode("utf-8")
+        request = Request(
+            self.telemetry_forward_url,
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            data=body,
+        )
+
+        try:
+            with urlopen(request, timeout=3) as response:
+                if 200 <= response.status < 300:
+                    return "forwarded", None
+                return f"forward_failed_http_{response.status}", f"http_status_{response.status}"
+        except Exception as error:  # nosec B110 - operational fallback path
+            return "forward_failed", str(error)
+
+    def _create_basic_alerts(self, release_id: str) -> None:
+        cutoff = (datetime.now(tz=timezone.utc) - timedelta(minutes=self.alert_window_minutes)).isoformat()
+        with create_connection(self.db_file) as conn:
+            row = conn.execute(
+                """
+                SELECT COUNT(1) AS total
+                FROM telemetry_events
+                WHERE event_name = 'external_data_sync_failed' AND recorded_at >= ?
+                AND COALESCE(release_id, 'unknown') = COALESCE(?, 'unknown')
+                """,
+                (cutoff, release_id or "unknown"),
+            ).fetchone()
+
+            total_failures = int(row["total"] or 0)
+            if total_failures < self.alert_failure_threshold:
+                return
+
+            release_key = release_id or "unknown"
+            now = datetime.now(tz=timezone.utc)
+            window_bucket = int(now.timestamp() // (self.alert_window_minutes * 60))
+            fingerprint = f"external_data_sync_failed_spike:{release_key}:{window_bucket}"
+
+            details = {
+                "windowMinutes": self.alert_window_minutes,
+                "failureCount": total_failures,
+                "threshold": self.alert_failure_threshold,
+                "releaseId": release_key,
+            }
+
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO observability_alerts (
+                    created_at,
+                    alert_type,
+                    severity,
+                    release_id,
+                    message,
+                    details_json,
+                    fingerprint
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    utc_now_iso(),
+                    "external_data_sync_failed_spike",
+                    "high",
+                    release_key,
+                    "Falhas de sincronizacao externa acima do limiar na janela configurada.",
+                    json.dumps(details, ensure_ascii=True),
+                    fingerprint,
+                ),
+            )
+
+    def _store_telemetry_event(self, payload: dict, forward_status: str, forward_error: str | None) -> None:
+        data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+        event_name = str(payload.get("event", "unknown"))
+        release_id = str(payload.get("release_id", "unknown"))
+
+        with create_connection(self.db_file) as conn:
+            conn.execute(
+                """
+                INSERT INTO telemetry_events (
+                    recorded_at,
+                    event_name,
+                    page,
+                    path,
+                    release_id,
+                    environment,
+                    source_channel,
+                    session_id,
+                    outcome,
+                    reason,
+                    payload_json,
+                    forward_status,
+                    forward_error
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    utc_now_iso(),
+                    event_name,
+                    str(payload.get("page", "")) or None,
+                    str(payload.get("path", "")) or None,
+                    release_id,
+                    str(payload.get("environment", "")) or None,
+                    str(payload.get("source_channel", "")) or None,
+                    str(payload.get("session_id", "")) or None,
+                    str(data.get("outcome", "")) or None,
+                    str(data.get("reason", "")) or None,
+                    json.dumps(payload, ensure_ascii=True),
+                    forward_status,
+                    forward_error,
+                ),
+            )
+
+        if event_name == "external_data_sync_failed":
+            self._create_basic_alerts(release_id)
+
+    def _read_observability_summary(self, window_minutes: int) -> dict:
+        cutoff = (datetime.now(tz=timezone.utc) - timedelta(minutes=window_minutes)).isoformat()
+        with create_connection(self.db_file) as conn:
+            release_rows = conn.execute(
+                """
+                SELECT
+                    COALESCE(release_id, 'unknown') AS release_id,
+                    COUNT(1) AS total_events,
+                    SUM(CASE WHEN event_name = 'external_data_sync_failed' THEN 1 ELSE 0 END) AS sync_failures,
+                    MAX(recorded_at) AS last_seen_at
+                FROM telemetry_events
+                WHERE recorded_at >= ?
+                GROUP BY COALESCE(release_id, 'unknown')
+                ORDER BY total_events DESC
+                """,
+                (cutoff,),
+            ).fetchall()
+
+            event_rows = conn.execute(
+                """
+                SELECT event_name, COUNT(1) AS total
+                FROM telemetry_events
+                WHERE recorded_at >= ?
+                GROUP BY event_name
+                ORDER BY total DESC
+                """,
+                (cutoff,),
+            ).fetchall()
+
+            forwarding = conn.execute(
+                """
+                SELECT
+                    SUM(CASE WHEN forward_status = 'forwarded' THEN 1 ELSE 0 END) AS forwarded,
+                    SUM(CASE WHEN forward_status = 'not_configured' THEN 1 ELSE 0 END) AS not_configured,
+                    SUM(CASE WHEN forward_status LIKE 'forward_failed%' THEN 1 ELSE 0 END) AS failed
+                FROM telemetry_events
+                WHERE recorded_at >= ?
+                """,
+                (cutoff,),
+            ).fetchone()
+
+            total = conn.execute(
+                """
+                SELECT COUNT(1) AS total
+                FROM telemetry_events
+                WHERE recorded_at >= ?
+                """,
+                (cutoff,),
+            ).fetchone()
+
+        return {
+            "windowMinutes": window_minutes,
+            "totalEvents": int(total["total"] or 0),
+            "byRelease": [
+                {
+                    "releaseId": row["release_id"],
+                    "totalEvents": int(row["total_events"] or 0),
+                    "syncFailures": int(row["sync_failures"] or 0),
+                    "lastSeenAt": row["last_seen_at"],
+                }
+                for row in release_rows
+            ],
+            "byEvent": [
+                {"event": row["event_name"], "total": int(row["total"] or 0)} for row in event_rows
+            ],
+            "forwarding": {
+                "forwarded": int(forwarding["forwarded"] or 0),
+                "notConfigured": int(forwarding["not_configured"] or 0),
+                "failed": int(forwarding["failed"] or 0),
+            },
+        }
+
+    def _read_observability_alerts(self, limit: int) -> list[dict]:
+        with create_connection(self.db_file) as conn:
+            rows = conn.execute(
+                """
+                SELECT created_at, alert_type, severity, release_id, message, details_json
+                FROM observability_alerts
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+        alerts = []
+        for row in rows:
+            try:
+                details = json.loads(row["details_json"])
+            except json.JSONDecodeError:
+                details = {}
+
+            alerts.append(
+                {
+                    "createdAt": row["created_at"],
+                    "alertType": row["alert_type"],
+                    "severity": row["severity"],
+                    "releaseId": row["release_id"],
+                    "message": row["message"],
+                    "details": details,
+                }
+            )
+
+        return alerts
 
     def _store_consent_record(self, payload: dict) -> tuple[bool, dict]:
         categories = payload.get("categories")
@@ -433,7 +705,11 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self) -> None:
         parsed_path = urlparse(self.path)
-        if parsed_path.path == "/telemetry/events" or parsed_path.path.startswith("/compliance/"):
+        if (
+            parsed_path.path == "/telemetry/events"
+            or parsed_path.path.startswith("/compliance/")
+            or parsed_path.path.startswith("/observability/")
+        ):
             self.send_response(204)
             self._compliance_cors_headers()
             self.send_header("Content-Length", "0")
@@ -451,7 +727,9 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
                 return
 
             self._append_event(result)
-            self._write_json(202, {"ok": True})
+            forward_status, forward_error = self._forward_telemetry(result)
+            self._store_telemetry_event(result, forward_status=forward_status, forward_error=forward_error)
+            self._write_json(202, {"ok": True, "forwardStatus": forward_status})
             return
 
         if parsed_path.path == "/compliance/consent-records":
@@ -507,6 +785,17 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         if parsed_path.path == "/compliance/content-audit-events":
             limit = self._read_limit_param(parsed_path, default=50, maximum=500)
             self._write_json(200, {"ok": True, "events": self._list_content_audit_events(limit)})
+            return
+
+        if parsed_path.path == "/observability/summary":
+            window_minutes = self._read_window_minutes_param(parsed_path, default=60, maximum=1440)
+            summary = self._read_observability_summary(window_minutes)
+            self._write_json(200, {"ok": True, "summary": summary})
+            return
+
+        if parsed_path.path == "/observability/alerts":
+            limit = self._read_limit_param(parsed_path, default=20, maximum=200)
+            self._write_json(200, {"ok": True, "alerts": self._read_observability_alerts(limit)})
             return
 
         registration_prefix = "/api/registrations/"
@@ -578,6 +867,23 @@ def parse_args() -> argparse.Namespace:
         default=str(DEFAULT_DB_FILE),
         help="Path to SQLite database for compliance persistence",
     )
+    parser.add_argument(
+        "--telemetry-forward-url",
+        default="",
+        help="Optional HTTP endpoint to forward telemetry events",
+    )
+    parser.add_argument(
+        "--alert-failure-threshold",
+        type=int,
+        default=DEFAULT_ALERT_FAILURE_THRESHOLD,
+        help="Failure count threshold to open basic observability alerts",
+    )
+    parser.add_argument(
+        "--alert-window-minutes",
+        type=int,
+        default=DEFAULT_ALERT_WINDOW_MINUTES,
+        help="Time window in minutes used by basic alert rules",
+    )
     return parser.parse_args()
 
 
@@ -592,6 +898,9 @@ def main() -> None:
             *handler_args,
             log_file=log_file,
             db_file=db_file,
+            telemetry_forward_url=args.telemetry_forward_url,
+            alert_failure_threshold=args.alert_failure_threshold,
+            alert_window_minutes=args.alert_window_minutes,
             **handler_kwargs,
         )
 
@@ -600,6 +909,8 @@ def main() -> None:
     print(f"Telemetry collector endpoint: http://{args.host}:{args.port}/telemetry/events")
     print(f"Telemetry log file: {log_file}")
     print(f"Compliance database file: {db_file}")
+    if args.telemetry_forward_url:
+        print(f"Telemetry forwarding destination: {args.telemetry_forward_url}")
 
     try:
         server.serve_forever()

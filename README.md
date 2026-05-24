@@ -289,6 +289,36 @@ Foi adicionada uma esteira inicial de AppSec no pipeline de PR em [/.github/work
 
 Os checks rodam em job dedicado (`appsec`) e bloqueiam merge quando houver falhas.
 
+## Observabilidade avancada (Sprint 4 item 4)
+Foi estruturada uma camada de observabilidade no servidor local [scripts/dev_server.py](scripts/dev_server.py) com:
+
+- destino real opcional para forwarding de telemetria
+- alertas basicos por limiar de falhas de sincronizacao externa
+- correlacao de eventos por `release_id`
+
+Configuracao por argumentos do servidor:
+
+- `--telemetry-forward-url` destino HTTP externo (opcional)
+- `--alert-failure-threshold` limiar de disparo de alerta (padrao 3)
+- `--alert-window-minutes` janela de avaliacao do alerta (padrao 15)
+
+Endpoints operacionais:
+
+- `GET /observability/summary?windowMinutes=60`
+- `GET /observability/alerts?limit=20`
+
+Detalhes do resumo operacional:
+
+- volume total de eventos na janela
+- agregacao por release
+- agregacao por tipo de evento
+- status de forwarding (`forwarded`, `notConfigured`, `failed`)
+
+Regra inicial de alerta:
+
+- cria alerta `external_data_sync_failed_spike` com severidade `high`
+- dispara quando `external_data_sync_failed` atinge o limiar na janela configurada por release
+
 ### Eventos emitidos
 - page_view
 - cta_click

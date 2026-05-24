@@ -26,7 +26,7 @@ Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetiti
 2. [DONE] VRT e hardening visual  
 Adicionar visual regression para páginas críticas.
 3. [DONE] AppSec no CI. Adicionar SAST, SCA e, se possível, baseline DAST.
-4. Observabilidade avançada  
+4. [DONE] Observabilidade avançada  
 Estruturar destino real para telemetria, alertas básicos e correlação por release.
 
 **Prioridade de negócio**

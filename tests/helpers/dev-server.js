@@ -24,11 +24,35 @@ async function waitForHealth(url, maxAttempts = 50) {
   throw new Error(`Server did not become healthy at ${url}`);
 }
 
-async function startDevServer({ host = "127.0.0.1", port = 4180 } = {}) {
+async function startDevServer({
+  host = "127.0.0.1",
+  port = 4180,
+  telemetryForwardUrl = "",
+  alertFailureThreshold = 3,
+  alertWindowMinutes = 15
+} = {}) {
   const dbFile = join(tmpdir(), `conecta-compliance-${port}-${Date.now()}.db`);
+  const args = [
+    "scripts/dev_server.py",
+    "--host",
+    host,
+    "--port",
+    String(port),
+    "--db-file",
+    dbFile,
+    "--alert-failure-threshold",
+    String(alertFailureThreshold),
+    "--alert-window-minutes",
+    String(alertWindowMinutes)
+  ];
+
+  if (telemetryForwardUrl) {
+    args.push("--telemetry-forward-url", telemetryForwardUrl);
+  }
+
   const processRef = spawn(
     "python3",
-    ["scripts/dev_server.py", "--host", host, "--port", String(port), "--db-file", dbFile],
+    args,
     {
     stdio: ["ignore", "pipe", "pipe"]
     }
