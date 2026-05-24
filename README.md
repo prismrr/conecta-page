@@ -525,3 +525,52 @@ Em caso de falha, o workflow faz upload de artefatos para diagnostico:
 
 - `playwright-artifacts` (traces e resultados E2E)
 - `telemetry-logs-sanitized` (logs de telemetria com IP mascarado e campos sensiveis reduzidos)
+
+## Deploy para develop e production
+Foi adicionada automacao de deploy em dois ambientes com scripts reutilizaveis e workflow dedicado.
+
+Arquivos principais:
+
+- workflow de deploy: [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
+- script base de empacotamento: [scripts/deploy/build_static.sh](scripts/deploy/build_static.sh)
+- script base de publicacao: [scripts/deploy/deploy_static.sh](scripts/deploy/deploy_static.sh)
+- wrappers por ambiente:
+	- [scripts/deploy/deploy_develop.sh](scripts/deploy/deploy_develop.sh)
+	- [scripts/deploy/deploy_production.sh](scripts/deploy/deploy_production.sh)
+
+Scripts npm:
+
+- `npm run deploy:build`
+- `npm run deploy:develop`
+- `npm run deploy:production`
+
+Fluxo de branch:
+
+- push em `develop`: deploy para ambiente `develop`
+- push em `main`: deploy para ambiente `production`
+- execucao manual: `workflow_dispatch` em [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
+
+Antes de usar no GitHub, configure Environments com os mesmos nomes (`develop` e `production`) e defina:
+
+Secrets por ambiente:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_PATH`
+- `SSH_PRIVATE_KEY`
+
+Variables por ambiente (opcionais):
+
+- `DEPLOY_PORT` (padrao: 22)
+- `DEPLOY_TIMEOUT_SECONDS` (padrao: 20)
+- `DEPLOY_HEALTHCHECK_URL` (se definido, valida pos-deploy)
+
+Evidencias de deploy:
+
+- `.deploy/dist/RELEASE_MANIFEST.json`
+- `.deploy/deploy-result-<ambiente>.json`
+
+Rollback operacional:
+
+- no host remoto, o link `current` aponta para o release ativo em `DEPLOY_PATH/releases`
+- para rollback manual, basta reapontar `current` para uma release anterior no mesmo diretorio

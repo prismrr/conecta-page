@@ -21,6 +21,7 @@ test-results/
 playwright-report/
 coverage/
 .nyc_output/
+.deploy/
 
 # Python caches
 __pycache__/

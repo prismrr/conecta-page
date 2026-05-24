@@ -1,0 +1,131 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - develop
+          - production
+      ref:
+        description: "Git ref to deploy (branch or tag). Optional for push events."
+        required: false
+        type: string
+
+jobs:
+  deploy-develop:
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'develop')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: develop
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-develop
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-deploy quality checks
+        run: |
+          npm run test:unit
+          npm run test:integration
+
+      - name: Deploy to develop
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_TIMEOUT_SECONDS: ${{ vars.DEPLOY_TIMEOUT_SECONDS }}
+          DEPLOY_HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
+          DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: npm run deploy:develop
+
+      - name: Upload deploy evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-evidence-develop
+          retention-days: 30
+          path: |
+            .deploy/dist/RELEASE_MANIFEST.json
+            .deploy/deploy-result-develop.json
+          if-no-files-found: ignore
+
+  deploy-production:
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-deploy quality checks
+        run: |
+          npm run test:unit
+          npm run test:integration
+
+      - name: Deploy to production
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
+          DEPLOY_TIMEOUT_SECONDS: ${{ vars.DEPLOY_TIMEOUT_SECONDS }}
+          DEPLOY_HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
+          DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: npm run deploy:production
+
+      - name: Upload deploy evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-evidence-production
+          retention-days: 90
+          path: |
+            .deploy/dist/RELEASE_MANIFEST.json
+            .deploy/deploy-result-production.json
+          if-no-files-found: ignore
