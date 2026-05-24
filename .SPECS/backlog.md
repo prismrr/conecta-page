@@ -17,12 +17,9 @@ Publicar FAQ inicial baseada em conteúdo oficial para reduzir dúvidas repetiti
 
 **Sprint 3**
 1. [DONE] `PRD-RQ08` Auditoria de conteúdo crítico. Registrar alteração de conteúdo relevante com autor, data e versão.
-2. `PRD-RQ10` Monitoramento operacional da integração externa  
-Adicionar sinais de disponibilidade, falha de provider e resumo operacional.
-3. Persistência real para compliance  
-Implementar base SQL mínima para consentimento, preferências e trilha de auditoria.
-4. Contrato formal de integração  
-Evoluir do JSON contract atual para OpenAPI versionado e teste de contrato dedicado.
+2. [DONE] `PRD-RQ10` Monitoramento operacional da integração externa. Adicionar sinais de disponibilidade, falha de provider e resumo operacional.
+3. [DONE] Persistência real para compliance. Implementar base SQL mínima para consentimento, preferências e trilha de auditoria.
+4. Contrato formal de integração. Evoluir do JSON contract atual para OpenAPI versionado e teste de contrato dedicado.
 
 **Sprint 4**
 1. Acessibilidade automatizada em PR  

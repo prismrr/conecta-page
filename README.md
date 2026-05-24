@@ -131,6 +131,48 @@ Cada evento registra:
 
 O fluxo foi modelado como append-only no lado do cliente para manter historico de alteracoes criticas no MVP estatico.
 
+## Monitoramento operacional da integracao externa (PRD-RQ10)
+O monitoramento operacional foi adicionado em [pages/inscricoes.html](pages/inscricoes.html), com atualizacao pelo fluxo de consulta em [assets/js/site.js](assets/js/site.js).
+
+Sinais exibidos:
+
+- `Provider disponivel`: resposta valida, nao encontrado ou retorno com exigencia de autorizacao
+- `Provider em modo degradado`: resposta recebida com contrato invalido
+- `Provider indisponivel`: erro operacional, timeout ou falha HTTP do provider
+
+Resumo operacional por sessao:
+
+- total de consultas realizadas
+- respostas disponiveis
+- falhas do provider
+- ocorrencias em modo degradado
+
+O painel tambem apresenta timestamp da ultima atualizacao e detalhe do ultimo evento operacional.
+
+## Persistencia real para compliance (Sprint 3 item 3)
+Foi adicionada persistencia SQL minima via SQLite no servidor local [scripts/dev_server.py](scripts/dev_server.py), com base padrao em `data/compliance.db`.
+
+Tabelas criadas:
+
+- `consent_records` para historico de consentimento granular
+- `integration_monitor_events` para eventos de disponibilidade/falha da integracao externa
+- `content_audit_events` para trilha append-only de alteracoes de conteudo critico
+
+Endpoints de compliance:
+
+- `POST /compliance/consent-records`
+- `GET /compliance/consent-records?limit=20`
+- `POST /compliance/integration-events`
+- `GET /compliance/integration-summary`
+- `GET /compliance/content-audit-events?limit=50`
+- `POST /compliance/content-audit-events` (append-only; `eventId` unico)
+
+Integracoes no frontend:
+
+- [assets/js/site.js](assets/js/site.js) persiste atualizacoes de consentimento no endpoint SQL
+- resumo operacional da integracao externa passa a ser hidratado do endpoint `integration-summary`
+- trilha de auditoria tenta carregar eventos do endpoint SQL com fallback para dataset local
+
 ## Executar localmente
 Opcao 1: abrir index.html diretamente no navegador.
 

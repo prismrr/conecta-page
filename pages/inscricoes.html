@@ -90,6 +90,44 @@
           com orientacao de suporte.
         </p>
       </section>
+
+      <section class="info-card monitor-card" data-integration-monitor>
+        <div class="section-heading">
+          <h2>Monitoramento operacional da integracao</h2>
+          <p>
+            Sinais de disponibilidade e falhas do provider externo com resumo
+            da sessao atual de consultas.
+          </p>
+        </div>
+
+        <p class="monitor-status-line" role="status" data-provider-status-line>
+          <span class="monitor-signal monitor-signal-unknown" data-provider-signal aria-hidden="true"></span>
+          <strong data-provider-status>Aguardando primeira consulta de status.</strong>
+        </p>
+
+        <dl class="monitor-summary-grid">
+          <div class="monitor-summary-item">
+            <dt>Consultas</dt>
+            <dd data-monitor-total>0</dd>
+          </div>
+          <div class="monitor-summary-item">
+            <dt>Respostas disponiveis</dt>
+            <dd data-monitor-available>0</dd>
+          </div>
+          <div class="monitor-summary-item">
+            <dt>Falhas do provider</dt>
+            <dd data-monitor-failures>0</dd>
+          </div>
+          <div class="monitor-summary-item">
+            <dt>Modo degradado</dt>
+            <dd data-monitor-degraded>0</dd>
+          </div>
+        </dl>
+
+        <p class="monitor-meta" data-provider-meta>
+          Ultima atualizacao: ainda sem verificacoes.
+        </p>
+      </section>
     </main>
 
     <footer class="site-footer container">

@@ -1,4 +1,7 @@
 const { spawn } = require("node:child_process");
+const { rm } = require("node:fs/promises");
+const { tmpdir } = require("node:os");
+const { join } = require("node:path");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,9 +25,14 @@ async function waitForHealth(url, maxAttempts = 50) {
 }
 
 async function startDevServer({ host = "127.0.0.1", port = 4180 } = {}) {
-  const processRef = spawn("python3", ["scripts/dev_server.py", "--host", host, "--port", String(port)], {
+  const dbFile = join(tmpdir(), `conecta-compliance-${port}-${Date.now()}.db`);
+  const processRef = spawn(
+    "python3",
+    ["scripts/dev_server.py", "--host", host, "--port", String(port), "--db-file", dbFile],
+    {
     stdio: ["ignore", "pipe", "pipe"]
-  });
+    }
+  );
 
   processRef.stdout.on("data", () => {});
   processRef.stderr.on("data", () => {});
@@ -39,6 +47,7 @@ async function startDevServer({ host = "127.0.0.1", port = 4180 } = {}) {
         processRef.kill("SIGTERM");
       }
       await wait(120);
+      await rm(dbFile, { force: true });
     }
   };
 }

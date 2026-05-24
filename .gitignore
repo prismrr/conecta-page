@@ -30,3 +30,15 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Local SQLite compliance database
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Keep folder, ignore only database files
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+!data/.gitkeep

@@ -17,5 +17,10 @@ window.CONectaConfig = {
     releaseId: "mvp-0.2.0",
     sourceChannel: "web",
     consoleDebug: true
+  },
+  compliance: {
+    enabled: true,
+    // Base path for SQL-backed compliance persistence endpoints.
+    basePath: "/compliance"
   }
 };

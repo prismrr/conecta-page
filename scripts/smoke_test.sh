@@ -119,6 +119,52 @@ PY
   rm -f "$tmp_file"
 }
 
+assert_compliance_endpoints() {
+  local consent_payload
+  consent_payload='{"version":"consent-v2-2026-05","updatedAt":"2026-05-23T00:00:00Z","source":"smoke","status":"granted","categories":{"essential":true,"analytics_optional":true,"communication_optional":false}}'
+
+  local tmp_file
+  tmp_file="$(mktemp)"
+
+  local http_code
+  http_code="$(curl -sS -o "$tmp_file" -w "%{http_code}" -X POST "${BASE_URL}/compliance/consent-records" -H "Content-Type: application/json" -d "$consent_payload")"
+  if [[ "$http_code" != "201" ]]; then
+    echo "[smoke] FAIL compliance consent POST: expected HTTP 201, got ${http_code}"
+    cat "$tmp_file"
+    rm -f "$tmp_file"
+    exit 1
+  fi
+
+  http_code="$(curl -sS -o "$tmp_file" -w "%{http_code}" "${BASE_URL}/compliance/integration-summary")"
+  if [[ "$http_code" != "200" ]]; then
+    echo "[smoke] FAIL compliance summary GET: expected HTTP 200, got ${http_code}"
+    cat "$tmp_file"
+    rm -f "$tmp_file"
+    exit 1
+  fi
+
+  python3 - "$tmp_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    payload = json.load(f)
+
+if payload.get("ok") is not True:
+    print("[smoke] FAIL compliance summary response: expected ok=true")
+    print(json.dumps(payload, ensure_ascii=True))
+    sys.exit(1)
+
+if "summary" not in payload:
+    print("[smoke] FAIL compliance summary response: missing summary")
+    print(json.dumps(payload, ensure_ascii=True))
+    sys.exit(1)
+PY
+
+  echo "[smoke] PASS compliance SQL endpoints"
+  rm -f "$tmp_file"
+}
+
 main() {
   ensure_server
 
@@ -130,6 +176,7 @@ main() {
   assert_registration "PRISM-2026-999" "200" "status" "UNKNOWN"
 
   assert_telemetry_post
+  assert_compliance_endpoints
 
   echo "[smoke] All checks passed"
 }

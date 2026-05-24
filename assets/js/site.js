@@ -1,6 +1,7 @@
 (function () {
   var appConfig = window.CONectaConfig || {};
   var telemetryConfig = appConfig.telemetry || {};
+  var complianceConfig = appConfig.compliance || {};
   var telemetrySessionKey = "conecta_telemetry_session_v1";
   var consentStorageKey = "conecta_consent_preferences_v2";
   var consentLegacyKey = "conecta_consent_v1";
@@ -237,6 +238,56 @@
     }
   }
 
+  function isComplianceEnabled() {
+    return complianceConfig.enabled !== false;
+  }
+
+  function getComplianceBasePath() {
+    var path = complianceConfig.basePath || "/compliance";
+    return String(path).replace(/\/$/, "");
+  }
+
+  function buildComplianceUrl(resourcePath) {
+    return getComplianceBasePath() + resourcePath;
+  }
+
+  function postCompliance(resourcePath, payload) {
+    if (!isComplianceEnabled()) {
+      return Promise.resolve();
+    }
+
+    return fetch(buildComplianceUrl(resourcePath), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error("compliance_post_failed");
+      }
+    });
+  }
+
+  function getCompliance(resourcePath) {
+    if (!isComplianceEnabled()) {
+      return Promise.resolve(null);
+    }
+
+    return fetch(buildComplianceUrl(resourcePath), {
+      method: "GET",
+      headers: {
+        Accept: "application/json"
+      }
+    }).then(function (response) {
+      if (!response.ok) {
+        throw new Error("compliance_get_failed");
+      }
+
+      return response.json();
+    });
+  }
+
   function createDsarProtocol() {
     var now = new Date();
     var y = now.getUTCFullYear();
@@ -369,6 +420,15 @@
       var hadAnalyticsConsent = !!(consentRecord && consentRecord.categories && consentRecord.categories.analytics_optional);
       consentRecord = nextRecord;
       writeConsentRecord(nextRecord);
+      postCompliance("/consent-records", {
+        version: nextRecord.version,
+        updatedAt: nextRecord.updatedAt,
+        source: nextRecord.source,
+        status: nextRecord.status,
+        categories: nextRecord.categories
+      }).catch(function () {
+        // No-op: consent remains locally persisted even if SQL persistence is temporarily unavailable.
+      });
       syncCookiesFromConsent(nextRecord);
       syncConsentInputs();
       setConsentStatusText();
@@ -506,6 +566,13 @@
   var termsCurrentRoot = document.querySelector("[data-terms-current]");
   var termsCurrentMeta = document.querySelector("[data-terms-current-meta]");
   var termsChangelogRoot = document.querySelector("[data-terms-changelog]");
+  var providerStatusNode = document.querySelector("[data-provider-status]");
+  var providerSignalNode = document.querySelector("[data-provider-signal]");
+  var providerMetaNode = document.querySelector("[data-provider-meta]");
+  var monitorTotalNode = document.querySelector("[data-monitor-total]");
+  var monitorAvailableNode = document.querySelector("[data-monitor-available]");
+  var monitorFailuresNode = document.querySelector("[data-monitor-failures]");
+  var monitorDegradedNode = document.querySelector("[data-monitor-degraded]");
   var apiConfig = appConfig.registrationApi || {};
   var registrationCore = window.ConectaRegistrationCore || {};
   var registrationGuidance = window.ConectaRegistrationGuidance || {};
@@ -513,6 +580,16 @@
   var faqData = window.ConectaFaqData || {};
   var legalDocuments = window.ConectaLegalDocuments || {};
   var contentAuditData = window.ConectaContentAudit || {};
+  var integrationMonitor = {
+    totalChecks: 0,
+    availableChecks: 0,
+    providerFailures: 0,
+    degradedChecks: 0,
+    signal: "unknown",
+    lastOutcome: "none",
+    lastCheckedAt: null,
+    lastDetail: "Aguardando primeira consulta."
+  };
 
   if (externalRegistrationLink && apiConfig.externalRegistrationUrl) {
     externalRegistrationLink.setAttribute("href", apiConfig.externalRegistrationUrl);
@@ -971,22 +1048,28 @@
     "Termo de Uso"
   );
 
-  function renderContentAuditTrail() {
+  function sortAuditEvents(events) {
+    return events
+      .slice()
+      .sort(function (left, right) {
+        return String(right.changedAt || "").localeCompare(String(left.changedAt || ""));
+      });
+  }
+
+  function getLocalAuditEvents() {
+    return Array.isArray(contentAuditData.events) ? sortAuditEvents(contentAuditData.events) : [];
+  }
+
+  function renderContentAuditTrail(events) {
     if (!(auditListRoot instanceof HTMLElement)) {
       return;
     }
 
-    var events = Array.isArray(contentAuditData.events)
-      ? contentAuditData.events
-          .slice()
-          .sort(function (left, right) {
-            return String(right.changedAt || "").localeCompare(String(left.changedAt || ""));
-          })
-      : [];
+    var safeEvents = Array.isArray(events) ? sortAuditEvents(events) : [];
 
     auditListRoot.textContent = "";
 
-    if (!events.length) {
+    if (!safeEvents.length) {
       var empty = document.createElement("p");
       empty.className = "guidance-loading";
       empty.textContent = "Nenhum evento de auditoria registrado.";
@@ -994,7 +1077,7 @@
       return;
     }
 
-    events.forEach(function (eventRecord) {
+    safeEvents.forEach(function (eventRecord) {
       var card = document.createElement("article");
       card.className = "audit-card";
       card.setAttribute("data-audit-event-id", eventRecord.eventId || "unknown");
@@ -1028,7 +1111,25 @@
     });
   }
 
-  renderContentAuditTrail();
+  function loadContentAuditTrailFromServer() {
+    if (!(auditListRoot instanceof HTMLElement)) {
+      return;
+    }
+
+    getCompliance("/content-audit-events?limit=100")
+      .then(function (payload) {
+        if (!payload || !Array.isArray(payload.events)) {
+          return;
+        }
+        renderContentAuditTrail(payload.events);
+      })
+      .catch(function () {
+        // No-op: keep fallback rendered from local dataset.
+      });
+  }
+
+  renderContentAuditTrail(getLocalAuditEvents());
+  loadContentAuditTrailFromServer();
 
   function appendTextList(root, title, items) {
     if (!(root instanceof HTMLElement) || !Array.isArray(items) || !items.length) {
@@ -1250,6 +1351,157 @@
     return dateTimeIso;
   }
 
+  function getSignalFromOutcome(outcome) {
+    if (outcome === "success" || outcome === "not_found" || outcome === "unauthorized") {
+      return "available";
+    }
+
+    if (outcome === "contract_error") {
+      return "degraded";
+    }
+
+    if (outcome === "service_unavailable") {
+      return "unavailable";
+    }
+
+    return "unknown";
+  }
+
+  function applyIntegrationSummary(summary) {
+    if (!summary || typeof summary !== "object") {
+      return;
+    }
+
+    integrationMonitor.totalChecks = Math.max(0, Number(summary.totalChecks) || 0);
+    integrationMonitor.availableChecks = Math.max(0, Number(summary.availableChecks) || 0);
+    integrationMonitor.providerFailures = Math.max(0, Number(summary.providerFailures) || 0);
+    integrationMonitor.degradedChecks = Math.max(0, Number(summary.degradedChecks) || 0);
+
+    if (summary.lastEvent && typeof summary.lastEvent === "object") {
+      integrationMonitor.signal = String(summary.lastEvent.signal || "unknown");
+      integrationMonitor.lastOutcome = String(summary.lastEvent.outcome || "unknown");
+      integrationMonitor.lastCheckedAt = summary.lastEvent.recordedAt || null;
+      integrationMonitor.lastDetail = summary.lastEvent.detail || "Sem detalhe adicional.";
+    }
+  }
+
+  function getSignalLabel(signal) {
+    if (signal === "available") {
+      return "Provider disponivel";
+    }
+
+    if (signal === "degraded") {
+      return "Provider em modo degradado";
+    }
+
+    if (signal === "unavailable") {
+      return "Provider indisponivel";
+    }
+
+    return "Status operacional pendente";
+  }
+
+  function renderIntegrationMonitor() {
+    if (!(providerStatusNode instanceof HTMLElement)) {
+      return;
+    }
+
+    var statusLabel = getSignalLabel(integrationMonitor.signal);
+    providerStatusNode.textContent = statusLabel;
+
+    if (providerSignalNode instanceof HTMLElement) {
+      providerSignalNode.className = "monitor-signal monitor-signal-" + integrationMonitor.signal;
+    }
+
+    if (monitorTotalNode instanceof HTMLElement) {
+      monitorTotalNode.textContent = String(integrationMonitor.totalChecks);
+    }
+    if (monitorAvailableNode instanceof HTMLElement) {
+      monitorAvailableNode.textContent = String(integrationMonitor.availableChecks);
+    }
+    if (monitorFailuresNode instanceof HTMLElement) {
+      monitorFailuresNode.textContent = String(integrationMonitor.providerFailures);
+    }
+    if (monitorDegradedNode instanceof HTMLElement) {
+      monitorDegradedNode.textContent = String(integrationMonitor.degradedChecks);
+    }
+
+    if (providerMetaNode instanceof HTMLElement) {
+      if (!integrationMonitor.lastCheckedAt) {
+        providerMetaNode.textContent = "Ultima atualizacao: ainda sem verificacoes.";
+      } else {
+        providerMetaNode.textContent =
+          "Ultima atualizacao: " +
+          formatDateTime(integrationMonitor.lastCheckedAt) +
+          " · Evento: " +
+          integrationMonitor.lastOutcome +
+          " · Detalhe: " +
+          integrationMonitor.lastDetail;
+      }
+    }
+  }
+
+  function updateIntegrationMonitor(outcome, detail) {
+    integrationMonitor.totalChecks += 1;
+    integrationMonitor.lastOutcome = outcome || "unknown";
+    integrationMonitor.lastCheckedAt = new Date().toISOString();
+    integrationMonitor.lastDetail = detail || "Sem detalhe adicional.";
+
+    var signal = getSignalFromOutcome(outcome);
+    integrationMonitor.signal = signal;
+
+    if (signal === "available") {
+      integrationMonitor.availableChecks += 1;
+    }
+
+    if (signal === "degraded") {
+      integrationMonitor.degradedChecks += 1;
+      integrationMonitor.providerFailures += 1;
+    }
+
+    if (signal === "unavailable") {
+      integrationMonitor.providerFailures += 1;
+    }
+
+    renderIntegrationMonitor();
+
+    postCompliance("/integration-events", {
+      outcome: outcome,
+      signal: signal,
+      detail: detail,
+      sourcePage: "inscricoes"
+    })
+      .then(function () {
+        return getCompliance("/integration-summary");
+      })
+      .then(function (payload) {
+        if (!payload || !payload.summary) {
+          return;
+        }
+        applyIntegrationSummary(payload.summary);
+        renderIntegrationMonitor();
+      })
+      .catch(function () {
+        // No-op: optimistic in-memory summary remains visible.
+      });
+  }
+
+  renderIntegrationMonitor();
+
+  if (providerStatusNode instanceof HTMLElement) {
+    getCompliance("/integration-summary")
+      .then(function (payload) {
+        if (!payload || !payload.summary) {
+          return;
+        }
+        applyIntegrationSummary(payload.summary);
+        renderIntegrationMonitor();
+      })
+      .catch(function () {
+        // No-op: keep default empty summary.
+      });
+  }
+
   async function fetchRegistrationResult(registrationId) {
     var attempts = Math.max(1, Number(apiConfig.maxRetries) || 3);
     var timeoutMs = Math.max(1000, Number(apiConfig.timeoutMs) || 5000);
@@ -1354,6 +1606,7 @@
           outcome: "success",
           status: result.status
         });
+        updateIntegrationMonitor("success", "Consulta concluida com payload valido.");
       } catch (error) {
         if (error && error.type === "NOT_FOUND") {
           lookupResult.textContent = "Inscricao nao encontrada. Confira o codigo e tente novamente.";
@@ -1361,6 +1614,7 @@
             registration_id: value,
             outcome: "not_found"
           });
+          updateIntegrationMonitor("not_found", "Provider respondeu sem correspondencia para o codigo informado.");
           return;
         }
 
@@ -1370,6 +1624,7 @@
             registration_id: value,
             outcome: "unauthorized"
           });
+          updateIntegrationMonitor("unauthorized", "Provider exige autorizacao adicional para consulta.");
           return;
         }
 
@@ -1385,6 +1640,7 @@
             reason: "contract_validation_failed",
             detail: error.reason || "unknown"
           });
+          updateIntegrationMonitor("contract_error", "Falha de contrato: " + (error.reason || "unknown"));
           return;
         }
 
@@ -1397,6 +1653,7 @@
           registration_id: value,
           reason: "provider_unavailable"
         });
+        updateIntegrationMonitor("service_unavailable", "Falha operacional ou timeout no provider externo.");
       }
     });
   }
