@@ -55,6 +55,7 @@ Frontend:
 - Renderizacao e UX.
 - Emissao de telemetria.
 - Consumo de APIs locais/remotas.
+- Configuracao do banner superior centralizada em `assets/js/config.js`.
 
 Backend:
 - Exposicao de APIs de telemetria, compliance, observability e mock de integracao.
@@ -83,6 +84,18 @@ Fluxo de deploy:
 1. Build estatico por [backend/deploy/build_static.sh](../backend/deploy/build_static.sh).
 2. Publicacao por [backend/deploy/deploy_static.sh](../backend/deploy/deploy_static.sh).
 3. CI executa workflow de deploy em ambientes develop/production.
+
+## Configuracao centralizada de UI
+
+Banner superior dinamico:
+1. O conteudo fica em [assets/js/config.js](../assets/js/config.js), no bloco `topBanner`.
+2. O frontend renderiza o banner em [assets/js/site.js](../assets/js/site.js), inserindo a secao logo apos o cabecalho.
+3. As paginas HTML nao repetem mais markup de banner, reduzindo divergencia entre rotas.
+
+Campos esperados em `topBanner`:
+- `enabled`: liga/desliga exibicao.
+- `label`: prefixo em destaque (ex.: Comunicado:).
+- `message`: texto principal exibido para o usuario.
 
 ## Comandos canonicos
 

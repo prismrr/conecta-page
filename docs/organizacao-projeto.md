@@ -40,10 +40,16 @@ Compatibilidade legada:
   - Renderizacao e interacao de usuario.
   - Emissao de eventos de telemetria.
   - Consumo dos endpoints HTTP.
+  - Configuracoes de UI compartilhadas em [assets/js/config.js](../assets/js/config.js).
 - Backend:
   - Exposicao de endpoints (telemetria, compliance, observability, mock de integracao).
   - Persistencia SQLite e agregacoes operacionais.
   - Jobs de retencao e incident drill.
+
+## Configuracao centralizada de banner
+- O banner superior e controlado no bloco `topBanner` em [assets/js/config.js](../assets/js/config.js).
+- A injecao dinamica do banner e feita em [assets/js/site.js](../assets/js/site.js), logo apos o cabecalho.
+- As paginas HTML nao replicam mais o markup do banner, reduzindo manutencao e risco de inconsistencias.
 
 ## Comandos canonicos
 Servidor local:

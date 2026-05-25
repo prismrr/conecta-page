@@ -2,6 +2,7 @@
   var appConfig = window.CONectaConfig || {};
   var telemetryConfig = appConfig.telemetry || {};
   var complianceConfig = appConfig.compliance || {};
+  var topBannerConfig = appConfig.topBanner || {};
   var telemetrySessionKey = "conecta_telemetry_session_v1";
   var consentStorageKey = "conecta_consent_preferences_v2";
   var consentLegacyKey = "conecta_consent_v1";
@@ -327,6 +328,131 @@
       menu.classList.toggle("is-open");
     });
   }
+
+  function getSiteBasePath() {
+    var script = document.querySelector('script[src*="assets/js/site.js"]');
+    if (!(script instanceof HTMLScriptElement)) {
+      return "";
+    }
+
+    var src = script.getAttribute("src") || "";
+    if (!src) {
+      return "";
+    }
+
+    try {
+      var srcUrl = new URL(src, window.location.href);
+      var marker = "/assets/js/site.js";
+      var markerIndex = srcUrl.pathname.lastIndexOf(marker);
+      if (markerIndex >= 0) {
+        return srcUrl.pathname.slice(0, markerIndex);
+      }
+    } catch (_error) {
+      return "";
+    }
+
+    return "";
+  }
+
+  function resolveBannerAssetUrl(rawUrl) {
+    if (!rawUrl) {
+      return "";
+    }
+
+    var value = String(rawUrl).trim();
+    if (!value) {
+      return "";
+    }
+
+    if (/^(https?:|data:|blob:)/i.test(value)) {
+      return value;
+    }
+
+    var basePath = getSiteBasePath();
+    if (value.charAt(0) === "/") {
+      return (basePath || "") + value;
+    }
+
+    if (basePath) {
+      return basePath + "/" + value.replace(/^\.\//, "");
+    }
+
+    return value;
+  }
+
+  function mountTopBanner() {
+    if (topBannerConfig.enabled === false) {
+      return;
+    }
+
+    if (document.querySelector(".top-banner")) {
+      return;
+    }
+
+    var header = document.querySelector(".site-header");
+    if (!(header instanceof HTMLElement)) {
+      return;
+    }
+
+    var section = document.createElement("section");
+    section.className = "top-banner";
+    var hasImage = !!topBannerConfig.imageUrl;
+    var hideText = topBannerConfig.hideText === true;
+
+    if (hasImage && hideText) {
+      section.classList.add("top-banner-image-mode");
+
+      var media = document.createElement("div");
+      media.className = "top-banner-media";
+
+      var heroImage = document.createElement("img");
+      heroImage.className = "top-banner-hero";
+      heroImage.src = resolveBannerAssetUrl(topBannerConfig.imageUrl);
+      heroImage.alt = topBannerConfig.imageAlt || "";
+      heroImage.loading = "eager";
+      heroImage.decoding = "async";
+
+      media.appendChild(heroImage);
+      section.appendChild(media);
+      header.insertAdjacentElement("afterend", section);
+      return;
+    }
+
+    section.setAttribute("role", "status");
+    section.setAttribute("aria-live", "polite");
+
+    var container = document.createElement("div");
+    container.className = "container top-banner-inner";
+
+    if (topBannerConfig.imageUrl) {
+      var image = document.createElement("img");
+      image.className = "top-banner-image";
+      image.src = resolveBannerAssetUrl(topBannerConfig.imageUrl);
+      image.alt = topBannerConfig.imageAlt || "";
+      image.width = 24;
+      image.height = 24;
+      image.loading = "eager";
+      image.decoding = "async";
+      container.appendChild(image);
+    }
+
+    var label = document.createElement("strong");
+    label.textContent = topBannerConfig.label || "Comunicado:";
+
+    var message = document.createTextNode(
+      " " +
+        (topBannerConfig.message ||
+          "Acompanhe atualizacoes oficiais de agenda e inscricoes nas secoes do portal.")
+    );
+
+    container.appendChild(label);
+    container.appendChild(message);
+    section.appendChild(container);
+
+    header.insertAdjacentElement("afterend", section);
+  }
+
+  mountTopBanner();
 
   emitTelemetry("page_view", {
     title: document.title

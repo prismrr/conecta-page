@@ -500,6 +500,22 @@ Em [assets/js/config.js](assets/js/config.js), ajuste o bloco `telemetry`:
 
 Se `endpointUrl` estiver vazio, os eventos permanecem disponiveis em `window.dataLayer` para inspecao local.
 
+O banner superior tambem e configuravel no mesmo arquivo, via bloco `topBanner`:
+
+- enabled: ativa ou desativa a exibicao do banner
+- label: texto em destaque antes da mensagem
+- message: conteudo principal do banner superior
+
+Exemplo:
+
+```js
+topBanner: {
+	enabled: true,
+	label: "Comunicado:",
+	message: "Acompanhe atualizacoes oficiais de agenda e inscricoes nas secoes do portal."
+}
+```
+
 ### Coleta local real
 Com `endpointUrl` configurado para `/telemetry/events`, execute o servidor de dev:
 

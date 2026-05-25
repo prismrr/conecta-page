@@ -74,6 +74,47 @@ a {
   padding: 1rem 1.25rem;
 }
 
+.top-banner {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(249, 133, 3, 0.22), rgba(35, 188, 199, 0.18));
+}
+
+.top-banner-image-mode {
+  background: transparent;
+}
+
+.top-banner-media {
+  width: 100%;
+}
+
+.top-banner-hero {
+  display: block;
+  width: 100%;
+  height: clamp(9rem, 20vw, 16rem);
+  object-fit: cover;
+}
+
+.top-banner-inner {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text);
+  font-size: 0.92rem;
+  padding: 0.45rem 0;
+}
+
+.top-banner-image {
+  width: 1.35rem;
+  height: 1.35rem;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.top-banner-inner strong {
+  color: var(--accent);
+}
+
 .brand {
   font-family: "Bricolage Grotesque", sans-serif;
   font-weight: 800;
@@ -1016,6 +1057,16 @@ h1 {
   .consent-launcher {
     width: 3rem;
     height: 3rem;
+  }
+
+  .top-banner-inner {
+    font-size: 0.86rem;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+  }
+
+  .top-banner-hero {
+    height: clamp(8rem, 28vw, 13rem);
   }
 }
 

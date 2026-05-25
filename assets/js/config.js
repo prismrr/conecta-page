@@ -22,5 +22,13 @@ window.CONectaConfig = {
     enabled: true,
     // Base path for SQL-backed compliance persistence endpoints.
     basePath: "/compliance"
+  },
+  topBanner: {
+    enabled: true,
+    label: "Comunicado:",
+    message: "",
+    imageUrl: "/assets/images/top-banner-full.svg",
+    imageAlt: "Banner visual do Conecta PrismRR",
+    hideText: true
   }
 };
