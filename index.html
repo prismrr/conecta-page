@@ -33,8 +33,13 @@
         <a href="pages/inscricoes.html">Inscricoes</a>
         <a href="pages/programacao.html">Programacao</a>
         <a href="pages/faq.html">FAQ</a>
-        <a href="pages/politica-privacidade.html">Privacidade</a>
-        <a href="pages/termos-uso.html">Termos</a>
+        <details class="nav-dropdown">
+          <summary>Mais</summary>
+          <div class="nav-dropdown-menu">
+            <a href="pages/politica-privacidade.html">Privacidade</a>
+            <a href="pages/termos-uso.html">Termos</a>
+          </div>
+        </details>
       </nav>
     </header>
 
@@ -105,8 +110,21 @@
       </p>
     </footer>
 
-    <button class="consent-launcher" type="button" data-consent-open>
-      Preferencias de consentimento
+    <button
+      class="consent-launcher"
+      type="button"
+      data-consent-open
+      aria-label="Preferencias de consentimento"
+      title="Preferencias de consentimento"
+    >
+      <img
+        src="assets/icons/consent-flaticon.png"
+        alt=""
+        width="20"
+        height="20"
+        loading="lazy"
+        decoding="async"
+      />
     </button>
 
     <section class="consent-banner" data-consent-banner hidden>
