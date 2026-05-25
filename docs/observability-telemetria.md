@@ -20,9 +20,9 @@ Fluxo principal:
 Componentes:
 - Emissor frontend: [assets/js/site.js](../assets/js/site.js)
 - Config frontend: [assets/js/config.js](../assets/js/config.js)
-- Coletor e agregador: [scripts/dev_server.py](../scripts/dev_server.py)
-- Stack local observability: [ops/observability/docker-compose.yml](../ops/observability/docker-compose.yml)
-- Config do Loki: [ops/observability/loki/loki-config.yaml](../ops/observability/loki/loki-config.yaml)
+- Coletor e agregador: [backend/server/dev_server.py](../backend/server/dev_server.py)
+- Stack local observability: [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
+- Config do Loki: [infra/observability/loki/loki-config.yaml](../infra/observability/loki/loki-config.yaml)
 
 ## Dados de telemetria
 Endpoint de coleta:
@@ -130,7 +130,7 @@ Comportamento:
 
 ## Stack local com Loki e Grafana
 Subir somente observability:
-- docker compose -f ops/observability/docker-compose.yml up -d
+- docker compose -f infra/observability/docker-compose.yml up -d
 
 Subir app + observability:
 - npm run dev:docker:full
@@ -185,8 +185,8 @@ Mount error em compose multiarquivo:
 - Usar eventos de falha de integracao para observabilidade de degradacao.
 
 ## Referencias
-- [scripts/dev_server.py](../scripts/dev_server.py)
+- [backend/server/dev_server.py](../backend/server/dev_server.py)
 - [assets/js/config.js](../assets/js/config.js)
-- [ops/observability/docker-compose.yml](../ops/observability/docker-compose.yml)
+- [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
 - [.env.example](../.env.example)
 - [docs/api.md](./api.md)

@@ -24,7 +24,7 @@ jobs:
       - name: Run retention job (dry-run)
         run: |
           mkdir -p artifacts
-          python3 scripts/retention_job.py \
+          python3 backend/jobs/retention_job.py \
             --db-file data/compliance.db \
             --report-file artifacts/compliance-retention-report.json \
             --dry-run

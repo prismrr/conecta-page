@@ -40,7 +40,7 @@ async function startDevServer({
 } = {}) {
   const dbFile = join(tmpdir(), `conecta-compliance-${port}-${Date.now()}.db`);
   const args = [
-    "scripts/dev_server.py",
+    "backend/server/dev_server.py",
     "--host",
     host,
     "--port",

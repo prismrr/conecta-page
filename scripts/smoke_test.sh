@@ -29,7 +29,7 @@ ensure_server() {
   fi
 
   echo "[smoke] Starting local dev server at ${BASE_URL}"
-  python3 scripts/dev_server.py --host "$HOST" --port "$PORT" >"$SERVER_LOG" 2>&1 &
+  python3 backend/server/dev_server.py --host "$HOST" --port "$PORT" >"$SERVER_LOG" 2>&1 &
   SERVER_PID="$!"
   STARTED_SERVER=1
 

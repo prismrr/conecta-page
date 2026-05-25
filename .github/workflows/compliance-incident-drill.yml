@@ -24,7 +24,7 @@ jobs:
       - name: Execute incident drill playbook
         run: |
           mkdir -p artifacts
-          python3 scripts/incident_drill.py \
+          python3 backend/jobs/incident_drill.py \
             --db-file artifacts/compliance-incident-drill.db \
             --report-file artifacts/compliance-incident-drill-report.json \
             --summary-file artifacts/compliance-incident-drill-summary.md

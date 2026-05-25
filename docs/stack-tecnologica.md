@@ -23,9 +23,9 @@ Arquivos de referencia:
 - Jobs de compliance para retencao/descarte e simulacao de incidente.
 
 Arquivos de referencia:
-- [scripts/dev_server.py](../scripts/dev_server.py)
-- [scripts/retention_job.py](../scripts/retention_job.py)
-- [scripts/incident_drill.py](../scripts/incident_drill.py)
+- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/jobs/retention_job.py](../backend/jobs/retention_job.py)
+- [backend/jobs/incident_drill.py](../backend/jobs/incident_drill.py)
 
 ## Persistencia e dados
 - SQLite como banco local de compliance e observabilidade operacional.
@@ -66,8 +66,8 @@ Arquivos de referencia:
 - Docker Compose para subir stack local de observabilidade.
 
 Arquivos de referencia:
-- [ops/observability/docker-compose.yml](../ops/observability/docker-compose.yml)
-- [ops/observability/loki/loki-config.yaml](../ops/observability/loki/loki-config.yaml)
+- [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
+- [infra/observability/loki/loki-config.yaml](../infra/observability/loki/loki-config.yaml)
 
 ## Seguranca e compliance no CI
 - Semgrep para SAST.
@@ -88,10 +88,10 @@ Arquivos de referencia:
 
 Arquivos de referencia:
 - [.github/workflows/deploy.yml](../.github/workflows/deploy.yml)
-- [scripts/deploy/build_static.sh](../scripts/deploy/build_static.sh)
-- [scripts/deploy/deploy_static.sh](../scripts/deploy/deploy_static.sh)
-- [scripts/deploy/deploy_develop.sh](../scripts/deploy/deploy_develop.sh)
-- [scripts/deploy/deploy_production.sh](../scripts/deploy/deploy_production.sh)
+- [backend/deploy/build_static.sh](../backend/deploy/build_static.sh)
+- [backend/deploy/deploy_static.sh](../backend/deploy/deploy_static.sh)
+- [backend/deploy/deploy_develop.sh](../backend/deploy/deploy_develop.sh)
+- [backend/deploy/deploy_production.sh](../backend/deploy/deploy_production.sh)
 
 ## Ambiente de desenvolvimento
 Comandos npm principais para o dia a dia:

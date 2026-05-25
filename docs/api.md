@@ -3,7 +3,7 @@
 Este documento descreve a API HTTP exposta pelo servidor local do projeto.
 
 Implementacao principal:
-- [scripts/dev_server.py](../scripts/dev_server.py)
+- [backend/server/dev_server.py](../backend/server/dev_server.py)
 
 Contrato OpenAPI da integracao externa de inscricoes:
 - [contracts/openapi/registration-result.v1.0.0.openapi.json](../contracts/openapi/registration-result.v1.0.0.openapi.json)

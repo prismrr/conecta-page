@@ -11,6 +11,7 @@ MVP inicial do portal oficial do PRISM Conecta.
 - Preferencias de consentimento granulares e revogaveis por categoria.
 
 ## Estrutura
+- frontend/ (guia da camada de interface)
 - index.html
 - pages/inscricoes.html
 - pages/programacao.html
@@ -20,7 +21,17 @@ MVP inicial do portal oficial do PRISM Conecta.
 - assets/js/registration-guidance.js
 - assets/js/faq-data.js
 - assets/js/site.js
+- backend/ (camada backend canônica)
+	- backend/server/dev_server.py
+	- backend/jobs/retention_job.py
+	- backend/jobs/incident_drill.py
+- scripts/ (wrappers de compatibilidade e automacoes shell)
 - .SPECS/ (fonte de verdade para requisitos de produto, qualidade e compliance)
+
+Guia de organizacao frontend x backend: [docs/organizacao-projeto.md](docs/organizacao-projeto.md)
+Mapa de arquitetura: [docs/arquitetura.md](docs/arquitetura.md)
+Plano de deprecacao do legado ops: [docs/deprecacao-ops.md](docs/deprecacao-ops.md)
+Readiness de corte do legado ops: [docs/readiness-corte-ops.md](docs/readiness-corte-ops.md)
 
 ## Orientacoes de inscricao versionadas
 As versoes publicadas da chamada ficam em [assets/js/registration-guidance.js](assets/js/registration-guidance.js).
@@ -150,7 +161,7 @@ Resumo operacional por sessao:
 O painel tambem apresenta timestamp da ultima atualizacao e detalhe do ultimo evento operacional.
 
 ## Persistencia real para compliance (Sprint 3 item 3)
-Foi adicionada persistencia SQL minima via SQLite no servidor local [scripts/dev_server.py](scripts/dev_server.py), com base padrao em `data/compliance.db`.
+Foi adicionada persistencia SQL minima via SQLite no servidor local [backend/server/dev_server.py](backend/server/dev_server.py), com base padrao em `data/compliance.db`.
 
 Tabelas criadas:
 
@@ -174,7 +185,7 @@ Integracoes no frontend:
 - trilha de auditoria tenta carregar eventos do endpoint SQL com fallback para dataset local
 
 ## Retencao e descarte automatizados (LGPD-RF08)
-Foi adicionado um job de retencao para a base SQLite em [scripts/retention_job.py](scripts/retention_job.py), com relatorio auditavel por execucao.
+Foi adicionado um job de retencao para a base SQLite em [backend/jobs/retention_job.py](backend/jobs/retention_job.py), com relatorio auditavel por execucao.
 
 Politica inicial de temporalidade:
 
@@ -200,7 +211,7 @@ Automacao periodica:
 - publicacao de artifact `compliance-retention-report`
 
 ## Plano operacional de incidente e prova de exercicio (LGPD-RF12)
-Foi adicionado um playbook tecnico executavel em [scripts/incident_drill.py](scripts/incident_drill.py), com simulacao controlada de indisponibilidade do provider externo e evidencias auditaveis por execucao.
+Foi adicionado um playbook tecnico executavel em [backend/jobs/incident_drill.py](backend/jobs/incident_drill.py), com simulacao controlada de indisponibilidade do provider externo e evidencias auditaveis por execucao.
 
 Escopo do exercicio automatizado:
 
@@ -231,7 +242,7 @@ Opcao 1: abrir index.html diretamente no navegador.
 
 Opcao 2: servidor local com coletor de telemetria:
 
-python3 scripts/dev_server.py --port 8080
+python3 backend/server/dev_server.py --port 8080
 
 Depois acesse:
 
@@ -255,7 +266,7 @@ Ou via npm:
 - `npm run dev:docker:logs`
 - `npm run dev:docker:down`
 
-Com essa opcao, a aplicacao roda com o servidor [scripts/dev_server.py](scripts/dev_server.py) dentro do container e fica disponivel em `http://localhost:8080`.
+Com essa opcao, a aplicacao roda com o servidor [backend/server/dev_server.py](backend/server/dev_server.py) dentro do container e fica disponivel em `http://localhost:8080`.
 
 ### Teste completo com Docker Compose (App + Loki + Grafana)
 Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o fluxo completo de telemetria e observabilidade.
@@ -267,7 +278,7 @@ Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o flux
 
 2. Suba stack completa com forwarding para Loki:
 
-`PWD=$(pwd) TELEMETRY_FORWARD_URL=http://loki:3100/loki/api/v1/push TELEMETRY_FORWARD_PROVIDER=loki docker compose -f docker-compose.local.yml -f ops/observability/docker-compose.yml up -d`
+`PWD=$(pwd) TELEMETRY_FORWARD_URL=http://loki:3100/loki/api/v1/push TELEMETRY_FORWARD_PROVIDER=loki docker compose -f docker-compose.local.yml -f infra/observability/docker-compose.yml up -d`
 
 Atalho via npm:
 
@@ -293,7 +304,7 @@ Atalho via npm:
 
 6. Encerrar stack completa:
 
-`docker compose -f docker-compose.local.yml -f ops/observability/docker-compose.yml down`
+`docker compose -f docker-compose.local.yml -f infra/observability/docker-compose.yml down`
 
 Observacao:
 - Se o forwarding estiver ativo para Loki, o endpoint `GET /observability/health` deve mostrar `forwarding.configured=true`.
@@ -391,7 +402,7 @@ Foi adicionada uma esteira inicial de AppSec no pipeline de PR em [/.github/work
 Os checks rodam em job dedicado (`appsec`) e bloqueiam merge quando houver falhas.
 
 ## Observabilidade avancada (Sprint 4 item 4)
-Foi estruturada uma camada de observabilidade no servidor local [scripts/dev_server.py](scripts/dev_server.py) com:
+Foi estruturada uma camada de observabilidade no servidor local [backend/server/dev_server.py](backend/server/dev_server.py) com:
 
 - destino real opcional para forwarding de telemetria
 - alertas basicos por limiar de falhas de sincronizacao externa
@@ -448,7 +459,7 @@ Health operacional:
 - contagens das ultimas 24h
 
 ### Destino real com persistencia (Loki + Grafana)
-Para operacionalizar observabilidade persistente com stack local, foi adicionada uma composicao em [ops/observability/docker-compose.yml](ops/observability/docker-compose.yml) com:
+Para operacionalizar observabilidade persistente com stack local, foi adicionada uma composicao em [infra/observability/docker-compose.yml](infra/observability/docker-compose.yml) com:
 
 - Loki para armazenamento persistente de logs de telemetria
 - Grafana para consulta e dashboards
@@ -456,15 +467,15 @@ Para operacionalizar observabilidade persistente com stack local, foi adicionada
 
 Suba a stack:
 
-`docker compose -f ops/observability/docker-compose.yml up -d`
+`docker compose -f infra/observability/docker-compose.yml up -d`
 
 Configure o servidor para enviar eventos para Loki:
 
-`python3 scripts/dev_server.py --port 8080 --telemetry-forward-url http://127.0.0.1:3100/loki/api/v1/push --telemetry-forward-provider loki`
+`python3 backend/server/dev_server.py --port 8080 --telemetry-forward-url http://127.0.0.1:3100/loki/api/v1/push --telemetry-forward-provider loki`
 
 Opcional com API key:
 
-`python3 scripts/dev_server.py --port 8080 --telemetry-forward-url https://seu-gateway-observability.example/loki/api/v1/push --telemetry-forward-provider loki --telemetry-forward-auth-type x-api-key --telemetry-forward-auth-token "$TELEMETRY_FORWARD_AUTH_TOKEN"`
+`python3 backend/server/dev_server.py --port 8080 --telemetry-forward-url https://seu-gateway-observability.example/loki/api/v1/push --telemetry-forward-provider loki --telemetry-forward-auth-type x-api-key --telemetry-forward-auth-token "$TELEMETRY_FORWARD_AUTH_TOKEN"`
 
 Acesse o Grafana em `http://127.0.0.1:3000` com as credenciais definidas em `.env` (`GRAFANA_ADMIN_USER` e `GRAFANA_ADMIN_PASSWORD`).
 
@@ -492,7 +503,7 @@ Se `endpointUrl` estiver vazio, os eventos permanecem disponiveis em `window.dat
 ### Coleta local real
 Com `endpointUrl` configurado para `/telemetry/events`, execute o servidor de dev:
 
-python3 scripts/dev_server.py --port 8080
+python3 backend/server/dev_server.py --port 8080
 
 Os eventos recebidos serao gravados em:
 
@@ -530,7 +541,7 @@ bash scripts/smoke_test.sh
 
 O script:
 - usa servidor existente em `http://127.0.0.1:8080` se estiver ativo
-- inicia `scripts/dev_server.py` automaticamente se necessario
+- inicia `backend/server/dev_server.py` automaticamente se necessario
 - valida cenarios de sucesso, erro HTTP e contrato invalido
 - valida POST em `/telemetry/events`
 
@@ -580,11 +591,12 @@ Foi adicionada automacao de deploy em dois ambientes com scripts reutilizaveis e
 Arquivos principais:
 
 - workflow de deploy: [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
-- script base de empacotamento: [scripts/deploy/build_static.sh](scripts/deploy/build_static.sh)
-- script base de publicacao: [scripts/deploy/deploy_static.sh](scripts/deploy/deploy_static.sh)
-- wrappers por ambiente:
-	- [scripts/deploy/deploy_develop.sh](scripts/deploy/deploy_develop.sh)
-	- [scripts/deploy/deploy_production.sh](scripts/deploy/deploy_production.sh)
+- script base de empacotamento: [backend/deploy/build_static.sh](backend/deploy/build_static.sh)
+- script base de publicacao: [backend/deploy/deploy_static.sh](backend/deploy/deploy_static.sh)
+- wrappers por ambiente (canonicos):
+	- [backend/deploy/deploy_develop.sh](backend/deploy/deploy_develop.sh)
+	- [backend/deploy/deploy_production.sh](backend/deploy/deploy_production.sh)
+- compatibilidade legada mantida em [scripts/deploy](scripts/deploy) (wrappers)
 
 Scripts npm:
 
