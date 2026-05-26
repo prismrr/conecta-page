@@ -83,6 +83,39 @@
     return "revoked";
   }
 
+  function hasCommunicationConsent() {
+    return !!(consentRecord && consentRecord.categories && consentRecord.categories.communication_optional);
+  }
+
+  function syncHomeLocationMap() {
+    var mapFrame = document.querySelector("[data-location-map]");
+    var mapPlaceholder = document.querySelector("[data-location-map-placeholder]");
+
+    if (!(mapFrame instanceof HTMLIFrameElement)) {
+      return;
+    }
+
+    var shouldEnableMap = hasCommunicationConsent();
+    var mapSrc = mapFrame.getAttribute("data-map-src") || "";
+
+    if (shouldEnableMap) {
+      if (mapSrc && mapFrame.getAttribute("src") !== mapSrc) {
+        mapFrame.setAttribute("src", mapSrc);
+      }
+      mapFrame.hidden = false;
+      if (mapPlaceholder instanceof HTMLElement) {
+        mapPlaceholder.hidden = true;
+      }
+      return;
+    }
+
+    mapFrame.removeAttribute("src");
+    mapFrame.hidden = true;
+    if (mapPlaceholder instanceof HTMLElement) {
+      mapPlaceholder.hidden = false;
+    }
+  }
+
   function buildConsentRecord(categories, source) {
     var normalizedCategories = normalizeConsentCategories(categories);
     return {
@@ -140,6 +173,7 @@
 
   var consentRecord = readConsentRecord();
   syncCookiesFromConsent(consentRecord);
+  syncHomeLocationMap();
 
   function createSessionId() {
     return "sess-" + Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
@@ -556,6 +590,7 @@
         // No-op: consent remains locally persisted even if SQL persistence is temporarily unavailable.
       });
       syncCookiesFromConsent(nextRecord);
+      syncHomeLocationMap();
       syncConsentInputs();
       setConsentStatusText();
       closeConsentBanner();

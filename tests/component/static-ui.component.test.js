@@ -15,6 +15,14 @@ describe("static component structure", () => {
     expect(html).toContain('data-track-click="home_secondary_cta"');
   });
 
+  test("home location section should expose map anchors", () => {
+    const html = readHtml("index.html");
+
+    expect(html).toContain('class="container map-section"');
+    expect(html).toContain("data-location-map-placeholder");
+    expect(html).toContain("data-location-map");
+  });
+
   test("registration status card should expose monitor component anchors", () => {
     const html = readHtml("pages/inscricoes.html");
 
