@@ -331,18 +331,20 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 18px;
   background: rgba(7, 10, 42, 0.5);
-  padding: 0.8rem;
-  min-height: 320px;
+  padding: 0.4rem 0.8rem;
+  min-height: 250px;
 }
 
 .map-placeholder {
-  display: grid;
-  place-items: center;
-  gap: 0.225rem;
-  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 190px;
   text-align: center;
   color: var(--muted);
-  padding: 1rem;
+  padding: 0.35rem 1rem;
 }
 
 .map-placeholder p {
@@ -350,9 +352,13 @@ h1 {
   max-width: 54ch;
 }
 
+.map-placeholder p + .btn {
+  margin-top: 0;
+}
+
 .map-frame {
   width: 100%;
-  min-height: 280px;
+  min-height: 240px;
   border: 0;
   border-radius: 12px;
 }
@@ -1104,13 +1110,13 @@ h1 {
   }
 
   .map-shell {
-    min-height: 280px;
+    min-height: 230px;
     padding: 0.65rem;
   }
 
   .map-placeholder,
   .map-frame {
-    min-height: 240px;
+    min-height: 200px;
   }
 }
 
