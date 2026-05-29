@@ -332,14 +332,14 @@ h1 {
   border-radius: 18px;
   background: rgba(7, 10, 42, 0.5);
   padding: 0.8rem;
-  min-height: 380px;
+  min-height: 320px;
 }
 
 .map-placeholder {
   display: grid;
   place-items: center;
-  gap: 0.9rem;
-  min-height: 340px;
+  gap: 0.225rem;
+  min-height: 280px;
   text-align: center;
   color: var(--muted);
   padding: 1rem;
@@ -352,7 +352,7 @@ h1 {
 
 .map-frame {
   width: 100%;
-  min-height: 340px;
+  min-height: 280px;
   border: 0;
   border-radius: 12px;
 }
@@ -1104,13 +1104,13 @@ h1 {
   }
 
   .map-shell {
-    min-height: 320px;
+    min-height: 280px;
     padding: 0.65rem;
   }
 
   .map-placeholder,
   .map-frame {
-    min-height: 280px;
+    min-height: 240px;
   }
 }
 
