@@ -323,6 +323,54 @@ h1 {
   padding: 1rem;
 }
 
+.strip-intro {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.news-feed {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.news-item {
+  background: rgba(7, 10, 42, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.news-item h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.news-item p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.news-meta {
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.news-link {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.news-link:hover,
+.news-link:focus-visible {
+  text-decoration: underline;
+}
+
 .map-section {
   margin: 0 auto 3rem;
 }
@@ -361,24 +409,6 @@ h1 {
   min-height: 240px;
   border: 0;
   border-radius: 12px;
-}
-
-.milestone-list {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.7rem;
-}
-
-.milestone-list div {
-  background: rgba(7, 10, 42, 0.5);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.7rem;
-}
-
-.milestone-list strong {
-  display: block;
-  color: var(--primary);
 }
 
 .page-main {
@@ -1036,7 +1066,7 @@ h1 {
 @media (max-width: 920px) {
   .card-grid,
   .speaker-grid,
-  .milestone-list {
+  .news-feed {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1123,7 +1153,7 @@ h1 {
 @media (max-width: 560px) {
   .card-grid,
   .speaker-grid,
-  .milestone-list {
+  .news-feed {
     grid-template-columns: 1fr;
   }
 

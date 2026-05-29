@@ -23,6 +23,15 @@ describe("static component structure", () => {
     expect(html).toContain("data-location-map");
   });
 
+  test("home event news feed should expose content anchors", () => {
+    const html = readHtml("index.html");
+
+    expect(html).toContain("Noticias do Evento");
+    expect(html).toContain("data-event-news-feed");
+    expect(html).toContain('class="news-item"');
+    expect(html).toContain('href="pages/programacao.html"');
+  });
+
   test("registration status card should expose monitor component anchors", () => {
     const html = readHtml("pages/inscricoes.html");
 
