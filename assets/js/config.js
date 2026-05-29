@@ -27,7 +27,7 @@ window.CONectaConfig = {
     enabled: true,
     label: "Comunicado:",
     message: "",
-    imageUrl: "/assets/images/top-banner-full.svg",
+    imageUrl: "/assets/images/top-banner-full.png",
     imageAlt: "Banner visual do Conecta PrismRR",
     hideText: true
   }
