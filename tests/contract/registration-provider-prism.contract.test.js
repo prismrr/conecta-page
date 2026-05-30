@@ -6,7 +6,7 @@ function wait(ms) {
   return new Promise((resolveWait) => setTimeout(resolveWait, ms));
 }
 
-async function waitForProxyReady(url, maxAttempts = 50) {
+async function waitForProxyReady(url, maxAttempts = 240) {
   for (let i = 0; i < maxAttempts; i += 1) {
     try {
       await fetch(url);
@@ -23,7 +23,8 @@ async function waitForProxyReady(url, maxAttempts = 50) {
 
 function startPrismProxy({ specPath, upstreamUrl, port }) {
   const args = [
-    "prism",
+    "--yes",
+    "@stoplight/prism-cli",
     "proxy",
     specPath,
     upstreamUrl,
@@ -71,7 +72,7 @@ describe("registration provider verification via Prism proxy", () => {
     });
 
     await waitForProxyReady(`${proxy.baseUrl}/api/registrations/PRISM-2026-001`);
-  });
+  }, 60000);
 
   afterAll(async () => {
     if (proxy) {

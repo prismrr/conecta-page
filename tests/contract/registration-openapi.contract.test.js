@@ -100,7 +100,9 @@ describe("registration openapi contract", () => {
   });
 
   afterAll(async () => {
-    await server.stop();
+    if (server) {
+      await server.stop();
+    }
   });
 
   test("openapi spec should be versioned and include registration path", () => {

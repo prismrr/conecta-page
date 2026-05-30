@@ -1,7 +1,8 @@
 const { spawn } = require("node:child_process");
+const { existsSync } = require("node:fs");
 const { rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
-const { join } = require("node:path");
+const { join, resolve } = require("node:path");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -39,12 +40,17 @@ async function startDevServer({
   alertWindowMinutes = 15
 } = {}) {
   const dbFile = join(tmpdir(), `conecta-compliance-${port}-${Date.now()}.db`);
+  const generatedStaticDir = resolve(__dirname, "../../nuxt-app/.output/public");
+  const fallbackStaticDir = resolve(__dirname, "../..");
+  const staticDir = existsSync(generatedStaticDir) ? generatedStaticDir : fallbackStaticDir;
   const args = [
     "backend/server/dev_server.py",
     "--host",
     host,
     "--port",
     String(port),
+    "--static-dir",
+    staticDir,
     "--db-file",
     dbFile,
     "--alert-failure-threshold",
