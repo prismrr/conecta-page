@@ -45,6 +45,11 @@ data/*.sqlite3
 !data/.gitkeep
 
 # Nuxt dev/build outputs
+nuxt-app/dist/
+nuxt-app/.output/
+nuxt-app/.nuxt/
+nuxt-app/.nitro/
+nuxt-app/.cache/
 .output
 .data
 .nuxt
