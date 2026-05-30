@@ -2,10 +2,10 @@ const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
 const criticalPages = [
-  { path: "/index.html", name: "home" },
-  { path: "/pages/inscricoes.html", name: "inscricoes" },
-  { path: "/pages/programacao.html", name: "programacao" },
-  { path: "/pages/politica-privacidade.html", name: "politica-privacidade" }
+  { path: "/", name: "home" },
+  { path: "/inscricoes", name: "inscricoes" },
+  { path: "/programacao", name: "programacao" },
+  { path: "/politica-privacidade", name: "politica-privacidade" }
 ];
 
 test.describe("accessibility axe checks", () => {

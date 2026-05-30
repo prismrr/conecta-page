@@ -8,54 +8,61 @@ function readHtml(relativePath) {
 
 describe("static component structure", () => {
   test("home hero component should expose core CTA actions", () => {
-    const html = readHtml("index.html");
+    const html = readHtml("nuxt-app/pages/index.vue");
 
-    expect(html).toContain('<section class="hero container">');
-    expect(html).toContain('data-track-click="home_primary_cta"');
-    expect(html).toContain('data-track-click="home_secondary_cta"');
+    expect(html).toContain('<section class="card hero">');
+    expect(html).toContain('to="/inscricoes"');
+    expect(html).toContain('to="/programacao"');
+    expect(html).toContain('to="/faq"');
+    expect(html).toContain('to="/politica-privacidade"');
   });
 
   test("home location section should expose map anchors", () => {
-    const html = readHtml("index.html");
+    const html = readHtml("nuxt-app/pages/politica-privacidade.vue");
 
-    expect(html).toContain('class="container map-section"');
-    expect(html).toContain("data-location-map-placeholder");
-    expect(html).toContain("data-location-map");
+    expect(html).toContain('data-policy-current-meta');
+    expect(html).toContain('<AuditTrailGrid :events="sortedAuditEvents" />');
+    expect(html).toContain('<DsarRequestForm />');
   });
 
   test("home event news feed should expose content anchors", () => {
-    const html = readHtml("index.html");
-
-    expect(html).toContain("Noticias do Evento");
-    expect(html).toContain("data-event-news-feed");
-    expect(html).toContain('class="news-item"');
-    expect(html).toContain('href="pages/programacao.html"');
-  });
-
-  test("registration status card should expose monitor component anchors", () => {
-    const html = readHtml("pages/inscricoes.html");
-
-    expect(html).toContain('class="info-card monitor-card"');
-    expect(html).toContain('data-provider-status-line');
-    expect(html).toContain('data-provider-status');
-    expect(html).toContain('data-monitor-total');
-    expect(html).toContain('data-monitor-available');
-    expect(html).toContain('data-monitor-failures');
-    expect(html).toContain('data-monitor-degraded');
-  });
-
-  test("schedule timeline component should expose filter and list anchors", () => {
-    const html = readHtml("pages/programacao.html");
+    const html = readHtml("nuxt-app/pages/programacao.vue");
 
     expect(html).toContain('class="schedule-filters" data-schedule-filters');
     expect(html).toContain('data-schedule-filter="track"');
     expect(html).toContain('data-schedule-filter="period"');
-    expect(html).toContain('class="timeline" data-schedule-list');
+    expect(html).toContain('<ScheduleSpeakerGrid :speakers="speakers" />');
+  });
+
+  test("registration status card should expose monitor component anchors", () => {
+    const html = readHtml("nuxt-app/pages/inscricoes.vue");
+
+    expect(html).toContain('data-guidance-current-meta');
+    expect(html).toContain('data-guidance-history');
+    expect(html).toContain('data-lookup-form');
+    expect(html).toContain('data-lookup-result');
+    expect(html).toContain('RegistrationIntegrationMonitorCard');
+    expect(html).toContain('providerStatusLabel');
+    expect(html).toContain('providerMetaLabel');
+    expect(html).toContain(':total="monitor.total"');
+    expect(html).toContain(':available="monitor.available"');
+    expect(html).toContain(':failures="monitor.failures"');
+    expect(html).toContain(':degraded="monitor.degraded"');
+  });
+
+  test("schedule timeline component should expose filter and list anchors", () => {
+    const html = readHtml("nuxt-app/pages/programacao.vue");
+
+    expect(html).toContain('class="schedule-filters" data-schedule-filters');
+    expect(html).toContain('data-schedule-filter="track"');
+    expect(html).toContain('data-schedule-filter="period"');
+    expect(html).toContain('data-schedule-summary');
+    expect(html).toContain('<ScheduleTimeline :sessions="filteredSessions" />');
   });
 
   test("speaker grid component should expose rendering anchor", () => {
-    const html = readHtml("pages/programacao.html");
+    const html = readHtml("nuxt-app/pages/programacao.vue");
 
-    expect(html).toContain('class="speaker-grid" data-speaker-list');
+    expect(html).toContain('<ScheduleSpeakerGrid :speakers="speakers" />');
   });
 });

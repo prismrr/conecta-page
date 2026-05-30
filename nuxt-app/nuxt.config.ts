@@ -5,6 +5,9 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: "Conecta PrismRR",
+      htmlAttrs: {
+        lang: "pt-BR"
+      },
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { name: "description", content: "Conecta PrismRR static-first experience powered by Nuxt 3 SSG." }

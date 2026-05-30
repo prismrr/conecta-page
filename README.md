@@ -3,30 +3,28 @@
 MVP inicial do portal oficial do PRISM Conecta.
 
 ## Escopo implementado
-- Pagina inicial com descricao geral do evento.
-- Pagina de inscricoes com orientacoes versionadas e consulta de resultado em modo demo.
-- Pagina de programacao com agenda ordenada por horario, filtros por trilha e turno, e palestrantes.
-- Pagina de FAQ curada com respostas oficiais.
-- Pagina de privacidade com resumo de controles LGPD para o MVP.
+- Portal canônico em Nuxt 3 SSG para pagina inicial, inscricoes, programacao, FAQ e area legal.
 - Preferencias de consentimento granulares e revogaveis por categoria.
+- Legado HTML/JS mantido apenas como arquivo historico e de rollback; nao entra no artefato canônico.
 
 ## Estrutura
-- frontend/ (guia da camada de interface)
-- index.html
-- pages/inscricoes.html
-- pages/programacao.html
-- pages/faq.html
-- pages/politica-privacidade.html
-- assets/css/styles.css
-- assets/js/registration-guidance.js
-- assets/js/faq-data.js
-- assets/js/site.js
+- nuxt-app/ (frontend canônico em Nuxt 3 SSG)
+- nuxt-app/pages/
+- nuxt-app/components/
+- nuxt-app/stores/
+- frontend/ (guia da camada de interface e contexto historico)
 - backend/ (camada backend canônica)
 	- backend/server/dev_server.py
 	- backend/jobs/retention_job.py
 	- backend/jobs/incident_drill.py
 - scripts/ (wrappers de compatibilidade e automacoes shell)
 - .SPECS/ (fonte de verdade para requisitos de produto, qualidade e compliance)
+
+## Legado historico
+- [index.html](index.html)
+- [pages](pages)
+- [assets/css](assets/css)
+- [assets/js](assets/js)
 
 Guia de organizacao frontend x backend: [docs/organizacao-projeto.md](docs/organizacao-projeto.md)
 Mapa de arquitetura: [docs/arquitetura.md](docs/arquitetura.md)
@@ -44,7 +42,7 @@ O modelo atual define:
 Ao atualizar a chamada, publique uma nova entrada e mova o `currentVersionId` para a versao aprovada.
 
 ## Agenda filtravel
-As sessoes da pagina [pages/programacao.html](pages/programacao.html) ficam em [assets/js/schedule-data.js](assets/js/schedule-data.js).
+As sessoes da rota Nuxt /programacao ficam em [assets/js/schedule-data.js](assets/js/schedule-data.js).
 
 O frontend ordena o cronograma por `startTime` e permite filtrar por:
 
@@ -64,7 +62,7 @@ Cada perfil aceita:
 - `links[]`
 
 ## FAQ curada
-A FAQ publicada em [pages/faq.html](pages/faq.html) usa como fonte [assets/js/faq-data.js](assets/js/faq-data.js).
+A FAQ publicada na rota Nuxt /faq usa como fonte [assets/js/faq-data.js](assets/js/faq-data.js).
 
 Cada entrada da base curada define:
 
@@ -109,8 +107,8 @@ Os documentos legais versionados sao renderizados a partir de [assets/js/legal-d
 
 Paginas:
 
-- [pages/politica-privacidade.html](pages/politica-privacidade.html)
-- [pages/termos-uso.html](pages/termos-uso.html)
+- rota Nuxt /politica-privacidade
+- rota Nuxt /termos-uso
 
 Cada documento exibe:
 
@@ -119,7 +117,7 @@ Cada documento exibe:
 - changelog visivel por versao publicada
 
 ## Canal de direitos do titular (PRD-RQ09)
-Canal minimo implementado em [pages/politica-privacidade.html](pages/politica-privacidade.html) com:
+Canal minimo implementado na rota Nuxt /politica-privacidade com:
 
 - formulario de solicitacao por tipo (acesso, correcao, exclusao, exportacao, revogacao)
 - geracao imediata de protocolo no formato `DSAR-YYYYMMDD-XXXXXX`
@@ -131,7 +129,7 @@ Registro local de protocolo:
 - armazenamento minimizado (sem persistir email informado no formulario)
 
 ## Trilha de auditoria de conteudo critico (PRD-RQ08)
-A trilha de auditoria e renderizada em [pages/politica-privacidade.html](pages/politica-privacidade.html) a partir de [assets/js/content-audit-log.js](assets/js/content-audit-log.js).
+A trilha de auditoria e renderizada na rota Nuxt /politica-privacidade a partir de [assets/js/content-audit-log.js](assets/js/content-audit-log.js).
 
 Cada evento registra:
 
@@ -143,7 +141,7 @@ Cada evento registra:
 O fluxo foi modelado como append-only no lado do cliente para manter historico de alteracoes criticas no MVP estatico.
 
 ## Monitoramento operacional da integracao externa (PRD-RQ10)
-O monitoramento operacional foi adicionado em [pages/inscricoes.html](pages/inscricoes.html), com atualizacao pelo fluxo de consulta em [assets/js/site.js](assets/js/site.js).
+O monitoramento operacional foi adicionado na rota Nuxt /inscricoes, com atualizacao pelo fluxo de consulta em [nuxt-app/plugins/telemetry.client.ts](nuxt-app/plugins/telemetry.client.ts).
 
 Sinais exibidos:
 
@@ -180,7 +178,7 @@ Endpoints de compliance:
 
 Integracoes no frontend:
 
-- [assets/js/site.js](assets/js/site.js) persiste atualizacoes de consentimento no endpoint SQL
+- [nuxt-app/plugins/telemetry.client.ts](nuxt-app/plugins/telemetry.client.ts) persiste atualizacoes de consentimento no endpoint SQL
 - resumo operacional da integracao externa passa a ser hidratado do endpoint `integration-summary`
 - trilha de auditoria tenta carregar eventos do endpoint SQL com fallback para dataset local
 
@@ -310,10 +308,10 @@ Observacao:
 - Se o forwarding estiver ativo para Loki, o endpoint `GET /observability/health` deve mostrar `forwarding.configured=true`.
 
 ## Integracao real de consulta de inscricao
-O fluxo de consulta em [pages/inscricoes.html](pages/inscricoes.html) ja usa requisicao HTTP real com retry, timeout e validacao de contrato.
+O fluxo de consulta na rota Nuxt /inscricoes ja usa requisicao HTTP real com retry, timeout e validacao de contrato.
 
 ### 1. Configurar endpoint
-Edite [assets/js/config.js](assets/js/config.js):
+Edite [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts):
 
 - baseUrl: dominio da API de resultados
 - endpointTemplate: caminho com placeholder `{registrationId}`
@@ -357,15 +355,15 @@ O teste dedicado fica em [tests/contract/registration-openapi.contract.test.js](
 - deteccao de payload invalido de contrato no cenario `PRISM-2026-999`
 
 ## Telemetria de eventos criticos do funil
-Implementada no frontend em [assets/js/site.js](assets/js/site.js), com configuracao em [assets/js/config.js](assets/js/config.js).
+Implementada no frontend em [nuxt-app/plugins/telemetry.client.ts](nuxt-app/plugins/telemetry.client.ts), com configuracao em [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts).
 
 ## Acessibilidade automatizada em PR (Sprint 4 item 1)
-Foi adicionada validacao automatizada com axe-core via Playwright para paginas criticas:
+Foi adicionada validacao automatizada com axe-core via Playwright para rotas criticas:
 
-- `/index.html`
-- `/pages/inscricoes.html`
-- `/pages/programacao.html`
-- `/pages/politica-privacidade.html`
+- `/`
+- `/inscricoes`
+- `/programacao`
+- `/politica-privacidade`
 
 Comando dedicado:
 
@@ -489,7 +487,7 @@ Acesse o Grafana em `http://127.0.0.1:3000` com as credenciais definidas em `.en
 - external_data_sync_failed
 
 ### Configuracao
-Em [assets/js/config.js](assets/js/config.js), ajuste o bloco `telemetry`:
+Em [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts), ajuste o bloco `runtimeConfig.public`:
 
 - enabled: ativa ou desativa emissao
 - endpointUrl: endpoint HTTP para coleta

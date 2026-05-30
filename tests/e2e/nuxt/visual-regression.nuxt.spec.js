@@ -3,22 +3,22 @@ const { test, expect } = require("@playwright/test");
 const CRITICAL_PAGES = [
   {
     name: "home",
-    path: "/index.html",
+    path: "/",
     snapshot: "home-critical-page.png"
   },
   {
     name: "inscricoes",
-    path: "/pages/inscricoes.html",
+    path: "/inscricoes",
     snapshot: "inscricoes-critical-page.png"
   },
   {
     name: "programacao",
-    path: "/pages/programacao.html",
+    path: "/programacao",
     snapshot: "programacao-critical-page.png"
   },
   {
     name: "politica-privacidade",
-    path: "/pages/politica-privacidade.html",
+    path: "/politica-privacidade",
     snapshot: "politica-privacidade-critical-page.png"
   }
 ];

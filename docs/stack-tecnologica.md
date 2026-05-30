@@ -7,15 +7,21 @@ Este documento resume a stack adotada no Conecta PrismRR e o papel de cada tecno
 - Estilo de entrega: arquivos estaticos (HTML/CSS/JS) com suporte a testes automatizados, CI e deploy por ambiente.
 
 ## Frontend
-- HTML5 para estrutura das paginas institucionais e fluxos principais.
-- CSS3 para estilizacao.
-- JavaScript (vanilla) para interacoes, regras de interface e integracao com endpoints locais.
+- Nuxt 3 em modo SSG para a camada canônica de frontend.
+- Vue 3 SFC para paginas, componentes e composables.
+- Pinia para estado centralizado por dominio.
 
 Arquivos de referencia:
+- [nuxt-app](../nuxt-app)
+- [nuxt-app/pages](../nuxt-app/pages)
+- [nuxt-app/components](../nuxt-app/components)
+- [nuxt-app/stores](../nuxt-app/stores)
+
+Legado historico:
 - [index.html](../index.html)
 - [assets/css/styles.css](../assets/css/styles.css)
-- [assets/js/site.js](../assets/js/site.js)
-- [assets/js/config.js](../assets/js/config.js)
+- [nuxt-app/plugins/telemetry.client.ts](../nuxt-app/plugins/telemetry.client.ts)
+- [nuxt-app/nuxt.config.ts](../nuxt-app/nuxt.config.ts)
 
 ## Backend local e automacoes
 - Python 3 para servidor de desenvolvimento e rotinas operacionais.

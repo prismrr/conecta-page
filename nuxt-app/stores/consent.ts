@@ -29,7 +29,6 @@ const defaultState = (): ConsentState => ({
 export const useConsentStore = defineStore("consent", {
   state: (): ConsentState => defaultState(),
   getters: {
-    hasOptionalConsent: (state) => state.categories.analytics_optional || state.categories.communication_optional,
     canEmitOptionalTelemetry: (state) => state.categories.analytics_optional
   },
   actions: {

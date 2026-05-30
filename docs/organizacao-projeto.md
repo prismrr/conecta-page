@@ -6,10 +6,15 @@ Este documento descreve a organizacao adotada para separar responsabilidades de 
 - Diferenciar claramente camada de interface (frontend) e camada de servicos/processamento (backend).
 - Reduzir acoplamento entre arquivos de UI e scripts operacionais.
 - Preservar compatibilidade com comandos existentes em CI/CD e desenvolvimento local.
+- Tratar o frontend legado somente como referencia historica.
 
 ## Estrutura adotada
 
 Frontend (interface e experiencia):
+- [nuxt-app](../nuxt-app)
+- [nuxt-app/pages](../nuxt-app/pages)
+- [nuxt-app/components](../nuxt-app/components)
+- [nuxt-app/stores](../nuxt-app/stores)
 - [frontend/README.md](../frontend/README.md)
 - [index.html](../index.html)
 - [pages](../pages)
@@ -37,19 +42,18 @@ Compatibilidade legada:
 
 ## Padrao de responsabilidade
 - Frontend:
-  - Renderizacao e interacao de usuario.
+  - Renderizacao e interacao de usuario via Nuxt 3 SSG.
   - Emissao de eventos de telemetria.
   - Consumo dos endpoints HTTP.
-  - Configuracoes de UI compartilhadas em [assets/js/config.js](../assets/js/config.js).
+  - Configuracoes de UI compartilhadas via composables, stores e runtime config do Nuxt.
 - Backend:
   - Exposicao de endpoints (telemetria, compliance, observability, mock de integracao).
   - Persistencia SQLite e agregacoes operacionais.
   - Jobs de retencao e incident drill.
 
 ## Configuracao centralizada de banner
-- O banner superior e controlado no bloco `topBanner` em [assets/js/config.js](../assets/js/config.js).
-- A injecao dinamica do banner e feita em [assets/js/site.js](../assets/js/site.js), logo apos o cabecalho.
-- As paginas HTML nao replicam mais o markup do banner, reduzindo manutencao e risco de inconsistencias.
+- O frontend canônico em Nuxt concentra a configuracao visual em componentes e runtime config.
+- O banner legado permanece apenas como referencia historica no frontend antigo.
 
 ## Comandos canonicos
 Servidor local:

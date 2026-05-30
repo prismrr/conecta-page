@@ -224,7 +224,7 @@ describe("dev server integration", () => {
       event: "external_data_sync_failed",
       timestamp: "2026-05-23T20:05:00Z",
       page: "inscricoes",
-      path: "/pages/inscricoes.html",
+      path: "/inscricoes",
       release_id: "mvp-alert-test",
       environment: "test",
       source_channel: "integration",

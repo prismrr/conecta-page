@@ -55,7 +55,7 @@ Frontend:
 - Renderizacao e UX.
 - Emissao de telemetria.
 - Consumo de APIs locais/remotas.
-- Configuracao do banner superior centralizada em `assets/js/config.js`.
+- Configuracao do banner superior centralizada em componentes Nuxt e runtime config.
 
 Backend:
 - Exposicao de APIs de telemetria, compliance, observability e mock de integracao.
@@ -88,8 +88,8 @@ Fluxo de deploy:
 ## Configuracao centralizada de UI
 
 Banner superior dinamico:
-1. O conteudo fica em [assets/js/config.js](../assets/js/config.js), no bloco `topBanner`.
-2. O frontend renderiza o banner em [assets/js/site.js](../assets/js/site.js), inserindo a secao logo apos o cabecalho.
+1. O conteudo fica em runtime config e componentes Nuxt.
+2. O frontend renderiza o banner em componentes Vue, sem depender dos arquivos HTML legados.
 3. As paginas HTML nao repetem mais markup de banner, reduzindo divergencia entre rotas.
 
 Campos esperados em `topBanner`:

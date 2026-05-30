@@ -1,5 +1,3 @@
-import { storeToRefs } from "pinia";
-
 export default defineNuxtPlugin(() => {
   const router = useRouter();
   const route = useRoute();

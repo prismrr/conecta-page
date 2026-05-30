@@ -18,8 +18,8 @@ Fluxo principal:
 5. Opcionalmente, Loki + Grafana permitem exploracao persistente.
 
 Componentes:
-- Emissor frontend: [assets/js/site.js](../assets/js/site.js)
-- Config frontend: [assets/js/config.js](../assets/js/config.js)
+- Emissor frontend: [nuxt-app/plugins/telemetry.client.ts](../nuxt-app/plugins/telemetry.client.ts)
+- Config frontend: [nuxt-app/nuxt.config.ts](../nuxt-app/nuxt.config.ts)
 - Coletor e agregador: [backend/server/dev_server.py](../backend/server/dev_server.py)
 - Stack local observability: [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
 - Config do Loki: [infra/observability/loki/loki-config.yaml](../infra/observability/loki/loki-config.yaml)
@@ -186,7 +186,7 @@ Mount error em compose multiarquivo:
 
 ## Referencias
 - [backend/server/dev_server.py](../backend/server/dev_server.py)
-- [assets/js/config.js](../assets/js/config.js)
+- [nuxt-app/nuxt.config.ts](../nuxt-app/nuxt.config.ts)
 - [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
 - [.env.example](../.env.example)
 - [docs/api.md](./api.md)
