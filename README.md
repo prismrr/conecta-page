@@ -1,30 +1,23 @@
 # Conecta PrismRR
 
-MVP inicial do portal oficial do PRISM Conecta.
+Portal oficial do PRISM Conecta com frontend canonico em Nuxt 3 SSG, estado centralizado com Pinia, integracao contratual segura e trilha de compliance/observabilidade local.
 
 ## Escopo implementado
 - Portal canônico em Nuxt 3 SSG para pagina inicial, inscricoes, programacao, FAQ e area legal.
 - Preferencias de consentimento granulares e revogaveis por categoria.
-- Legado HTML/JS mantido apenas como arquivo historico e de rollback; nao entra no artefato canônico.
+- Telemetria, compliance e observabilidade com persistencia local e gating por consentimento.
+- Legado HTML/JS descomissionado e fora do artefato canônico.
 
 ## Estrutura
-- nuxt-app/ (frontend canônico em Nuxt 3 SSG)
-- nuxt-app/pages/
-- nuxt-app/components/
-- nuxt-app/stores/
-- frontend/ (guia da camada de interface e contexto historico)
-- backend/ (camada backend canônica)
-	- backend/server/dev_server.py
-	- backend/jobs/retention_job.py
-	- backend/jobs/incident_drill.py
-- scripts/ (wrappers de compatibilidade e automacoes shell)
-- .SPECS/ (fonte de verdade para requisitos de produto, qualidade e compliance)
-
-## Legado historico
-- [index.html](index.html)
-- [pages](pages)
-- [assets/css](assets/css)
-- [assets/js](assets/js)
+- [nuxt-app](nuxt-app) - frontend canônico em Nuxt 3 SSG
+- [nuxt-app/pages](nuxt-app/pages)
+- [nuxt-app/components](nuxt-app/components)
+- [nuxt-app/stores](nuxt-app/stores)
+- [backend](backend) - servidor local, jobs e deploy
+- [tests](tests) - unit, component, contract, integration e E2E
+- [docs](docs) - arquitetura, observabilidade e readiness
+- [scripts](scripts) - automacoes shell e utilitarios locais
+- [.SPECS](.SPECS) - fonte de verdade para produto, qualidade e compliance
 
 Guia de organizacao frontend x backend: [docs/organizacao-projeto.md](docs/organizacao-projeto.md)
 Mapa de arquitetura: [docs/arquitetura.md](docs/arquitetura.md)
@@ -32,7 +25,7 @@ Plano de deprecacao do legado ops: [docs/deprecacao-ops.md](docs/deprecacao-ops.
 Readiness de corte do legado ops: [docs/readiness-corte-ops.md](docs/readiness-corte-ops.md)
 
 ## Orientacoes de inscricao versionadas
-As versoes publicadas da chamada ficam em [assets/js/registration-guidance.js](assets/js/registration-guidance.js).
+As versoes publicadas da chamada ficam em dados versionados consumidos pelo Nuxt em [nuxt-app/pages/inscricoes.vue](nuxt-app/pages/inscricoes.vue).
 
 O modelo atual define:
 
@@ -42,7 +35,7 @@ O modelo atual define:
 Ao atualizar a chamada, publique uma nova entrada e mova o `currentVersionId` para a versao aprovada.
 
 ## Agenda filtravel
-As sessoes da rota Nuxt /programacao ficam em [assets/js/schedule-data.js](assets/js/schedule-data.js).
+As sessoes da rota Nuxt /programacao ficam em dados versionados consumidos em [nuxt-app/pages/programacao.vue](nuxt-app/pages/programacao.vue).
 
 O frontend ordena o cronograma por `startTime` e permite filtrar por:
 
@@ -51,7 +44,7 @@ O frontend ordena o cronograma por `startTime` e permite filtrar por:
 
 Ao adicionar uma nova sessao, informe ao menos `startTime`, `endTime`, `title`, `track` e `period` para manter a agenda consistente.
 
-Os perfis de palestrantes da mesma pagina tambem sao dirigidos por [assets/js/schedule-data.js](assets/js/schedule-data.js).
+Os perfis de palestrantes da mesma pagina tambem sao dirigidos pelos mesmos dados versionados.
 
 Cada perfil aceita:
 
@@ -62,7 +55,7 @@ Cada perfil aceita:
 - `links[]`
 
 ## FAQ curada
-A FAQ publicada na rota Nuxt /faq usa como fonte [assets/js/faq-data.js](assets/js/faq-data.js).
+A FAQ publicada na rota Nuxt /faq usa como fonte os dados versionados consumidos em [nuxt-app/pages/faq.vue](nuxt-app/pages/faq.vue).
 
 Cada entrada da base curada define:
 
@@ -103,7 +96,7 @@ Cookies atualmente gerenciados:
 Ao revogar categorias opcionais, os cookies opcionais correspondentes sao removidos imediatamente no navegador.
 
 ## Politica e Termo versionados (PRD-RQ11)
-Os documentos legais versionados sao renderizados a partir de [assets/js/legal-documents.js](assets/js/legal-documents.js).
+Os documentos legais versionados sao renderizados a partir dos dados consumidos em [nuxt-app/pages/politica-privacidade.vue](nuxt-app/pages/politica-privacidade.vue) e [nuxt-app/pages/termos-uso.vue](nuxt-app/pages/termos-uso.vue).
 
 Paginas:
 
@@ -129,7 +122,7 @@ Registro local de protocolo:
 - armazenamento minimizado (sem persistir email informado no formulario)
 
 ## Trilha de auditoria de conteudo critico (PRD-RQ08)
-A trilha de auditoria e renderizada na rota Nuxt /politica-privacidade a partir de [assets/js/content-audit-log.js](assets/js/content-audit-log.js).
+A trilha de auditoria e renderizada na rota Nuxt /politica-privacidade a partir do componente [nuxt-app/components/legal/AuditTrailGrid.vue](nuxt-app/components/legal/AuditTrailGrid.vue).
 
 Cada evento registra:
 
@@ -236,25 +229,17 @@ Integracao com pipeline operacional:
 - artifact `compliance-incident-drill-evidence` com relatorio e base SQLite do exercicio
 
 ## Executar localmente
-Opcao 1: abrir index.html diretamente no navegador.
+Opcao 1: servidor local com coletor de telemetria:
 
-Opcao 2: servidor local com coletor de telemetria:
+`python3 backend/server/dev_server.py --port 8080`
 
-python3 backend/server/dev_server.py --port 8080
+Depois acesse `http://localhost:8080`.
 
-Depois acesse:
+Opcao 2: modo Nuxt dev:
 
-http://localhost:8080
+`npm run nuxt:dev`
 
-Opcao 3: servidor estatico simples (sem endpoint de telemetria):
-
-python3 -m http.server 8080
-
-Depois acesse:
-
-http://localhost:8080
-
-Opcao 4: Docker Compose para desenvolvedores:
+Opcao 3: Docker Compose para desenvolvedores (usa [docker-compose.local.yml](docker-compose.local.yml), gera o build do Nuxt e carrega [.env](.env) automaticamente):
 
 `bash scripts/dev_docker.sh up`
 
@@ -264,7 +249,9 @@ Ou via npm:
 - `npm run dev:docker:logs`
 - `npm run dev:docker:down`
 
-Com essa opcao, a aplicacao roda com o servidor [backend/server/dev_server.py](backend/server/dev_server.py) dentro do container e fica disponivel em `http://localhost:8080`.
+Com essa opcao, a aplicacao roda com o servidor [backend/server/dev_server.py](backend/server/dev_server.py) dentro do container, servindo o artefato Nuxt em `nuxt-app/.output/public`, e fica disponivel em `http://localhost:8080`.
+
+O compose local carrega variaveis de [.env](.env) automaticamente, com fallback em [.env.example](.env.example).
 
 ### Teste completo com Docker Compose (App + Loki + Grafana)
 Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o fluxo completo de telemetria e observabilidade.
@@ -292,7 +279,7 @@ Atalho via npm:
 
 4. Gere eventos de telemetria (navegando na UI ou via curl):
 
-`curl -X POST http://localhost:8080/telemetry/events -H "Content-Type: application/json" -d '{"event":"page_view","timestamp":"2026-05-23T00:00:00Z","page":"home","path":"/index.html","release_id":"local-stack","environment":"development","source_channel":"web","session_id":"local-test","data":{"outcome":"ok"}}'`
+`curl -X POST http://localhost:8080/telemetry/events -H "Content-Type: application/json" -d '{"event":"page_view","timestamp":"2026-05-23T00:00:00Z","page":"home","path":"/","release_id":"local-stack","environment":"development","source_channel":"web","session_id":"local-test","data":{"outcome":"ok"}}'`
 
 5. No Grafana, confirme ingestao:
 
@@ -308,7 +295,7 @@ Observacao:
 - Se o forwarding estiver ativo para Loki, o endpoint `GET /observability/health` deve mostrar `forwarding.configured=true`.
 
 ## Integracao real de consulta de inscricao
-O fluxo de consulta na rota Nuxt /inscricoes ja usa requisicao HTTP real com retry, timeout e validacao de contrato.
+O fluxo de consulta na rota Nuxt /inscricoes usa requisicao HTTP real com retry, timeout e validacao de contrato.
 
 ### 1. Configurar endpoint
 Edite [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts):
@@ -498,21 +485,7 @@ Em [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts), ajuste o bloco `runtimeCo
 
 Se `endpointUrl` estiver vazio, os eventos permanecem disponiveis em `window.dataLayer` para inspecao local.
 
-O banner superior tambem e configuravel no mesmo arquivo, via bloco `topBanner`:
-
-- enabled: ativa ou desativa a exibicao do banner
-- label: texto em destaque antes da mensagem
-- message: conteudo principal do banner superior
-
-Exemplo:
-
-```js
-topBanner: {
-	enabled: true,
-	label: "Comunicado:",
-	message: "Acompanhe atualizacoes oficiais de agenda e inscricoes nas secoes do portal."
-}
-```
+O banner superior e configurado em componentes Nuxt e runtime config, sem dependência dos arquivos legados removidos.
 
 ### Coleta local real
 Com `endpointUrl` configurado para `/telemetry/events`, execute o servidor de dev:
@@ -628,17 +601,18 @@ Baseline atual de entrega:
 
 - O pacote de release e gerado a partir de `nuxt-app/.output/public`.
 - O manifest de release inclui `frontendTrack: nuxt-ssg`.
+- O manifest de release inclui `buildEnvironment` para distinguir builds de develop e production.
 - O build falha se artefatos legacy forem detectados no payload final.
 
 ### Build local (develop e production)
 Use os comandos abaixo para validar o empacotamento local e, quando necessario, executar o deploy localmente para cada ambiente.
 
-#### Build local em develop (passo a passo)
+#### Build local em develop
 1. Troque para a branch de develop:
 
 `git checkout develop`
 
-2. Instale dependencias (se necessario):
+2. Instale dependencias, se necessario:
 
 `npm ci`
 
@@ -646,23 +620,22 @@ Use os comandos abaixo para validar o empacotamento local e, quando necessario, 
 
 `npm run deploy:build`
 
-4. (Opcional) Execute deploy local para o alvo develop:
+4. Opcionalmente publique em develop:
 
 `DEPLOY_HOST=staging.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-staging DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_staging)" npm run deploy:develop`
-
-1. Build local do pacote estatico (sem publicar):
-
-`npm run deploy:build`
 
 Artefato gerado:
 
 - `.deploy/dist/RELEASE_MANIFEST.json`
 
-2. Build e deploy local para develop:
+O manifesto registra `buildEnvironment=develop` quando o wrapper de develop e usado.
 
-`DEPLOY_HOST=staging.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-staging DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_staging)" npm run deploy:develop`
+#### Build local em production
+1. Gere o build estatico local para validacao:
 
-3. Build e deploy local para production:
+`npm run deploy:build`
+
+2. Publique em production com canary e rollback automatico:
 
 `DEPLOY_HOST=prod.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-prod DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_prod)" npm run deploy:production`
 
@@ -702,9 +675,8 @@ Evidencias locais apos deploy:
 
 Fluxo de branch:
 
-- push em `develop`: deploy para ambiente `develop`
 - push em `main`: deploy para ambiente `production`
-- execucao manual: `workflow_dispatch` em [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
+- execucao manual: `workflow_dispatch` para `develop` ou `production` em [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
 
 Antes de usar no GitHub, configure Environments com os mesmos nomes (`develop` e `production`) e defina:
 

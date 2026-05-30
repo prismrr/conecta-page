@@ -15,6 +15,7 @@ from urllib.parse import parse_qs, urlparse
 from urllib.request import Request, urlopen
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+DEFAULT_STATIC_DIR = ROOT_DIR / "nuxt-app" / ".output" / "public"
 DEFAULT_LOG_FILE = ROOT_DIR / "logs" / "telemetry-events.ndjson"
 DEFAULT_DB_FILE = ROOT_DIR / "data" / "compliance.db"
 MAX_BODY_BYTES = 1_000_000
@@ -203,6 +204,7 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
     def __init__(
         self,
         *args,
+        static_dir: Path,
         log_file: Path,
         db_file: Path,
         telemetry_forward_url: str,
@@ -229,7 +231,7 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         self.telemetry_forward_timeout_seconds = max(1, int(telemetry_forward_timeout_seconds))
         self.alert_failure_threshold = max(1, int(alert_failure_threshold))
         self.alert_window_minutes = max(1, int(alert_window_minutes))
-        super().__init__(*args, directory=str(ROOT_DIR), **kwargs)
+        super().__init__(*args, directory=str(static_dir), **kwargs)
 
     def _write_json(self, status_code: int, payload: dict) -> None:
         body = json.dumps(payload).encode("utf-8")
@@ -1087,6 +1089,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1", help="Host address")
     parser.add_argument("--port", default=8080, type=int, help="Port number")
     parser.add_argument(
+        "--static-dir",
+        default=str(DEFAULT_STATIC_DIR),
+        help="Directory containing the static site to serve",
+    )
+    parser.add_argument(
         "--log-file",
         default=str(DEFAULT_LOG_FILE),
         help="Path to telemetry log file (NDJSON)",
@@ -1156,13 +1163,20 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    static_dir = Path(args.static_dir)
     log_file = Path(args.log_file)
     db_file = Path(args.db_file)
     init_database(db_file)
 
+    if not static_dir.is_dir():
+        raise SystemExit(
+            f"Static site directory not found: {static_dir}. Run 'npm run deploy:build' or 'npm run nuxt:generate' first."
+        )
+
     def handler(*handler_args, **handler_kwargs):
         return ConectaRequestHandler(
             *handler_args,
+            static_dir=static_dir,
             log_file=log_file,
             db_file=db_file,
             telemetry_forward_url=args.telemetry_forward_url,
@@ -1179,7 +1193,7 @@ def main() -> None:
         )
 
     server = ThreadingHTTPServer((args.host, args.port), handler)
-    print(f"Serving {ROOT_DIR} at http://{args.host}:{args.port}")
+    print(f"Serving {static_dir} at http://{args.host}:{args.port}")
     print(f"Telemetry collector endpoint: http://{args.host}:{args.port}/telemetry/events")
     print(f"Telemetry log file: {log_file}")
     print(f"Compliance database file: {db_file}")

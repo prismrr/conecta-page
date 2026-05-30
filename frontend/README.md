@@ -23,10 +23,7 @@ Comandos:
 - [nuxt-app/stores](../nuxt-app/stores)
 
 ## Legado (somente referencia historica)
-- [index.html](../index.html)
-- [pages](../pages)
-- [assets/css](../assets/css)
-- [assets/js](../assets/js)
+O frontend HTML/JS legado foi descomissionado e nao faz mais parte do artefato canônico.
 
 ## Responsabilidades
 - Renderizacao de paginas e navegacao.
@@ -36,4 +33,4 @@ Comandos:
 
 ## Observacao
 O deploy canonico passou a empacotar apenas o artefato Nuxt SSG (`nuxt-app/.output/public`).
-Os arquivos de frontend legados permanecem no repositorio somente para rastreabilidade e rollback controlado.
+Os arquivos de frontend legados permanecem apenas no historico Git para rastreabilidade e rollback controlado.

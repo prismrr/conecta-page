@@ -6,6 +6,8 @@ services:
     container_name: conecta-local
     working_dir: /workspace
     command: ["python3", "backend/server/dev_server.py", "--host", "0.0.0.0", "--port", "8080"]
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     volumes:

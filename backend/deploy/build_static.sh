@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/.deploy/dist}"
 NUXT_OUTPUT_DIR="$ROOT_DIR/nuxt-app/.output/public"
+BUILD_ENV="${2:-${DEPLOY_ENV:-unknown}}"
 
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
@@ -32,6 +33,7 @@ cat > "$OUTPUT_DIR/RELEASE_MANIFEST.json" <<EOF
 {
   "commitSha": "${COMMIT_SHA}",
   "branch": "${BRANCH_NAME}",
+  "buildEnvironment": "${BUILD_ENV}",
   "builtAt": "${BUILD_TIME}",
   "buildSource": "backend/deploy/build_static.sh",
   "frontendTrack": "nuxt-ssg",

@@ -3,7 +3,6 @@ name: Deploy
 on:
   push:
     branches:
-      - develop
       - main
   workflow_dispatch:
     inputs:
@@ -22,8 +21,7 @@ on:
 jobs:
   deploy-develop:
     if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
-      (github.event_name == 'workflow_dispatch' && inputs.environment == 'develop')
+      github.event_name == 'workflow_dispatch' && inputs.environment == 'develop'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: develop
