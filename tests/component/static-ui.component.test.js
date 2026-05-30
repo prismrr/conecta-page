@@ -7,6 +7,12 @@ function readHtml(relativePath) {
 }
 
 describe("static component structure", () => {
+  test("app shell should render global top banner component", () => {
+    const html = readHtml("nuxt-app/app.vue");
+
+    expect(html).toContain("<LayoutTopBanner />");
+  });
+
   test("home hero component should expose core CTA actions", () => {
     const html = readHtml("nuxt-app/pages/index.vue");
 
