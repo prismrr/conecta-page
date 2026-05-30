@@ -4,6 +4,10 @@
   "private": true,
   "description": "Conecta PrismRR static site with contract-safe integration and telemetry.",
   "scripts": {
+    "nuxt:dev": "nuxt dev nuxt-app",
+    "nuxt:build": "nuxt build nuxt-app",
+    "nuxt:generate": "nuxt generate nuxt-app",
+    "nuxt:preview": "nuxt preview nuxt-app",
     "test": "npm run test:unit && npm run test:component && npm run test:contract && npm run test:integration && npm run test:a11y && npm run test:vrt && npm run test:e2e",
     "test:unit": "vitest run tests/unit",
     "test:component": "vitest run tests/component",
@@ -13,6 +17,13 @@
     "test:a11y": "playwright test tests/e2e/accessibility.spec.js",
     "test:vrt": "playwright test tests/e2e/visual-regression.spec.js",
     "test:e2e": "playwright test",
+    "test:e2e:nuxt": "playwright test -c playwright.nuxt.config.js",
+    "test:e2e:nuxt:inscricoes": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/inscricoes.nuxt.spec.js",
+    "test:e2e:nuxt:programacao": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/programacao.nuxt.spec.js",
+    "test:e2e:nuxt:faq": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/faq.nuxt.spec.js",
+    "test:e2e:nuxt:legal-versioning": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/legal-versioning.nuxt.spec.js",
+    "test:e2e:nuxt:dsar": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/dsar-channel.nuxt.spec.js",
+    "test:e2e:nuxt:audit": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/audit-trail.nuxt.spec.js",
     "test:e2e:headed": "playwright test --headed",
     "test:smoke": "bash scripts/smoke_test.sh",
     "dev:docker": "bash scripts/dev_docker.sh up",
@@ -30,7 +41,13 @@
     "compliance:incident:drill:observe": "python3 backend/jobs/incident_drill.py --db-file data/compliance.db --report-file logs/compliance-incident-drill-report.json --no-simulate"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.6",
+    "@pinia/nuxt": "^0.5.5",
     "@axe-core/playwright": "^4.11.3",
+    "jsdom": "^24.1.3",
+    "nuxt": "^3.17.5",
+    "pinia": "^2.3.1",
     "@playwright/test": "^1.54.0",
     "vitest": "^2.0.5"
   }

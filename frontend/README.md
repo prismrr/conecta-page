@@ -2,6 +2,20 @@
 
 Camada de interface estatica do portal Conecta PrismRR.
 
+## Trilha de migracao Nuxt 3
+
+O bootstrap inicial da migracao foi iniciado em `nuxt-app/` com:
+
+- Nuxt 3 configurado para SSG.
+- Rotas equivalentes as paginas legadas.
+- Estado global inicial com Pinia (`consent` e `registration`).
+
+Comandos:
+
+- `npm run nuxt:dev`
+- `npm run nuxt:generate`
+- `npm run nuxt:preview`
+
 ## Fontes canonicas
 - [index.html](../index.html)
 - [pages](../pages)
