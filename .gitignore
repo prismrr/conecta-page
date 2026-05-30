@@ -33,16 +33,16 @@ Thumbs.db
 .vscode/
 
 # Local SQLite compliance database
-data/
+/data/
 *.db
 *.sqlite
 *.sqlite3
 
 # Keep folder, ignore only database files
-data/*.db
-data/*.sqlite
-data/*.sqlite3
-!data/.gitkeep
+/data/*.db
+/data/*.sqlite
+/data/*.sqlite3
+!/data/.gitkeep
 
 # Nuxt dev/build outputs
 nuxt-app/dist/
