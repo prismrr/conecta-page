@@ -4,12 +4,13 @@ on:
   pull_request:
   push:
     branches:
+      - develop
       - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -236,3 +237,38 @@ jobs:
           if [ -n "${SERVER_PID:-}" ]; then
             kill "$SERVER_PID" || true
           fi
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - test
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static Nuxt artifact
+        run: npm run nuxt:generate
+
+      - name: Verify build output
+        run: test -f nuxt-app/.output/public/index.html
+
+      - name: Upload static build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuxt-static-build
+          retention-days: 7
+          path: nuxt-app/.output/public
+          if-no-files-found: error
