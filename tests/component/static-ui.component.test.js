@@ -7,6 +7,15 @@ function readHtml(relativePath) {
 }
 
 describe("static component structure", () => {
+  test("header navigation should group legal links under Mais dropdown", () => {
+    const html = readHtml("nuxt-app/components/layout/Header.vue");
+
+    expect(html).toContain("Mais");
+    expect(html).toContain('class="menu-more-panel"');
+    expect(html).toContain('"/politica-privacidade"');
+    expect(html).toContain('"/termos-uso"');
+  });
+
   test("app shell should render global top banner component", () => {
     const html = readHtml("nuxt-app/app.vue");
 

@@ -1,23 +1,36 @@
 <script setup lang="ts">
 const route = useRoute();
 const isMenuOpen = ref(false);
+const isMoreOpen = ref(false);
 const headerRef = ref<HTMLElement | null>(null);
 
 const links = [
   { to: "/", label: "Inicio" },
   { to: "/inscricoes", label: "Inscricoes" },
   { to: "/programacao", label: "Programacao" },
-  { to: "/faq", label: "FAQ" },
+  { to: "/faq", label: "FAQ" }
+];
+
+const moreLinks = [
   { to: "/politica-privacidade", label: "Privacidade" },
   { to: "/termos-uso", label: "Termos" }
 ];
 
+const isMoreRouteActive = computed(() => {
+  return moreLinks.some((item) => item.to === route.path);
+});
+
 const closeMenu = () => {
   isMenuOpen.value = false;
+  isMoreOpen.value = false;
+};
+
+const toggleMoreMenu = () => {
+  isMoreOpen.value = !isMoreOpen.value;
 };
 
 const handleDocumentClick = (event: MouseEvent | TouchEvent) => {
-  if (!isMenuOpen.value || !headerRef.value) {
+  if ((!isMenuOpen.value && !isMoreOpen.value) || !headerRef.value) {
     return;
   }
 
@@ -85,6 +98,31 @@ onBeforeUnmount(() => {
         >
           {{ item.label }}
         </NuxtLink>
+
+        <div class="menu-more" :class="{ 'menu-more-open': isMoreOpen }">
+          <button
+            type="button"
+            class="menu-link menu-more-toggle"
+            :class="{ active: isMoreRouteActive }"
+            :aria-expanded="isMoreOpen ? 'true' : 'false'"
+            aria-controls="menu-more-panel"
+            @click="toggleMoreMenu"
+          >
+            Mais
+          </button>
+          <div id="menu-more-panel" class="menu-more-panel">
+            <NuxtLink
+              v-for="item in moreLinks"
+              :key="item.to"
+              :to="item.to"
+              class="menu-link menu-more-link"
+              :class="{ active: route.path === item.to }"
+              @click="closeMenu"
+            >
+              {{ item.label }}
+            </NuxtLink>
+          </div>
+        </div>
       </nav>
     </div>
   </header>
@@ -155,6 +193,39 @@ onBeforeUnmount(() => {
   background: #d8eeec;
 }
 
+.menu-more {
+  position: relative;
+}
+
+.menu-more-toggle {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.menu-more-panel {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  min-width: 12rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(40, 66, 64, 0.16);
+  background: #fffefc;
+  box-shadow: 0 16px 28px rgba(9, 37, 36, 0.16);
+  padding: 0.35rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.menu-more-open .menu-more-panel {
+  display: flex;
+}
+
+.menu-more-link {
+  display: block;
+}
+
 @media (max-width: 860px) {
   .header-row {
     min-height: 64px;
@@ -190,6 +261,28 @@ onBeforeUnmount(() => {
     display: block;
     width: 100%;
     padding: 0.55rem 0.8rem;
+  }
+
+  .menu-more {
+    width: 100%;
+  }
+
+  .menu-more-toggle {
+    text-align: left;
+  }
+
+  .menu-more-panel {
+    position: static;
+    min-width: 0;
+    width: 100%;
+    box-shadow: none;
+    border: 0;
+    background: transparent;
+    padding: 0 0 0.1rem;
+  }
+
+  .menu-more-link {
+    padding-left: 1.2rem;
   }
 }
 </style>
