@@ -4,8 +4,16 @@ import LegalChangelogGrid from "~/components/legal/LegalChangelogGrid.vue";
 
 const legalStore = useLegalStore();
 const { currentTermsVersion, termsChangelog } = storeToRefs(legalStore);
+const { emitTelemetry } = useTelemetry();
 
 const formatDateLabel = (dateIso?: string) => legalStore.formatDateLabel(dateIso);
+
+onMounted(() => {
+  emitTelemetry("legal_document_view", {
+    document: "terms_of_use",
+    version: currentTermsVersion.value?.versionLabel || "unknown"
+  }).catch(() => {});
+});
 </script>
 
 <template>

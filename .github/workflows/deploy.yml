@@ -52,6 +52,8 @@ jobs:
         run: |
           npm run test:unit
           npm run test:integration
+          npm run nuxt:generate
+          npm run test:e2e
 
       - name: Deploy to develop
         env:
@@ -107,6 +109,8 @@ jobs:
         run: |
           npm run test:unit
           npm run test:integration
+          npm run nuxt:generate
+          npm run test:e2e
 
       - name: Deploy to production
         env:
@@ -116,6 +120,11 @@ jobs:
           DEPLOY_PORT: ${{ vars.DEPLOY_PORT }}
           DEPLOY_TIMEOUT_SECONDS: ${{ vars.DEPLOY_TIMEOUT_SECONDS }}
           DEPLOY_HEALTHCHECK_URL: ${{ vars.DEPLOY_HEALTHCHECK_URL }}
+          DEPLOY_CANARY_SMOKE_URL: ${{ vars.DEPLOY_CANARY_SMOKE_URL }}
+          DEPLOY_CANARY_DURATION_SECONDS: ${{ vars.DEPLOY_CANARY_DURATION_SECONDS }}
+          DEPLOY_CANARY_PROBE_INTERVAL_SECONDS: ${{ vars.DEPLOY_CANARY_PROBE_INTERVAL_SECONDS }}
+          DEPLOY_CANARY_MAX_FAILURES: ${{ vars.DEPLOY_CANARY_MAX_FAILURES }}
+          DEPLOY_FAIL_ON_ROLLBACK: ${{ vars.DEPLOY_FAIL_ON_ROLLBACK }}
           DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: npm run deploy:production
 
@@ -128,4 +137,5 @@ jobs:
           path: |
             .deploy/dist/RELEASE_MANIFEST.json
             .deploy/deploy-result-production.json
+            .deploy/canary-report-production.json
           if-no-files-found: ignore

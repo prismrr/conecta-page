@@ -7,7 +7,8 @@ export default defineConfig({
     environment: "node",
     environmentMatchGlobs: [
       ["tests/component/nuxt/**/*.test.js", "jsdom"],
-      ["tests/unit/nuxt-dsar-store.test.js", "jsdom"]
+      ["tests/unit/nuxt-dsar-store.test.js", "jsdom"],
+      ["tests/unit/nuxt-telemetry.test.js", "jsdom"]
     ],
     globals: true,
     include: [

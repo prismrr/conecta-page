@@ -15,7 +15,12 @@ export default defineNuxtConfig({
     public: {
       registrationApiBase: "/api/registrations",
       registrationExternalUrl: "#",
+      telemetryEnabled: true,
       telemetryEndpoint: "/telemetry/events",
+      telemetryEnvironment: "development",
+      telemetryReleaseId: "nuxt-migration-0.1.0",
+      telemetrySourceChannel: "web",
+      telemetryConsoleDebug: false,
       complianceApiBase: "/compliance"
     }
   },

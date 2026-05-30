@@ -275,6 +275,35 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         with self.log_file.open("a", encoding="utf-8") as fp:
             fp.write(json.dumps(event, ensure_ascii=True) + "\n")
 
+    def _validate_telemetry_payload(self, payload: dict) -> tuple[bool, dict]:
+        required_string_fields = [
+            "event",
+            "timestamp",
+            "page",
+            "path",
+            "release_id",
+            "environment",
+            "source_channel",
+            "session_id",
+        ]
+
+        for field in required_string_fields:
+            value = payload.get(field)
+            if not isinstance(value, str) or not value.strip():
+                return False, {"error": f"missing_or_invalid_{field}"}
+
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            return False, {"error": "missing_or_invalid_data"}
+
+        timestamp_raw = payload.get("timestamp", "")
+        try:
+            datetime.fromisoformat(str(timestamp_raw).replace("Z", "+00:00"))
+        except ValueError:
+            return False, {"error": "invalid_timestamp"}
+
+        return True, {"ok": True}
+
     def _compliance_cors_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -914,6 +943,11 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
             ok, result = self._read_json_body()
             if not ok:
                 self._write_json(400, {"ok": False, **result})
+                return
+
+            valid, validation_result = self._validate_telemetry_payload(result)
+            if not valid:
+                self._write_json(400, {"ok": False, **validation_result})
                 return
 
             self._append_event(result)

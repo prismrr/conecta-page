@@ -4,6 +4,13 @@ import FaqGrid from "~/components/faq/FaqGrid.vue";
 
 const faqStore = useFaqStore();
 const { items } = storeToRefs(faqStore);
+const { emitTelemetry } = useTelemetry();
+
+onMounted(() => {
+  emitTelemetry("faq_view", {
+    total_items: items.value.length
+  }).catch(() => {});
+});
 </script>
 
 <template>

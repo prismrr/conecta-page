@@ -6,8 +6,16 @@ import LegalChangelogGrid from "~/components/legal/LegalChangelogGrid.vue";
 
 const legalStore = useLegalStore();
 const { currentPrivacyVersion, privacyChangelog, sortedAuditEvents } = storeToRefs(legalStore);
+const { emitTelemetry } = useTelemetry();
 
 const formatDateLabel = (dateIso?: string) => legalStore.formatDateLabel(dateIso);
+
+onMounted(() => {
+  emitTelemetry("legal_document_view", {
+    document: "privacy_policy",
+    version: currentPrivacyVersion.value?.versionLabel || "unknown"
+  }).catch(() => {});
+});
 </script>
 
 <template>

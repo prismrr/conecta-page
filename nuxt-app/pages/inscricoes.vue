@@ -13,6 +13,8 @@ const {
   loadSummary
 } = useRegistrationLookup();
 
+const { emitTelemetry } = useTelemetry();
+
 const publishedVersions = computed(() =>
   registrationGuidanceData.versions.filter((version) => version.status === "published")
 );
@@ -30,6 +32,10 @@ const historyVersions = computed(() =>
 
 onMounted(async () => {
   await loadSummary();
+  await emitTelemetry("registration_guideline_view", {
+    page: "inscricoes",
+    current_guidance_version: currentGuidanceVersion.value ? currentGuidanceVersion.value.id : "unknown"
+  });
 });
 
 const handleSubmit = async () => {

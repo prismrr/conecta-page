@@ -97,7 +97,9 @@ test.describe("nuxt inscricoes e2e", () => {
 
     await page.goto("/inscricoes");
     await page.fill("#inscricaoId", "PRISM-2026-001");
-    await page.click("button[type='submit']");
+    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-001");
+    await page.click("form[data-lookup-form] button[type='submit']");
+    await responsePromise;
 
     await expect(page.locator("[data-lookup-result]")).toContainText("Status: APROVADO");
     await expect(page.locator("[data-provider-status]")).toContainText("Provider disponivel");
@@ -138,7 +140,9 @@ test.describe("nuxt inscricoes e2e", () => {
 
     await page.goto("/inscricoes");
     await page.fill("#inscricaoId", "PRISM-2026-404");
-    await page.click("button[type='submit']");
+    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-404");
+    await page.click("form[data-lookup-form] button[type='submit']");
+    await responsePromise;
 
     await expect(page.locator("[data-lookup-result]")).toContainText("Inscricao nao encontrada");
     await expect(page.locator("[data-provider-status]")).toContainText("Provider disponivel");

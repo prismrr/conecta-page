@@ -17,6 +17,12 @@ Comandos:
 - `npm run nuxt:preview`
 
 ## Fontes canonicas
+- [nuxt-app](../nuxt-app)
+- [nuxt-app/pages](../nuxt-app/pages)
+- [nuxt-app/components](../nuxt-app/components)
+- [nuxt-app/stores](../nuxt-app/stores)
+
+## Legado (somente referencia historica)
 - [index.html](../index.html)
 - [pages](../pages)
 - [assets/css](../assets/css)
@@ -29,4 +35,5 @@ Comandos:
 - Consumo dos endpoints HTTP expostos pelo servidor local.
 
 ## Observacao
-A estrutura frontend permanece em raiz (`index.html`, `pages`, `assets`) para manter compatibilidade de build estatico e deploy atual.
+O deploy canonico passou a empacotar apenas o artefato Nuxt SSG (`nuxt-app/.output/public`).
+Os arquivos de frontend legados permanecem no repositorio somente para rastreabilidade e rollback controlado.

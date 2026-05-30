@@ -68,6 +68,31 @@ describe("dev server integration", () => {
     expect(payload.forwardStatus).toBe("not_configured");
   });
 
+  test("telemetry endpoint should reject invalid contract payload", async () => {
+    const response = await fetch(`${server.baseUrl}/telemetry/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        event: "invalid_telemetry",
+        timestamp: "not-a-date",
+        page: "integration",
+        path: "/",
+        release_id: "test",
+        environment: "test",
+        source_channel: "integration",
+        session_id: "session",
+        data: "invalid"
+      })
+    });
+
+    const payload = await response.json();
+    expect(response.status).toBe(400);
+    expect(payload.ok).toBe(false);
+    expect(payload.error).toBe("missing_or_invalid_data");
+  });
+
   test("telemetry endpoint should forward to configured destination with api key auth", async () => {
     const received = [];
     const sinkServer = createServer((req, res) => {
@@ -285,6 +310,29 @@ describe("dev server integration", () => {
     expect(listPayload.records.length).toBeGreaterThan(0);
     expect(listPayload.records[0].version).toBe("consent-v2-2026-05");
     expect(listPayload.records[0].categories.analytics_optional).toBe(true);
+  });
+
+  test("compliance consent endpoint should reject invalid status", async () => {
+    const response = await fetch(`${server.baseUrl}/compliance/consent-records`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        version: "consent-v2-2026-05",
+        status: "pending",
+        categories: {
+          essential: true,
+          analytics_optional: false,
+          communication_optional: false
+        }
+      })
+    });
+
+    const payload = await response.json();
+    expect(response.status).toBe(400);
+    expect(payload.ok).toBe(false);
+    expect(payload.error).toBe("invalid_status");
   });
 
   test("compliance integration summary should aggregate availability and failures", async () => {

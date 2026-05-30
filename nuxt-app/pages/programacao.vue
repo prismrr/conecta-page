@@ -3,16 +3,33 @@ import { storeToRefs } from "pinia";
 
 const scheduleStore = useScheduleStore();
 const { tracks, filteredSessions, summaryLabel, speakers, filters } = storeToRefs(scheduleStore);
+const { emitTelemetry } = useTelemetry();
 
 const onTrackChange = (event: Event) => {
   const target = event.target as HTMLSelectElement;
   scheduleStore.setTrack(target.value);
+  emitTelemetry("schedule_filter_changed", {
+    filter: "track",
+    value: target.value,
+    visible_sessions: filteredSessions.value.length
+  }).catch(() => {});
 };
 
 const onPeriodChange = (event: Event) => {
   const target = event.target as HTMLSelectElement;
   scheduleStore.setPeriod(target.value as "all" | "manha" | "tarde");
+  emitTelemetry("schedule_filter_changed", {
+    filter: "period",
+    value: target.value,
+    visible_sessions: filteredSessions.value.length
+  }).catch(() => {});
 };
+
+onMounted(() => {
+  emitTelemetry("speaker_profiles_view", {
+    total_speakers: speakers.value.length
+  }).catch(() => {});
+});
 </script>
 
 <template>

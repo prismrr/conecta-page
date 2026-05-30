@@ -28,6 +28,7 @@ const getSignalFromOutcome = (outcome: string) => {
 export const useRegistrationLookup = () => {
   const config = useRuntimeConfig();
   const { buildRegistrationUrl, validateRegistrationPayload, mapStatusLabel, formatDateTime } = useRegistrationCore();
+  const { emitTelemetry } = useTelemetry();
   const registrationStore = useRegistrationStore();
   const { monitor } = storeToRefs(registrationStore);
 
@@ -165,6 +166,11 @@ export const useRegistrationLookup = () => {
 
       registrationStore.updateFromOutcome("success", "Consulta concluida com payload valido.");
       await postIntegrationEvent("success", "Consulta concluida com payload valido.");
+      await emitTelemetry("registration_result_view", {
+        registration_id: value,
+        outcome: "success",
+        status: result.status
+      });
     } catch (error) {
       const typedError = error as LookupError;
 
@@ -172,6 +178,10 @@ export const useRegistrationLookup = () => {
         lookupResult.value = "Inscricao nao encontrada. Confira o codigo e tente novamente.";
         registrationStore.updateFromOutcome("not_found", "Provider respondeu sem correspondencia para o codigo informado.");
         await postIntegrationEvent("not_found", "Provider respondeu sem correspondencia para o codigo informado.");
+        await emitTelemetry("registration_result_view", {
+          registration_id: value,
+          outcome: "not_found"
+        });
         isLoading.value = false;
         return;
       }
@@ -180,6 +190,10 @@ export const useRegistrationLookup = () => {
         lookupResult.value = "A consulta requer permissao adicional. Entre em contato com o suporte do evento.";
         registrationStore.updateFromOutcome("unauthorized", "Provider exige autorizacao adicional para consulta.");
         await postIntegrationEvent("unauthorized", "Provider exige autorizacao adicional para consulta.");
+        await emitTelemetry("registration_result_view", {
+          registration_id: value,
+          outcome: "unauthorized"
+        });
         isLoading.value = false;
         return;
       }
@@ -189,6 +203,15 @@ export const useRegistrationLookup = () => {
         const reason = typedError.reason || "unknown";
         registrationStore.updateFromOutcome("contract_error", `Falha de contrato: ${reason}`);
         await postIntegrationEvent("contract_error", `Falha de contrato: ${reason}`);
+        await emitTelemetry("registration_result_view", {
+          registration_id: value,
+          outcome: "contract_error"
+        });
+        await emitTelemetry("external_data_sync_failed", {
+          registration_id: value,
+          reason: "contract_validation_failed",
+          detail: reason
+        });
         isLoading.value = false;
         return;
       }
@@ -196,6 +219,14 @@ export const useRegistrationLookup = () => {
       lookupResult.value = "Servico temporariamente indisponivel. Tente novamente em instantes.";
       registrationStore.updateFromOutcome("service_unavailable", "Falha operacional ou timeout no provider externo.");
       await postIntegrationEvent("service_unavailable", "Falha operacional ou timeout no provider externo.");
+      await emitTelemetry("registration_result_view", {
+        registration_id: value,
+        outcome: "service_unavailable"
+      });
+      await emitTelemetry("external_data_sync_failed", {
+        registration_id: value,
+        reason: "provider_unavailable"
+      });
     } finally {
       isLoading.value = false;
     }

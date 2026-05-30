@@ -3,21 +3,26 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/.deploy/dist}"
+NUXT_OUTPUT_DIR="$ROOT_DIR/nuxt-app/.output/public"
 
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
-# Build static release payload with only public site assets.
-rsync -a --delete --prune-empty-dirs \
-  --include='/index.html' \
-  --include='/*.html' \
-  --include='/assets/***' \
-  --include='/pages/***' \
-  --include='/favicon.ico' \
-  --include='/robots.txt' \
-  --include='/sitemap.xml' \
-  --exclude='*' \
-  "$ROOT_DIR/" "$OUTPUT_DIR/"
+echo "[deploy] building Nuxt SSG artifact"
+npm --prefix "$ROOT_DIR" run nuxt:generate >/dev/null
+
+if [[ ! -d "$NUXT_OUTPUT_DIR" ]]; then
+  echo "[deploy] Nuxt output directory not found: $NUXT_OUTPUT_DIR"
+  exit 1
+fi
+
+rsync -a --delete "$NUXT_OUTPUT_DIR/" "$OUTPUT_DIR/"
+
+# Legacy frontend should not be present in release artifact after Nuxt cutover.
+if [[ -e "$OUTPUT_DIR/pages" || -e "$OUTPUT_DIR/assets/js/site.js" ]]; then
+  echo "[deploy] Legacy frontend artifacts detected in release payload"
+  exit 1
+fi
 
 COMMIT_SHA="${GITHUB_SHA:-$(git -C "$ROOT_DIR" rev-parse HEAD 2>/dev/null || echo unknown)}"
 BRANCH_NAME="${GITHUB_REF_NAME:-$(git -C "$ROOT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)}"
@@ -28,7 +33,9 @@ cat > "$OUTPUT_DIR/RELEASE_MANIFEST.json" <<EOF
   "commitSha": "${COMMIT_SHA}",
   "branch": "${BRANCH_NAME}",
   "builtAt": "${BUILD_TIME}",
-  "buildSource": "backend/deploy/build_static.sh"
+  "buildSource": "backend/deploy/build_static.sh",
+  "frontendTrack": "nuxt-ssg",
+  "legacyFrontendIncluded": false
 }
 EOF
 

@@ -586,6 +586,12 @@ Ou tudo em sequencia:
 
 npm test
 
+## Checklist final da migracao Nuxt
+Para o fechamento da migracao Vue/Nuxt com hardening de contratos e observabilidade, consulte:
+
+- [docs/migracao-nuxt-checklist-final.md](docs/migracao-nuxt-checklist-final.md)
+- [docs/milestone7-estabilizacao-descomissionamento.md](docs/milestone7-estabilizacao-descomissionamento.md)
+
 ## CI automatizado (GitHub Actions)
 Workflow configurado em [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
@@ -619,6 +625,12 @@ Scripts npm:
 - `npm run deploy:build`
 - `npm run deploy:develop`
 - `npm run deploy:production`
+
+Baseline atual de entrega:
+
+- O pacote de release e gerado a partir de `nuxt-app/.output/public`.
+- O manifest de release inclui `frontendTrack: nuxt-ssg`.
+- O build falha se artefatos legacy forem detectados no payload final.
 
 ### Build local (develop e production)
 Use os comandos abaixo para validar o empacotamento local e, quando necessario, executar o deploy localmente para cada ambiente.
@@ -656,6 +668,20 @@ Artefato gerado:
 
 `DEPLOY_HOST=prod.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-prod DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_prod)" npm run deploy:production`
 
+No deploy de production, o script executa cutover canary com rollback automatico:
+
+- promocao atomica por symlink para a nova release
+- janela de observacao com probes de healthcheck
+- rollback para a release anterior se falhas ultrapassarem o limiar
+
+Variaveis opcionais de canary para production:
+
+- `DEPLOY_CANARY_DURATION_SECONDS` (padrao: 60)
+- `DEPLOY_CANARY_PROBE_INTERVAL_SECONDS` (padrao: 10)
+- `DEPLOY_CANARY_MAX_FAILURES` (padrao: 1)
+- `DEPLOY_CANARY_SMOKE_URL` (opcional)
+- `DEPLOY_FAIL_ON_ROLLBACK` (padrao: true)
+
 Variaveis obrigatorias para deploy local:
 
 - `DEPLOY_HOST`
@@ -674,6 +700,7 @@ Evidencias locais apos deploy:
 - `.deploy/dist/RELEASE_MANIFEST.json`
 - `.deploy/deploy-result-develop.json`
 - `.deploy/deploy-result-production.json`
+- `.deploy/canary-report-production.json`
 
 Fluxo de branch:
 
@@ -695,13 +722,20 @@ Variables por ambiente (opcionais):
 - `DEPLOY_PORT` (padrao: 22)
 - `DEPLOY_TIMEOUT_SECONDS` (padrao: 20)
 - `DEPLOY_HEALTHCHECK_URL` (se definido, valida pos-deploy)
+- `DEPLOY_CANARY_DURATION_SECONDS` (janela de observacao do canary em production)
+- `DEPLOY_CANARY_PROBE_INTERVAL_SECONDS` (intervalo entre probes)
+- `DEPLOY_CANARY_MAX_FAILURES` (limiar de falhas para rollback automatico)
+- `DEPLOY_CANARY_SMOKE_URL` (endpoint de smoke opcional para canary)
+- `DEPLOY_FAIL_ON_ROLLBACK` (falha o job quando houver rollback automatico)
 
 Evidencias de deploy:
 
 - `.deploy/dist/RELEASE_MANIFEST.json`
 - `.deploy/deploy-result-<ambiente>.json`
+- `.deploy/canary-report-production.json` (production)
 
 Rollback operacional:
 
 - no host remoto, o link `current` aponta para o release ativo em `DEPLOY_PATH/releases`
+- o deploy de production realiza rollback automatico durante a janela canary quando probes falham
 - para rollback manual, basta reapontar `current` para uma release anterior no mesmo diretorio

@@ -43,3 +43,10 @@ data/*.db
 data/*.sqlite
 data/*.sqlite3
 !data/.gitkeep
+
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
