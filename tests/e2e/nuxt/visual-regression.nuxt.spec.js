@@ -80,6 +80,11 @@ test.describe("visual regression critical pages", () => {
       await page.setViewportSize({ width: 1440, height: 2400 });
       await page.goto(pageDef.path);
       await page.waitForLoadState("networkidle");
+      await page.waitForSelector(".top-page-banner-image", { state: "visible" });
+      await page.waitForFunction(() => {
+        const bannerImage = document.querySelector(".top-page-banner-image");
+        return bannerImage instanceof HTMLImageElement && bannerImage.complete && bannerImage.naturalWidth > 0;
+      });
       await page.evaluate(async () => {
         if (document.fonts && document.fonts.ready) {
           await document.fonts.ready;
