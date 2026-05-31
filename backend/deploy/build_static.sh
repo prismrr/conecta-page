@@ -17,7 +17,11 @@ if [[ ! -d "$NUXT_OUTPUT_DIR" ]]; then
   exit 1
 fi
 
-rsync -a --delete "$NUXT_OUTPUT_DIR/" "$OUTPUT_DIR/"
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a --delete "$NUXT_OUTPUT_DIR/" "$OUTPUT_DIR/"
+else
+  cp -a "$NUXT_OUTPUT_DIR/." "$OUTPUT_DIR/"
+fi
 
 # Legacy frontend should not be present in release artifact after Nuxt cutover.
 if [[ -e "$OUTPUT_DIR/pages" || -e "$OUTPUT_DIR/assets/js/site.js" ]]; then

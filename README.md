@@ -245,6 +245,7 @@ Opcao 3: Docker Compose para desenvolvedores (usa [docker-compose.local.yml](doc
 
 Ou via npm:
 
+- `npm run dev:docker:build`
 - `npm run dev:docker`
 - `npm run dev:docker:logs`
 - `npm run dev:docker:down`
@@ -267,9 +268,12 @@ Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o flux
 
 Atalho via npm:
 
+- `npm run dev:docker:build`
 - `npm run dev:docker:full`
 - `npm run dev:docker:full:logs`
 - `npm run dev:docker:full:down`
+
+Observacao: `npm run dev:docker:full` executa build automatizado via Docker Compose antes de subir App + Loki + Grafana.
 
 3. Acesse os componentes:
 
@@ -566,12 +570,18 @@ Para o fechamento da migracao Vue/Nuxt com hardening de contratos e observabilid
 ## CI automatizado (GitHub Actions)
 Workflow configurado em [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-Executa automaticamente em `pull_request` e `push` para `main`:
+Executa automaticamente em `pull_request` e `push` para `develop` e `main`.
 
-- npm run test:unit
-- npm run test:integration
-- npm run test:e2e
-- npm run test:smoke
+Fluxos canônicos utilizados no projeto:
+
+- `npm run ci:tests` (pipeline completo de testes)
+- `npm run ci:build` (build estatico + validacao do artefato)
+- `npm run build:ci` (ci:tests + ci:build)
+
+Dentro do workflow, os jobs executam os comandos equivalentes abaixo:
+
+- `npm run ci:tests`
+- `npm run ci:build`
 
 Em caso de falha, o workflow faz upload de artefatos para diagnostico:
 

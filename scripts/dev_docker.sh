@@ -14,16 +14,19 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! command -v npm >/dev/null 2>&1; then
-  echo "[docker-dev] npm nao encontrado no PATH"
-  exit 1
-fi
-
 action="${1:-up}"
 
+run_compose_build() {
+  echo "[docker-dev] executando build via docker compose"
+  docker compose -f "$COMPOSE_FILE" --profile build run --rm conecta-build
+}
+
 case "$action" in
+  build)
+    run_compose_build
+    ;;
   up)
-    npm run deploy:build >/dev/null
+    run_compose_build
     docker compose -f "$COMPOSE_FILE" up -d --build
     echo "[docker-dev] aplicacao disponivel em http://localhost:8080"
     ;;
@@ -34,13 +37,13 @@ case "$action" in
     docker compose -f "$COMPOSE_FILE" logs -f conecta-local
     ;;
   restart)
-    npm run deploy:build >/dev/null
+    run_compose_build
     docker compose -f "$COMPOSE_FILE" down
     docker compose -f "$COMPOSE_FILE" up -d --build
     echo "[docker-dev] aplicacao reiniciada em http://localhost:8080"
     ;;
   *)
-    echo "Uso: bash scripts/dev_docker.sh [up|down|logs|restart]"
+    echo "Uso: bash scripts/dev_docker.sh [build|up|down|logs|restart]"
     exit 1
     ;;
 esac

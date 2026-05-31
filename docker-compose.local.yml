@@ -1,6 +1,14 @@
-version: "3.9"
-
 services:
+  conecta-build:
+    image: node:20-bullseye
+    working_dir: /workspace
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["npm ci && npm run deploy:build"]
+    volumes:
+      - ./:/workspace
+    profiles:
+      - build
+
   conecta-local:
     image: python:3.11-slim
     container_name: conecta-local
