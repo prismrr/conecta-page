@@ -7,7 +7,7 @@ Este documento apresenta o mapa unico da arquitetura do Conecta PrismRR, com sep
 ```mermaid
 flowchart LR
     U[Usuario/Navegador] --> FE[Frontend estatico\nindex/pages/assets]
-    FE -->|HTTP JSON| BE[Backend local\nbackend/server/dev_server.py]
+    FE -->|HTTP JSON| BE[Backend local\nbackend/fastapi_server.py]
     FE -->|Eventos| TE[POST /telemetry/events]
 
     BE --> DB[(SQLite\ndata/compliance.db)]
@@ -34,7 +34,7 @@ Frontend:
 - [assets](../assets)
 
 Backend:
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [backend/jobs/retention_job.py](../backend/jobs/retention_job.py)
 - [backend/jobs/incident_drill.py](../backend/jobs/incident_drill.py)
 - [backend/deploy/build_static.sh](../backend/deploy/build_static.sh)
@@ -99,7 +99,7 @@ Campos esperados em `topBanner`:
 
 ## Comandos canonicos
 
-- Servidor local: `python3 backend/server/dev_server.py --port 8080`
+- Servidor local: `python3 backend/fastapi_server.py --port 8080`
 - Stack observability: `docker compose -f infra/observability/docker-compose.yml up -d`
 - Stack completa local: `npm run dev:docker:full`
 - Build deploy: `npm run deploy:build`

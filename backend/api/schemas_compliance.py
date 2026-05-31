@@ -109,6 +109,7 @@ class DSARExportResponse(CamelModel):
     status: StrictStr
     export_path: str = Field(alias="exportPath")
     export_hash: str = Field(alias="exportHash")
+    bundle: dict[str, object] | None = None
 
 
 class DSARSecureDeleteRequest(CamelModel):

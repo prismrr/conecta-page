@@ -3,16 +3,24 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 
 import aiosqlite
 
-from backend.server.dev_server import create_connection, init_database, utc_now_iso
+from .sqlite_utils import create_connection, init_database, utc_now_iso
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
-DEFAULT_DB_FILE = ROOT_DIR / "data" / "compliance.db"
-DEFAULT_DSAR_EXPORT_DIR = ROOT_DIR / "logs" / "dsar-exports"
+
+
+def _path_from_env(env_name: str, default_path: Path) -> Path:
+    raw_value = os.environ.get(env_name, "").strip()
+    return Path(raw_value) if raw_value else default_path
+
+
+DEFAULT_DB_FILE = _path_from_env("CONECTA_COMPLIANCE_DB_FILE", ROOT_DIR / "data" / "compliance.db")
+DEFAULT_DSAR_EXPORT_DIR = _path_from_env("CONECTA_DSAR_EXPORT_DIR", ROOT_DIR / "logs" / "dsar-exports")
 
 
 def ensure_database() -> None:

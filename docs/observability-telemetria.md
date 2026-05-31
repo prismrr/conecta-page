@@ -20,7 +20,7 @@ Fluxo principal:
 Componentes:
 - Emissor frontend: [nuxt-app/plugins/telemetry.client.ts](../nuxt-app/plugins/telemetry.client.ts)
 - Config frontend: [nuxt-app/nuxt.config.ts](../nuxt-app/nuxt.config.ts)
-- Coletor e agregador: [backend/server/dev_server.py](../backend/server/dev_server.py)
+- Coletor e agregador: [backend/fastapi_server.py](../backend/fastapi_server.py)
 - Stack local observability: [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
 - Config do Loki: [infra/observability/loki/loki-config.yaml](../infra/observability/loki/loki-config.yaml)
 
@@ -185,7 +185,7 @@ Mount error em compose multiarquivo:
 - Usar eventos de falha de integracao para observabilidade de degradacao.
 
 ## Referencias
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [nuxt-app/nuxt.config.ts](../nuxt-app/nuxt.config.ts)
 - [infra/observability/docker-compose.yml](../infra/observability/docker-compose.yml)
 - [.env.example](../.env.example)

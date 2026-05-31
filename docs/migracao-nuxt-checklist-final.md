@@ -17,7 +17,7 @@ Status geral: concluido com hardening de contratos, observabilidade e conformida
   - status de consentimento invalido
 
 Evidencias de implementacao:
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [tests/contract/registration-openapi.contract.test.js](../tests/contract/registration-openapi.contract.test.js)
 - [tests/contract/registration-provider-prism.contract.test.js](../tests/contract/registration-provider-prism.contract.test.js)
 - [tests/integration/dev-server.integration.test.js](../tests/integration/dev-server.integration.test.js)

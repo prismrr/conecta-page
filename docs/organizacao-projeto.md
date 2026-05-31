@@ -22,7 +22,7 @@ Frontend (interface e experiencia):
 
 Backend (servicos e operacao):
 - [backend/README.md](../backend/README.md)
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [backend/jobs/retention_job.py](../backend/jobs/retention_job.py)
 - [backend/jobs/incident_drill.py](../backend/jobs/incident_drill.py)
 - [backend/deploy/build_static.sh](../backend/deploy/build_static.sh)
@@ -36,7 +36,7 @@ Infraestrutura (stack local e runtime support):
 - [infra/observability/grafana/provisioning/datasources/loki.yaml](../infra/observability/grafana/provisioning/datasources/loki.yaml)
 
 Compatibilidade legada:
-- [scripts/dev_server.py](../scripts/dev_server.py)
+- [scripts/dev_docker.sh](../scripts/dev_docker.sh)
 - [scripts/retention_job.py](../scripts/retention_job.py)
 - [scripts/incident_drill.py](../scripts/incident_drill.py)
 
@@ -57,7 +57,7 @@ Compatibilidade legada:
 
 ## Comandos canonicos
 Servidor local:
-- python3 backend/server/dev_server.py --port 8080
+- python3 backend/fastapi_server.py --port 8080
 
 Retencao:
 - npm run compliance:retention

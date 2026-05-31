@@ -19,7 +19,6 @@
     "test:a11y": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/accessibility.nuxt.spec.js",
     "test:vrt": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/visual-regression.nuxt.spec.js",
     "test:e2e": "playwright test -c playwright.nuxt.config.js",
-    "test:e2e:legacy": "playwright test",
     "test:e2e:nuxt": "playwright test -c playwright.nuxt.config.js",
     "test:e2e:nuxt:inscricoes": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/inscricoes.nuxt.spec.js",
     "test:e2e:nuxt:programacao": "playwright test -c playwright.nuxt.config.js tests/e2e/nuxt/programacao.nuxt.spec.js",

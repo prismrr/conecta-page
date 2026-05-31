@@ -29,7 +29,7 @@ Legado historico:
 - Jobs de compliance para retencao/descarte e simulacao de incidente.
 
 Arquivos de referencia:
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [backend/jobs/retention_job.py](../backend/jobs/retention_job.py)
 - [backend/jobs/incident_drill.py](../backend/jobs/incident_drill.py)
 

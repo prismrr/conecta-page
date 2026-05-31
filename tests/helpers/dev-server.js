@@ -1,8 +1,7 @@
 const { spawn } = require("node:child_process");
-const { existsSync } = require("node:fs");
 const { rm } = require("node:fs/promises");
 const { tmpdir } = require("node:os");
-const { join, resolve } = require("node:path");
+const { join } = require("node:path");
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,57 +39,41 @@ async function startDevServer({
   alertWindowMinutes = 15
 } = {}) {
   const dbFile = join(tmpdir(), `conecta-compliance-${port}-${Date.now()}.db`);
-  const generatedStaticDir = resolve(__dirname, "../../nuxt-app/.output/public");
-  const fallbackStaticDir = resolve(__dirname, "../..");
-  const staticDir = existsSync(generatedStaticDir) ? generatedStaticDir : fallbackStaticDir;
+  const exportDir = join(tmpdir(), `conecta-dsar-exports-${port}-${Date.now()}`);
   const args = [
-    "backend/server/dev_server.py",
+    "backend/fastapi_server.py",
     "--host",
     host,
     "--port",
-    String(port),
-    "--static-dir",
-    staticDir,
-    "--db-file",
-    dbFile,
-    "--alert-failure-threshold",
-    String(alertFailureThreshold),
-    "--alert-window-minutes",
-    String(alertWindowMinutes)
+    String(port)
   ];
 
+  const env = {
+    ...process.env,
+    CONECTA_COMPLIANCE_DB_FILE: dbFile,
+    CONECTA_DSAR_EXPORT_DIR: exportDir,
+    TELEMETRY_FORWARD_URL: telemetryForwardUrl,
+    TELEMETRY_FORWARD_PROVIDER: telemetryForwardProvider,
+    TELEMETRY_FORWARD_AUTH_TYPE: telemetryForwardAuthType,
+    TELEMETRY_FORWARD_AUTH_TOKEN: telemetryForwardAuthToken,
+    TELEMETRY_FORWARD_AUTH_HEADER: telemetryForwardAuthHeader,
+    TELEMETRY_FORWARD_USERNAME: telemetryForwardUsername,
+    TELEMETRY_FORWARD_PASSWORD: telemetryForwardPassword,
+    TELEMETRY_FORWARD_TIMEOUT_SECONDS: String(telemetryForwardTimeoutSeconds),
+    ALERT_FAILURE_THRESHOLD: String(alertFailureThreshold),
+    ALERT_WINDOW_MINUTES: String(alertWindowMinutes)
+  };
+
   if (telemetryForwardUrl) {
-    args.push(
-      "--telemetry-forward-url",
-      telemetryForwardUrl,
-      "--telemetry-forward-provider",
-      telemetryForwardProvider,
-      "--telemetry-forward-auth-type",
-      telemetryForwardAuthType,
-      "--telemetry-forward-auth-header",
-      telemetryForwardAuthHeader,
-      "--telemetry-forward-timeout-seconds",
-      String(telemetryForwardTimeoutSeconds)
-    );
-
-    if (telemetryForwardAuthToken) {
-      args.push("--telemetry-forward-auth-token", telemetryForwardAuthToken);
-    }
-
-    if (telemetryForwardUsername) {
-      args.push("--telemetry-forward-username", telemetryForwardUsername);
-    }
-
-    if (telemetryForwardPassword) {
-      args.push("--telemetry-forward-password", telemetryForwardPassword);
-    }
+    env.TELEMETRY_FORWARD_URL = telemetryForwardUrl;
   }
 
   const processRef = spawn(
     "python3",
     args,
     {
-    stdio: ["ignore", "pipe", "pipe"]
+      env,
+      stdio: ["ignore", "pipe", "pipe"]
     }
   );
 
@@ -108,6 +91,7 @@ async function startDevServer({
       }
       await wait(120);
       await rm(dbFile, { force: true });
+      await rm(exportDir, { force: true, recursive: true });
     }
   };
 }

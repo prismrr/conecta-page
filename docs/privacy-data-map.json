@@ -34,7 +34,7 @@
     {
       "id": "consent_records_sqlite",
       "layer": "backend",
-      "artifact": "backend/server/dev_server.py",
+      "artifact": "backend/fastapi_server.py",
       "dataCategory": "consent_audit",
       "fields": [
         "recorded_at",
@@ -80,7 +80,7 @@
     {
       "id": "dsar_requests_sqlite",
       "layer": "backend",
-      "artifact": "backend/server/dev_server.py",
+      "artifact": "backend/fastapi_server.py",
       "dataCategory": "rights_request_audit",
       "fields": [
         "protocol",
@@ -134,7 +134,7 @@
     {
       "id": "telemetry_events_runtime",
       "layer": "frontend_backend",
-      "artifact": "nuxt-app/composables/useTelemetry.ts + backend/server/dev_server.py",
+      "artifact": "nuxt-app/composables/useTelemetry.ts + backend/fastapi_server.py",
       "dataCategory": "operational_telemetry",
       "fields": [
         "event",
@@ -161,7 +161,7 @@
     {
       "id": "integration_monitor_events_sqlite",
       "layer": "backend",
-      "artifact": "backend/server/dev_server.py",
+      "artifact": "backend/fastapi_server.py",
       "dataCategory": "operational_monitoring",
       "fields": [
         "recorded_at",
@@ -183,7 +183,7 @@
     {
       "id": "content_audit_events_sqlite",
       "layer": "backend",
-      "artifact": "backend/server/dev_server.py + assets/js/content-audit-log.js",
+      "artifact": "backend/fastapi_server.py + assets/js/content-audit-log.js",
       "dataCategory": "content_audit",
       "fields": [
         "event_id",
@@ -209,7 +209,7 @@
     {
       "id": "observability_alerts_sqlite",
       "layer": "backend",
-      "artifact": "backend/server/dev_server.py",
+      "artifact": "backend/fastapi_server.py",
       "dataCategory": "operational_alerting",
       "fields": [
         "created_at",

@@ -3,7 +3,7 @@ const { resolve } = require("node:path");
 
 const ROOT_DIR = resolve(__dirname, "..");
 const INVENTORY_PATH = resolve(ROOT_DIR, "docs/privacy-data-map.json");
-const SERVER_PATH = resolve(ROOT_DIR, "backend/server/dev_server.py");
+const SERVER_PATH = resolve(ROOT_DIR, "backend/api/routers/compliance.py");
 const DSAR_FORM_PATH = resolve(ROOT_DIR, "nuxt-app/components/legal/DsarRequestForm.vue");
 const DSAR_STORE_PATH = resolve(ROOT_DIR, "nuxt-app/stores/dsar.ts");
 const TELEMETRY_COMPOSABLE_PATH = resolve(ROOT_DIR, "nuxt-app/composables/useTelemetry.ts");

@@ -28,8 +28,8 @@ ensure_server() {
     return
   fi
 
-  echo "[smoke] Starting local dev server at ${BASE_URL}"
-  python3 backend/server/dev_server.py --host "$HOST" --port "$PORT" >"$SERVER_LOG" 2>&1 &
+  echo "[smoke] Starting FastAPI server at ${BASE_URL}"
+  python3 backend/fastapi_server.py --host "$HOST" --port "$PORT" >"$SERVER_LOG" 2>&1 &
   SERVER_PID="$!"
   STARTED_SERVER=1
 

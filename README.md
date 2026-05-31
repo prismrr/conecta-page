@@ -1,6 +1,6 @@
 # Conecta PrismRR
 
-Portal oficial do PRISM Conecta com frontend canonico em Nuxt 3 SSG, estado centralizado com Pinia, integracao contratual segura e trilha de compliance/observabilidade local. O backend esta em transicao para FastAPI, com routers tipados e build executado em container Docker.
+Portal oficial do PRISM Conecta com frontend canonico em Nuxt 3 SSG, estado centralizado com Pinia, integracao contratual segura e trilha de compliance/observabilidade local. O backend roda em FastAPI, com routers tipados e build executado em container Docker.
 
 ## Escopo implementado
 - Portal canônico em Nuxt 3 SSG para pagina inicial, inscricoes, programacao, FAQ e area legal.
@@ -36,7 +36,7 @@ O wrapper em [backend/deploy/build_static.sh](backend/deploy/build_static.sh) ap
 O mesmo fluxo valida a camada FastAPI durante o build, instalando as dependencias definidas em [backend/requirements-fastapi.txt](backend/requirements-fastapi.txt).
 
 ## Backend API
-O novo ponto de entrada experimental para a API HTTP e [backend/fastapi_server.py](backend/fastapi_server.py).
+O ponto de entrada HTTP canonico e [backend/fastapi_server.py](backend/fastapi_server.py).
 
 Routers migrados para FastAPI:
 
@@ -45,7 +45,7 @@ Routers migrados para FastAPI:
 - [backend/api/routers/compliance.py](backend/api/routers/compliance.py)
 - [backend/api/routers/observability.py](backend/api/routers/observability.py)
 
-O servidor legado em [backend/server/dev_server.py](backend/server/dev_server.py) continua disponivel ate o corte final da migracao.
+O runtime legado foi removido; a API agora e servida apenas por FastAPI.
 
 ## Orientacoes de inscricao versionadas
 As versoes publicadas da chamada ficam em dados versionados consumidos pelo Nuxt em [nuxt-app/pages/inscricoes.vue](nuxt-app/pages/inscricoes.vue).
@@ -179,7 +179,7 @@ Resumo operacional por sessao:
 O painel tambem apresenta timestamp da ultima atualizacao e detalhe do ultimo evento operacional.
 
 ## Persistencia real para compliance (Sprint 3 item 3)
-Foi adicionada persistencia SQL minima via SQLite no servidor local [backend/server/dev_server.py](backend/server/dev_server.py), com base padrao em `data/compliance.db`.
+Foi adicionada persistencia SQL minima via SQLite no servidor local [backend/fastapi_server.py](backend/fastapi_server.py), com base padrao em `data/compliance.db`.
 
 Tabelas criadas:
 
@@ -312,7 +312,7 @@ Evidencias geradas:
 ## Executar localmente
 Opcao 1: servidor local com coletor de telemetria:
 
-`python3 backend/server/dev_server.py --port 8080`
+`python3 backend/fastapi_server.py --port 8080`
 
 Depois acesse `http://localhost:8080`.
 
@@ -331,7 +331,7 @@ Ou via npm:
 - `npm run dev:docker:logs`
 - `npm run dev:docker:down`
 
-Com essa opcao, a aplicacao roda com o servidor [backend/server/dev_server.py](backend/server/dev_server.py) dentro do container, servindo o artefato Nuxt em `nuxt-app/.output/public`, e fica disponivel em `http://localhost:8080`.
+Com essa opcao, a aplicacao roda com o servidor [backend/fastapi_server.py](backend/fastapi_server.py) dentro do container, servindo o artefato Nuxt em `nuxt-app/.output/public`, e fica disponivel em `http://localhost:8080`.
 
 Opcao 4: executar apenas o build estatico em container:
 
@@ -343,6 +343,11 @@ O compose local carrega variaveis de [.env](.env) automaticamente, com fallback 
 
 ### Teste completo com Docker Compose (App + Loki + Grafana)
 Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o fluxo completo de telemetria e observabilidade.
+## Smoke test
+O smoke test agora aponta para a API FastAPI por padrao.
+
+- `bash scripts/smoke_test.sh`
+
 
 1. (Opcional) Defina credenciais locais do Grafana no `.env` (base: [.env.example](.env.example)):
 
@@ -478,7 +483,7 @@ Foi adicionada uma esteira inicial de AppSec no pipeline de PR em [/.github/work
 Os checks rodam em job dedicado (`appsec`) e bloqueiam merge quando houver falhas.
 
 ## Observabilidade avancada (Sprint 4 item 4)
-Foi estruturada uma camada de observabilidade no servidor local [backend/server/dev_server.py](backend/server/dev_server.py) com:
+Foi estruturada uma camada de observabilidade no servidor local [backend/fastapi_server.py](backend/fastapi_server.py) com:
 
 - destino real opcional para forwarding de telemetria
 - alertas basicos por limiar de falhas de sincronizacao externa
@@ -547,11 +552,11 @@ Suba a stack:
 
 Configure o servidor para enviar eventos para Loki:
 
-`python3 backend/server/dev_server.py --port 8080 --telemetry-forward-url http://127.0.0.1:3100/loki/api/v1/push --telemetry-forward-provider loki`
+`python3 backend/fastapi_server.py --port 8080 --telemetry-forward-url http://127.0.0.1:3100/loki/api/v1/push --telemetry-forward-provider loki`
 
 Opcional com API key:
 
-`python3 backend/server/dev_server.py --port 8080 --telemetry-forward-url https://seu-gateway-observability.example/loki/api/v1/push --telemetry-forward-provider loki --telemetry-forward-auth-type x-api-key --telemetry-forward-auth-token "$TELEMETRY_FORWARD_AUTH_TOKEN"`
+`python3 backend/fastapi_server.py --port 8080 --telemetry-forward-url https://seu-gateway-observability.example/loki/api/v1/push --telemetry-forward-provider loki --telemetry-forward-auth-type x-api-key --telemetry-forward-auth-token "$TELEMETRY_FORWARD_AUTH_TOKEN"`
 
 Acesse o Grafana em `http://127.0.0.1:3000` com as credenciais definidas em `.env` (`GRAFANA_ADMIN_USER` e `GRAFANA_ADMIN_PASSWORD`).
 
@@ -581,7 +586,7 @@ O banner superior e configurado em componentes Nuxt e runtime config, sem depend
 ### Coleta local real
 Com `endpointUrl` configurado para `/telemetry/events`, execute o servidor de dev:
 
-python3 backend/server/dev_server.py --port 8080
+python3 backend/fastapi_server.py --port 8080
 
 Os eventos recebidos serao gravados em:
 
@@ -619,7 +624,7 @@ bash scripts/smoke_test.sh
 
 O script:
 - usa servidor existente em `http://127.0.0.1:8080` se estiver ativo
-- inicia `backend/server/dev_server.py` automaticamente se necessario
+- inicia `backend/fastapi_server.py` automaticamente se necessario
 - valida cenarios de sucesso, erro HTTP e contrato invalido
 - valida POST em `/telemetry/events`
 

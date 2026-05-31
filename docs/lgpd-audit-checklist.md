@@ -4,7 +4,7 @@ Este documento transforma o inventario de dados e os controles existentes em uma
 Base operacional:
 - [docs/privacy-data-map.json](privacy-data-map.json)
 - [logs/privacy-data-report.md](../logs/privacy-data-report.md)
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [nuxt-app/stores/consent.ts](../nuxt-app/stores/consent.ts)
 - [nuxt-app/stores/dsar.ts](../nuxt-app/stores/dsar.ts)
 
@@ -43,7 +43,7 @@ Checklist:
 
 Impacto na arquitetura:
 - [nuxt-app/composables/useTelemetry.ts](../nuxt-app/composables/useTelemetry.ts)
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 - [logs/](../logs/)
 
 Validacao:
@@ -84,7 +84,7 @@ Impacto na arquitetura:
 - [nuxt-app/stores/dsar.ts](../nuxt-app/stores/dsar.ts)
 - [nuxt-app/components/legal/DsarRequestForm.vue](../nuxt-app/components/legal/DsarRequestForm.vue)
 - [docs/api.md](api.md)
-- [backend/server/dev_server.py](../backend/server/dev_server.py)
+- [backend/fastapi_server.py](../backend/fastapi_server.py)
 
 Validacao:
 - `npm run test:e2e -- tests/e2e/nuxt/dsar-channel.nuxt.spec.js`

@@ -240,7 +240,13 @@ class DsarService:
             ("exported", str(export_path), export_hash, bundle["exportedAt"], protocol),
         )
 
-        return DSARExportResponse(protocol=protocol, status="exported", exportPath=str(export_path), exportHash=export_hash)
+        return DSARExportResponse(
+            protocol=protocol,
+            status="exported",
+            exportPath=str(export_path),
+            exportHash=export_hash,
+            bundle=bundle,
+        )
 
     async def secure_delete_request(self, protocol: str, payload: DSARSecureDeleteRequest | None = None) -> DSARDeleteResponse:
         await ensure_database_async()
