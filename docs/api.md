@@ -98,7 +98,7 @@ Campos relevantes de entrada:
 - categories: objeto obrigatorio
   - essential: boolean
   - analytics_optional: boolean
-  - communication_optional: boolean
+  - marketing_optional: boolean
 - updatedAt: string opcional
 - source: string opcional
 
@@ -190,7 +190,7 @@ Resposta 200 (exemplo):
       "categories": {
         "essential": true,
         "analytics_optional": true,
-        "communication_optional": false
+        "marketing_optional": false
       }
     }
   ]

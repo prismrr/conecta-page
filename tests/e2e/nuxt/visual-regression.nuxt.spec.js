@@ -25,14 +25,17 @@ const CRITICAL_PAGES = [
 
 test.describe("visual regression critical pages", () => {
   test.beforeEach(async ({ page }) => {
-    await page.addStyleTag({
-      content: `
-        *, *::before, *::after {
-          animation: none !important;
-          transition: none !important;
-          caret-color: transparent !important;
+    await page.addInitScript(() => {
+      localStorage.setItem("conecta_consent_preferences_v2", JSON.stringify({
+        version: "consent-v2-2026-05",
+        updatedAt: "2026-05-31T12:00:00Z",
+        status: "granted",
+        categories: {
+          essential: true,
+          analytics_optional: true,
+          marketing_optional: false
         }
-      `
+      }));
     });
 
     await page.route("**/compliance/integration-summary", async (route) => {
@@ -89,6 +92,23 @@ test.describe("visual regression critical pages", () => {
         if (document.fonts && document.fonts.ready) {
           await document.fonts.ready;
         }
+      });
+
+      await page.addStyleTag({
+        content: `
+          *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            caret-color: transparent !important;
+          }
+
+          [data-consent-manager],
+          [data-consent-fab],
+          [data-consent-overlay],
+          [data-consent-modal] {
+            display: none !important;
+          }
+        `
       });
 
       await expect(page).toHaveScreenshot(pageDef.snapshot, {

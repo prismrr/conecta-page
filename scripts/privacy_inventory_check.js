@@ -96,6 +96,24 @@ const dsarSurface = inventory.surfaces.find((surface) => surface.id === "dsar_re
 assert(Boolean(dsarSurface), "missing dsar_request_local_store surface");
 assert(!JSON.stringify(dsarSurface.fields).includes("contactEmail"), "DSAR surface must not persist contactEmail");
 assert(!JSON.stringify(dsarStore).includes("contactEmail"), "DSAR store source must not persist contactEmail");
+
+const consentSurface = inventory.surfaces.find((surface) => surface.id === "consent_preferences_local");
+assert(Boolean(consentSurface), "missing consent_preferences_local surface");
+assert(
+  JSON.stringify(consentSurface.fields).includes("categories.marketing_optional"),
+  "consent surface must include categories.marketing_optional"
+);
+assert(
+  !JSON.stringify(consentSurface.fields).includes("categories.communication_optional"),
+  "consent surface must not depend on legacy categories.communication_optional"
+);
+
+const consentStoreCode = readFileSync(resolve(ROOT_DIR, "nuxt-app/stores/consent.ts"), "utf-8");
+assert(
+  consentStoreCode.includes("marketing_optional") && !consentStoreCode.includes("communication_optional: boolean"),
+  "consent store must expose marketing_optional as the optional marketing category"
+);
+
 assert(serverCode.includes('/compliance/dsar-requests'), "DSAR backend route must be exposed for request submission and operations");
 assert(serverCode.includes('secure-delete'), "DSAR backend must support secure deletion of export artifacts");
 assert(

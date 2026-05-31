@@ -969,10 +969,14 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
 
         updated_at = str(payload.get("updatedAt", "")).strip() or None
         source = str(payload.get("source", "")).strip() or None
+        marketing_optional = bool(
+            categories.get("marketing_optional", categories.get("communication_optional", False))
+        )
         safe_categories = {
             "essential": bool(categories.get("essential", True)),
             "analytics_optional": bool(categories.get("analytics_optional", False)),
-            "communication_optional": bool(categories.get("communication_optional", False)),
+            "marketing_optional": marketing_optional,
+            "communication_optional": marketing_optional,
         }
 
         with create_connection(self.db_file) as conn:

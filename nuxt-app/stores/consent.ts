@@ -1,9 +1,11 @@
+import { defineStore } from "pinia";
+
 type ConsentStatus = "pending" | "granted" | "revoked";
 
 type ConsentCategories = {
   essential: true;
   analytics_optional: boolean;
-  communication_optional: boolean;
+  marketing_optional: boolean;
 };
 
 type ConsentState = {
@@ -15,6 +17,14 @@ type ConsentState = {
 
 const STORAGE_KEY = "conecta_consent_preferences_v2";
 
+const canUseStorage = () => {
+  try {
+    return typeof localStorage !== "undefined";
+  } catch {
+    return false;
+  }
+};
+
 const defaultState = (): ConsentState => ({
   version: "consent-v2-2026-05",
   updatedAt: null,
@@ -22,18 +32,21 @@ const defaultState = (): ConsentState => ({
   categories: {
     essential: true,
     analytics_optional: false,
-    communication_optional: false
+    marketing_optional: false
   }
 });
 
+type HydratedConsentState = Partial<ConsentState> & {
+  categories?: Partial<ConsentCategories> & {
+    communication_optional?: boolean;
+  };
+};
+
 export const useConsentStore = defineStore("consent", {
   state: (): ConsentState => defaultState(),
-  getters: {
-    canEmitOptionalTelemetry: (state) => state.categories.analytics_optional
-  },
   actions: {
     hydrateFromStorage() {
-      if (!import.meta.client) {
+      if (!canUseStorage()) {
         return;
       }
 
@@ -43,21 +56,26 @@ export const useConsentStore = defineStore("consent", {
       }
 
       try {
-        const parsed = JSON.parse(raw) as Partial<ConsentState>;
+        const parsed = JSON.parse(raw) as HydratedConsentState;
+        const migratedMarketingOptional =
+          typeof parsed.categories?.marketing_optional === "boolean"
+            ? parsed.categories.marketing_optional
+            : Boolean(parsed.categories?.communication_optional);
+
         this.version = parsed.version ?? this.version;
         this.updatedAt = parsed.updatedAt ?? this.updatedAt;
         this.status = (parsed.status as ConsentStatus | undefined) ?? this.status;
         this.categories = {
           essential: true,
           analytics_optional: Boolean(parsed.categories?.analytics_optional),
-          communication_optional: Boolean(parsed.categories?.communication_optional)
+          marketing_optional: migratedMarketingOptional
         };
       } catch {
         localStorage.removeItem(STORAGE_KEY);
       }
     },
     persist() {
-      if (!import.meta.client) {
+      if (!canUseStorage()) {
         return;
       }
 
@@ -72,15 +90,33 @@ export const useConsentStore = defineStore("consent", {
       this.status = "granted";
       this.updatedAt = new Date().toISOString();
       this.categories.analytics_optional = true;
-      this.categories.communication_optional = true;
+      this.categories.marketing_optional = true;
       this.persist();
     },
     revokeOptional() {
       this.status = "revoked";
       this.updatedAt = new Date().toISOString();
       this.categories.analytics_optional = false;
-      this.categories.communication_optional = false;
+      this.categories.marketing_optional = false;
+      this.persist();
+    },
+    setCategory(category: keyof ConsentCategories, value: boolean) {
+      if (category === "essential") {
+        this.categories.essential = true;
+        return;
+      }
+
+      this.categories[category] = value;
+    },
+    savePreferences() {
+      this.status = this.categories.analytics_optional || this.categories.marketing_optional ? "granted" : "revoked";
+      this.updatedAt = new Date().toISOString();
       this.persist();
     }
+  },
+  getters: {
+    canEmitOptionalTelemetry: (state) => state.categories.analytics_optional,
+    analyticsAccepted: (state) => state.categories.analytics_optional,
+    marketingAccepted: (state) => state.categories.marketing_optional
   }
 });

@@ -9,8 +9,13 @@ export default defineNuxtPlugin(() => {
   const previousState = {
     status: consentStore.status,
     analytics_optional: consentStore.categories.analytics_optional,
-    communication_optional: consentStore.categories.communication_optional
+    marketing_optional: consentStore.categories.marketing_optional
   };
+
+  const complianceCategories = () => ({
+    ...consentStore.categories,
+    communication_optional: consentStore.categories.marketing_optional
+  });
 
   const postConsentRecord = async () => {
     try {
@@ -21,7 +26,7 @@ export default defineNuxtPlugin(() => {
           updatedAt: consentStore.updatedAt,
           source: "nuxt_banner",
           status: consentStore.status,
-          categories: consentStore.categories
+          categories: complianceCategories()
         }
       });
       return true;
@@ -44,7 +49,7 @@ export default defineNuxtPlugin(() => {
     () => ({
       status: consentStore.status,
       analytics_optional: consentStore.categories.analytics_optional,
-      communication_optional: consentStore.categories.communication_optional,
+      marketing_optional: consentStore.categories.marketing_optional,
       updatedAt: consentStore.updatedAt,
       version: consentStore.version
     }),
@@ -52,14 +57,14 @@ export default defineNuxtPlugin(() => {
       if (
         previousState.status === nextState.status &&
         previousState.analytics_optional === nextState.analytics_optional &&
-        previousState.communication_optional === nextState.communication_optional
+        previousState.marketing_optional === nextState.marketing_optional
       ) {
         return;
       }
 
       previousState.status = nextState.status;
       previousState.analytics_optional = nextState.analytics_optional;
-      previousState.communication_optional = nextState.communication_optional;
+      previousState.marketing_optional = nextState.marketing_optional;
 
       const persisted = await postConsentRecord();
 
@@ -67,8 +72,8 @@ export default defineNuxtPlugin(() => {
       if (nextState.analytics_optional) {
         enabledCategories.push("analytics_optional");
       }
-      if (nextState.communication_optional) {
-        enabledCategories.push("communication_optional");
+      if (nextState.marketing_optional) {
+        enabledCategories.push("marketing_optional");
       }
 
       await emitTelemetry(nextState.status === "revoked" ? "consent_revoked" : "consent_granted", {

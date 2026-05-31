@@ -72,7 +72,7 @@ Categorias atuais:
 
 - `essential` (sempre ativo)
 - `analytics_optional`
-- `communication_optional`
+- `marketing_optional`
 
 Persistencia local:
 
@@ -84,6 +84,10 @@ Comportamento de telemetria:
 - eventos nao essenciais so sao emitidos com `analytics_optional = true`
 - eventos de consentimento (`consent_granted`, `consent_revoked`, `consent_updated`) permanecem auditaveis
 
+Validacao E2E Nuxt do fluxo de consentimento:
+
+- `npm run test:e2e:nuxt:consent` valida navegacao por teclado, persistencia e revogacao via botao flutuante.
+
 ## Gestao de cookies por categoria (PRD-RQ07)
 As categorias de cookies usam a mesma base de preferencias de consentimento (`conecta_consent_preferences_v2`).
 
@@ -91,7 +95,7 @@ Cookies atualmente gerenciados:
 
 - `conecta_cookie_essential` (sempre ativo)
 - `conecta_cookie_analytics_optin` (ativo apenas com `analytics_optional = true`)
-- `conecta_cookie_communication_optin` (ativo apenas com `communication_optional = true`)
+- `conecta_cookie_marketing_optin` (ativo apenas com `marketing_optional = true`)
 
 Ao revogar categorias opcionais, os cookies opcionais correspondentes sao removidos imediatamente no navegador.
 
@@ -259,9 +263,28 @@ O plano de adequacao agora deixa explicito um Milestone 7 para controles que ain
 
 - RBAC/MFA em superficies administrativas e rotas sensiveis.
 - Catalogo de terceiros com base legal, escopo de dados e salvaguardas de transferencia.
-- Evidencias de criptografia, gestao de chaves, backup e restauracao.
+- Evidencias de backup e restauracao com relatorio dedicado.
 - Sincronia entre documentos publicos, changelog e canais de privacidade.
 - Evidencias periodicas de gestao de vulnerabilidades e revisao tecnica.
+
+## Governanca de terceiros
+O projeto agora publica um inventario operacional de terceiros em [docs/third-party-registry.json](docs/third-party-registry.json), validado por `npm run compliance:third-party:inventory`.
+
+O inventario cobre:
+
+- provedor de inscricao Prism
+- stack de observabilidade Loki
+- artefatos do GitHub Actions
+
+## Backup e restauracao
+O projeto agora possui um drill executavel de backup e restauracao em [backend/jobs/backup_restore_drill.py](backend/jobs/backup_restore_drill.py), validado por `npm run compliance:backup:restore`.
+
+Evidencias geradas:
+
+- relatorio JSON em `logs/compliance-backup-restore-report.json`
+- resumo MD em `logs/compliance-backup-restore-summary.md`
+- copia de backup em `logs/compliance-backups/compliance-backup.sqlite`
+- copia restaurada em `logs/compliance-backups/compliance-restored.sqlite`
 
 ## Executar localmente
 Opcao 1: servidor local com coletor de telemetria:

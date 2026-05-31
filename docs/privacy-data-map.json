@@ -19,7 +19,7 @@
         "status",
         "categories.essential",
         "categories.analytics_optional",
-        "categories.communication_optional"
+        "categories.marketing_optional"
       ],
       "purpose": "Persist opt-in and revocation state for optional processing.",
       "legalBasis": ["consent"],

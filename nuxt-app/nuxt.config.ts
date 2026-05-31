@@ -24,7 +24,9 @@ export default defineNuxtConfig({
       telemetryReleaseId: "nuxt-migration-0.1.0",
       telemetrySourceChannel: "web",
       telemetryConsoleDebug: false,
-      complianceApiBase: "/compliance"
+      complianceApiBase: "/compliance",
+      analyticsScriptSrc: "",
+      marketingScriptSrc: ""
     }
   },
   nitro: {

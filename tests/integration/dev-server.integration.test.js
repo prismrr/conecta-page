@@ -292,7 +292,7 @@ describe("dev server integration", () => {
         categories: {
           essential: true,
           analytics_optional: true,
-          communication_optional: false
+          marketing_optional: false
         }
       })
     });
@@ -324,7 +324,7 @@ describe("dev server integration", () => {
         categories: {
           essential: true,
           analytics_optional: false,
-          communication_optional: false
+          marketing_optional: false
         }
       })
     });

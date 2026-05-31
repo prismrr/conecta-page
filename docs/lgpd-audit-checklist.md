@@ -56,7 +56,7 @@ Objetivo:
 - Garantir opt-in granular, versionado e revogavel para qualquer processamento nao essencial.
 
 Checklist:
-- [x] Preservar categorias `analytics_optional` e `communication_optional` separadas de `essential`.
+- [x] Preservar categorias `analytics_optional` e `marketing_optional` separadas de `essential`.
 - [x] Bloquear emissao de eventos nao essenciais sem consentimento ativo.
 - [x] Persistir consentimento com versao, status e timestamp.
 - [x] Manter trilha auditavel para grant/revoke/update.
@@ -66,7 +66,7 @@ Impacto na arquitetura:
 - [nuxt-app/plugins/telemetry.client.ts](../nuxt-app/plugins/telemetry.client.ts)
 
 Validacao:
-- `npm run test:e2e -- tests/e2e/consent-preferences.spec.js`
+- `npm run test:e2e:nuxt:consent`
 - `npm run test:unit -- tests/unit/nuxt-telemetry.test.js`
 
 ## Milestone 4: Direitos do Titular
@@ -137,19 +137,22 @@ Objetivo:
 
 Checklist:
 - [ ] Formalizar RBAC/MFA para superficies administrativas e rotas sensiveis de operacao.
-- [ ] Manter catalogo de terceiros com finalidade, base legal, escopo de dados, retencao e salvaguardas de transferencia.
+- [x] Manter catalogo de terceiros com finalidade, base legal, escopo de dados, retencao e salvaguardas de transferencia.
 - [ ] Validar criptografia em repouso, gestao de chaves e evidencia de rotacao/segregacao de ambientes.
-- [ ] Executar testes periodicos de backup e restauracao com relatorio de sucesso.
+- [x] Executar testes periodicos de backup e restauracao com relatorio de sucesso.
 - [ ] Manter versao publica, changelog e contato de privacidade sincronizados com os documentos legais.
 - [ ] Consolidar evidencias periodicas de gestao de vulnerabilidades e revisao de controles tecnicos.
 
 Impacto na arquitetura:
+- [docs/third-party-registry.json](../docs/third-party-registry.json)
 - [.SPECS/ldpg_design.md](../.SPECS/ldpg_design.md)
 - [backend/](../backend)
 - [docs/](../docs)
 - [.github/workflows/](../.github/workflows)
 
 Validacao:
+- `npm run compliance:third-party:inventory`
+- `npm run compliance:backup:restore`
 - `npm run build:ci`
 - `npm run compliance:retention:dry-run`
 - `npm run compliance:incident:drill:observe`

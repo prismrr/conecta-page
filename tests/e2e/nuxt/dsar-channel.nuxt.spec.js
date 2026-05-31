@@ -1,6 +1,19 @@
 const { test, expect } = require("@playwright/test");
 
+const GRANTED_CONSENT = JSON.stringify({
+  version: "consent-v2-2026-05",
+  updatedAt: "2026-05-31T12:00:00Z",
+  status: "granted",
+  categories: { essential: true, analytics_optional: false, marketing_optional: false }
+});
+
 test.describe("nuxt dsar channel e2e", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript((consent) => {
+      localStorage.setItem("conecta_consent_preferences_v2", consent);
+    }, GRANTED_CONSENT);
+  });
+
   test("should generate protocol and store minimal request log", async ({ page }) => {
     await page.goto("/politica-privacidade");
 

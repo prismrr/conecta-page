@@ -1,0 +1,51 @@
+{
+  "version": "2026-05-31",
+  "project": "Conecta PrismRR",
+  "thirdParties": [
+    {
+      "id": "prism_registration_provider",
+      "name": "Prism Registration Provider",
+      "purpose": "Return registration status and availability for the event enrollment flow.",
+      "dataCategories": ["registration_protocol", "registration_status", "operational_error"],
+      "legalBasis": ["contract", "legitimate_interest"],
+      "transferScope": ["protocol", "status", "error_code", "supporting_operational_context"],
+      "contractualSafeguards": ["dpa", "minimal_payload", "contract_validation", "degraded_mode_fallback"],
+      "retentionDays": 365,
+      "containsPersonalData": false,
+      "crossBorderTransfer": false,
+      "notes": [
+        "The integration must stay contract-safe and avoid unnecessary personal data in response payloads."
+      ]
+    },
+    {
+      "id": "observability_loki",
+      "name": "Loki Observability Stack",
+      "purpose": "Receive operational telemetry and alerting events for monitoring.",
+      "dataCategories": ["pseudonymous_telemetry", "operational_alerts", "audit_evidence"],
+      "legalBasis": ["legitimate_interest", "consent_for_optional_events"],
+      "transferScope": ["event_name", "page", "path", "release_id", "environment", "session_id", "outcome", "reason"],
+      "contractualSafeguards": ["dpa", "payload_minimization", "redaction", "scheme_validation"],
+      "retentionDays": 30,
+      "containsPersonalData": false,
+      "crossBorderTransfer": false,
+      "notes": [
+        "Telemetry must remain pseudonymous and honor opt-in for non-essential events."
+      ]
+    },
+    {
+      "id": "github_actions_artifacts",
+      "name": "GitHub Actions Artifacts",
+      "purpose": "Store CI evidence, test results and redacted diagnostics.",
+      "dataCategories": ["build_artifacts", "test_reports", "diagnostic_logs"],
+      "legalBasis": ["legitimate_interest", "security_monitoring"],
+      "transferScope": ["report_files", "test_results", "redacted_failure_context"],
+      "contractualSafeguards": ["dpa", "artifact_retention_limit", "redaction", "no_pii_screenshots", "access_control"],
+      "retentionDays": 30,
+      "containsPersonalData": false,
+      "crossBorderTransfer": true,
+      "notes": [
+        "Artifacts must be treated as potentially sensitive and never carry direct identifiers."
+      ]
+    }
+  ]
+}

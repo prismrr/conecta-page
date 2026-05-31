@@ -1,0 +1,44 @@
+name: Compliance Backup Restore
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 2 1 * *"
+
+jobs:
+  backup-restore-drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Execute backup and restore drill
+        run: |
+          mkdir -p artifacts
+          python3 backend/jobs/backup_restore_drill.py \
+            --db-file data/compliance.db \
+            --report-file artifacts/compliance-backup-restore-report.json \
+            --summary-file artifacts/compliance-backup-restore-summary.md \
+            --backup-file artifacts/compliance-backup.sqlite \
+            --restored-file artifacts/compliance-restored.sqlite
+
+      - name: Upload backup restore evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-backup-restore-evidence
+          retention-days: 30
+          path: |
+            artifacts/compliance-backup-restore-report.json
+            artifacts/compliance-backup-restore-summary.md
+            artifacts/compliance-backup.sqlite
+            artifacts/compliance-restored.sqlite
+          if-no-files-found: error

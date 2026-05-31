@@ -121,7 +121,7 @@ PY
 
 assert_compliance_endpoints() {
   local consent_payload
-  consent_payload='{"version":"consent-v2-2026-05","updatedAt":"2026-05-23T00:00:00Z","source":"smoke","status":"granted","categories":{"essential":true,"analytics_optional":true,"communication_optional":false}}'
+  consent_payload='{"version":"consent-v2-2026-05","updatedAt":"2026-05-23T00:00:00Z","source":"smoke","status":"granted","categories":{"essential":true,"analytics_optional":true,"marketing_optional":false}}'
 
   local tmp_file
   tmp_file="$(mktemp)"

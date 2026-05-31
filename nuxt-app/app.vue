@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import CookieConsentManager from "./components/privacy/CookieConsentManager.vue";
+</script>
+
 <template>
   <div class="app-shell">
     <LayoutHeader />
@@ -6,5 +10,6 @@
       <NuxtPage />
     </main>
     <LayoutFooter />
+    <CookieConsentManager />
   </div>
 </template>

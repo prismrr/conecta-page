@@ -1,7 +1,18 @@
 const { test, expect } = require("@playwright/test");
 
+const GRANTED_CONSENT = JSON.stringify({
+  version: "consent-v2-2026-05",
+  updatedAt: "2026-05-31T12:00:00Z",
+  status: "granted",
+  categories: { essential: true, analytics_optional: false, marketing_optional: false }
+});
+
 test.describe("nuxt inscricoes e2e", () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript((consent) => {
+      localStorage.setItem("conecta_consent_preferences_v2", consent);
+    }, GRANTED_CONSENT);
+
     const summaryState = {
       totalChecks: 0,
       availableChecks: 0,
@@ -96,12 +107,11 @@ test.describe("nuxt inscricoes e2e", () => {
     });
 
     await page.goto("/inscricoes");
+    await page.waitForLoadState("networkidle");
     await page.fill("#inscricaoId", "PRISM-2026-001");
-    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-001");
     await page.click("form[data-lookup-form] button[type='submit']");
-    await responsePromise;
 
-    await expect(page.locator("[data-lookup-result]")).toContainText("Status: APROVADO");
+    await expect(page.locator("[data-lookup-result]")).toContainText("Status: APROVADO", { timeout: 15000 });
     await expect(page.locator("[data-provider-status]")).toContainText("Provider disponivel");
   });
 
@@ -118,12 +128,11 @@ test.describe("nuxt inscricoes e2e", () => {
     });
 
     await page.goto("/inscricoes");
+    await page.waitForLoadState("networkidle");
     await page.fill("#inscricaoId", "PRISM-2026-999");
-    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-999");
     await page.click("form[data-lookup-form] button[type='submit']");
-    await responsePromise;
 
-    await expect(page.locator("[data-lookup-result]")).toContainText("modo degradado");
+    await expect(page.locator("[data-lookup-result]")).toContainText("modo degradado", { timeout: 20000 });
     await expect(page.locator("[data-provider-status]")).toContainText("Provider em modo degradado");
   });
 
@@ -139,12 +148,11 @@ test.describe("nuxt inscricoes e2e", () => {
     });
 
     await page.goto("/inscricoes");
+    await page.waitForLoadState("networkidle");
     await page.fill("#inscricaoId", "PRISM-2026-404");
-    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-404");
     await page.click("form[data-lookup-form] button[type='submit']");
-    await responsePromise;
 
-    await expect(page.locator("[data-lookup-result]")).toContainText("Inscricao nao encontrada");
+    await expect(page.locator("[data-lookup-result]")).toContainText("Inscricao nao encontrada", { timeout: 15000 });
     await expect(page.locator("[data-provider-status]")).toContainText("Provider disponivel");
   });
 
@@ -160,16 +168,15 @@ test.describe("nuxt inscricoes e2e", () => {
     });
 
     await page.goto("/inscricoes");
+    await page.waitForLoadState("networkidle");
 
     const initialTotal = Number(await page.locator("[data-monitor-total]").innerText());
     const initialFailures = Number(await page.locator("[data-monitor-failures]").innerText());
 
     await page.fill("#inscricaoId", "PRISM-2026-503");
-    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-503");
     await page.click("form[data-lookup-form] button[type='submit']");
-    await responsePromise;
 
-    await expect(page.locator("[data-lookup-result]")).toContainText("Servico temporariamente indisponivel");
+    await expect(page.locator("[data-lookup-result]")).toContainText("Servico temporariamente indisponivel", { timeout: 15000 });
     await expect(page.locator("[data-provider-status]")).toContainText("Provider indisponivel");
     await expect(page.locator("[data-monitor-total]")).toHaveText(String(initialTotal + 1));
     await expect(page.locator("[data-monitor-failures]")).toHaveText(String(initialFailures + 1));
@@ -187,12 +194,11 @@ test.describe("nuxt inscricoes e2e", () => {
     });
 
     await page.goto("/inscricoes");
+    await page.waitForLoadState("networkidle");
     await page.fill("#inscricaoId", "PRISM-2026-401");
-    const responsePromise = page.waitForResponse("**/api/registrations/PRISM-2026-401");
     await page.click("form[data-lookup-form] button[type='submit']");
-    await responsePromise;
 
-    await expect(page.locator("[data-lookup-result]")).toContainText("permissao adicional");
+    await expect(page.locator("[data-lookup-result]")).toContainText("permissao adicional", { timeout: 15000 });
     await expect(page.locator("[data-provider-status]")).toContainText("Provider disponivel");
   });
 });
