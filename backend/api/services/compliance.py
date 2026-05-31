@@ -35,7 +35,17 @@ from ..schemas_compliance import (
     ObservabilitySummaryResponse,
 )
 from .registrations import RegistrationServiceError
-from ..storage import DEFAULT_DB_FILE, DEFAULT_DSAR_EXPORT_DIR, create_connection, ensure_database, utc_now_iso
+from ..storage import (
+    DEFAULT_DB_FILE,
+    DEFAULT_DSAR_EXPORT_DIR,
+    create_connection,
+    ensure_database,
+    ensure_database_async,
+    execute_async,
+    fetch_all_async,
+    fetch_one_async,
+    utc_now_iso,
+)
 
 
 DEFAULT_ALERT_FAILURE_THRESHOLD = 3
@@ -51,7 +61,7 @@ class ConsentService:
         self.settings = settings
 
     async def create_consent_record(self, payload: ConsentRecordCreate) -> dict[str, object]:
-        await asyncio.to_thread(ensure_database)
+        await ensure_database_async()
         categories = payload.categories.model_dump(mode="python")
         safe_categories = {
             "essential": bool(categories.get("essential", True)),
@@ -63,60 +73,51 @@ class ConsentService:
         source = payload.source
         status = payload.status
 
-        def _write() -> None:
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                conn.execute(
-                    """
-                    INSERT INTO consent_records (
-                        recorded_at,
-                        version,
-                        updated_at,
-                        source,
-                        status,
-                        categories_json
-                    ) VALUES (?, ?, ?, ?, ?, ?)
-                    """,
-                    (utc_now_iso(), payload.version, updated_at, source, status, json.dumps(safe_categories, ensure_ascii=True)),
-                )
-
-        await asyncio.to_thread(_write)
+        await execute_async(
+            """
+            INSERT INTO consent_records (
+                recorded_at,
+                version,
+                updated_at,
+                source,
+                status,
+                categories_json
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (utc_now_iso(), payload.version, updated_at, source, status, json.dumps(safe_categories, ensure_ascii=True)),
+        )
         return {"ok": True}
 
     async def list_consent_records(self, limit: int) -> list[ConsentRecordItem]:
-        await asyncio.to_thread(ensure_database)
+        await ensure_database_async()
+        rows = await fetch_all_async(
+            """
+            SELECT recorded_at, version, updated_at, source, status, categories_json
+            FROM consent_records
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
 
-        def _read() -> list[ConsentRecordItem]:
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                rows = conn.execute(
-                    """
-                    SELECT recorded_at, version, updated_at, source, status, categories_json
-                    FROM consent_records
-                    ORDER BY id DESC
-                    LIMIT ?
-                    """,
-                    (limit,),
-                ).fetchall()
+        items: list[ConsentRecordItem] = []
+        for row in rows:
+            try:
+                categories = json.loads(row["categories_json"])
+            except json.JSONDecodeError:
+                categories = {}
 
-            items: list[ConsentRecordItem] = []
-            for row in rows:
-                try:
-                    categories = json.loads(row["categories_json"])
-                except json.JSONDecodeError:
-                    categories = {}
-
-                items.append(
-                    ConsentRecordItem(
-                        recordedAt=row["recorded_at"],
-                        version=row["version"],
-                        updatedAt=row["updated_at"],
-                        source=row["source"],
-                        status=row["status"],
-                        categories=categories,
-                    )
+            items.append(
+                ConsentRecordItem(
+                    recordedAt=row["recorded_at"],
+                    version=row["version"],
+                    updatedAt=row["updated_at"],
+                    source=row["source"],
+                    status=row["status"],
+                    categories=categories,
                 )
-            return items
-
-        return await asyncio.to_thread(_read)
+            )
+        return items
 
 
 class DsarService:
@@ -135,7 +136,7 @@ class DsarService:
         return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
     async def create_request(self, payload: DSARRequestCreate) -> DSARRequestResponse:
-        await asyncio.to_thread(ensure_database)
+        await ensure_database_async()
         request_type = payload.request_type.strip().lower()
         if request_type not in {"acesso", "correcao", "exclusao", "exportacao", "revogacao_consentimento"}:
             raise ValueError("invalid_request_type")
@@ -144,26 +145,22 @@ class DsarService:
         source = payload.source or "web_form"
         details_hash = self._hash_optional_text(payload.details)
 
-        def _write() -> None:
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                conn.execute(
-                    """
-                    INSERT INTO dsar_requests (
-                        protocol,
-                        requested_at,
-                        request_type,
-                        source,
-                        status,
-                        details_hash,
-                        exported_at,
-                        deleted_at,
-                        deletion_reason
-                    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL)
-                    """,
-                    (protocol, utc_now_iso(), request_type, source, "received", details_hash),
-                )
-
-        await asyncio.to_thread(_write)
+        await execute_async(
+            """
+            INSERT INTO dsar_requests (
+                protocol,
+                requested_at,
+                request_type,
+                source,
+                status,
+                details_hash,
+                exported_at,
+                deleted_at,
+                deletion_reason
+            ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL)
+            """,
+            (protocol, utc_now_iso(), request_type, source, "received", details_hash),
+        )
         return DSARRequestResponse(
             protocol=protocol,
             requestType=request_type,
@@ -173,137 +170,120 @@ class DsarService:
         )
 
     async def list_requests(self, limit: int) -> DSARRequestsResponse:
-        await asyncio.to_thread(ensure_database)
+        await ensure_database_async()
+        rows = await fetch_all_async(
+            """
+            SELECT protocol, requested_at, request_type, source, status, details_hash, export_path, export_hash, exported_at, deleted_at, deletion_reason
+            FROM dsar_requests
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
 
-        def _read() -> DSARRequestsResponse:
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                rows = conn.execute(
-                    """
-                    SELECT protocol, requested_at, request_type, source, status, details_hash, export_path, export_hash, exported_at, deleted_at, deletion_reason
-                    FROM dsar_requests
-                    ORDER BY id DESC
-                    LIMIT ?
-                    """,
-                    (limit,),
-                ).fetchall()
-
-            requests = [
-                DSARRequestItem(
-                    protocol=row["protocol"],
-                    requestedAt=row["requested_at"],
-                    requestType=row["request_type"],
-                    source=row["source"],
-                    status=row["status"],
-                    detailsHash=row["details_hash"],
-                    exportPath=row["export_path"],
-                    exportHash=row["export_hash"],
-                    exportedAt=row["exported_at"],
-                    deletedAt=row["deleted_at"],
-                    deletionReason=row["deletion_reason"],
-                )
-                for row in rows
-            ]
-            return DSARRequestsResponse(requests=requests)
-
-        return await asyncio.to_thread(_read)
+        requests = [
+            DSARRequestItem(
+                protocol=row["protocol"],
+                requestedAt=row["requested_at"],
+                requestType=row["request_type"],
+                source=row["source"],
+                status=row["status"],
+                detailsHash=row["details_hash"],
+                exportPath=row["export_path"],
+                exportHash=row["export_hash"],
+                exportedAt=row["exported_at"],
+                deletedAt=row["deleted_at"],
+                deletionReason=row["deletion_reason"],
+            )
+            for row in rows
+        ]
+        return DSARRequestsResponse(requests=requests)
 
     async def export_request(self, protocol: str) -> DSARExportResponse:
-        await asyncio.to_thread(ensure_database)
+        await ensure_database_async()
+        request_row = await fetch_one_async(
+            """
+            SELECT protocol, requested_at, request_type, source, status, details_hash, export_path, export_hash, exported_at, deleted_at, deletion_reason
+            FROM dsar_requests
+            WHERE protocol = ?
+            """,
+            (protocol,),
+        )
 
-        def _export() -> DSARExportResponse:
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                request_row = conn.execute(
-                    """
-                    SELECT protocol, requested_at, request_type, source, status, details_hash, export_path, export_hash, exported_at, deleted_at, deletion_reason
-                    FROM dsar_requests
-                    WHERE protocol = ?
-                    """,
-                    (protocol,),
-                ).fetchone()
+        if not request_row:
+            raise FileNotFoundError("request_not_found")
+        if str(request_row["deleted_at"] or "").strip():
+            raise RuntimeError("request_deleted")
 
-            if not request_row:
-                raise FileNotFoundError("request_not_found")
-            if str(request_row["deleted_at"] or "").strip():
-                raise RuntimeError("request_deleted")
+        bundle = {
+            "protocol": request_row["protocol"],
+            "requestedAt": request_row["requested_at"],
+            "requestType": request_row["request_type"],
+            "source": request_row["source"],
+            "status": request_row["status"],
+            "detailsHash": request_row["details_hash"],
+            "exportedAt": utc_now_iso(),
+        }
+        export_dir = DEFAULT_DSAR_EXPORT_DIR
+        export_dir.mkdir(parents=True, exist_ok=True)
+        export_path = export_dir / f"{protocol}.json"
+        export_payload = json.dumps(bundle, ensure_ascii=True, indent=2)
+        export_path.write_text(export_payload, encoding="utf-8")
+        export_hash = hashlib.sha256(export_payload.encode("utf-8")).hexdigest()
 
-            bundle = {
-                "protocol": request_row["protocol"],
-                "requestedAt": request_row["requested_at"],
-                "requestType": request_row["request_type"],
-                "source": request_row["source"],
-                "status": request_row["status"],
-                "detailsHash": request_row["details_hash"],
-                "exportedAt": utc_now_iso(),
-            }
-            export_dir = DEFAULT_DSAR_EXPORT_DIR
-            export_dir.mkdir(parents=True, exist_ok=True)
-            export_path = export_dir / f"{protocol}.json"
-            export_payload = json.dumps(bundle, ensure_ascii=True, indent=2)
-            export_path.write_text(export_payload, encoding="utf-8")
-            export_hash = hashlib.sha256(export_payload.encode("utf-8")).hexdigest()
+        await execute_async(
+            """
+            UPDATE dsar_requests
+            SET status = ?, export_path = ?, export_hash = ?, exported_at = ?
+            WHERE protocol = ?
+            """,
+            ("exported", str(export_path), export_hash, bundle["exportedAt"], protocol),
+        )
 
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                conn.execute(
-                    """
-                    UPDATE dsar_requests
-                    SET status = ?, export_path = ?, export_hash = ?, exported_at = ?
-                    WHERE protocol = ?
-                    """,
-                    ("exported", str(export_path), export_hash, bundle["exportedAt"], protocol),
-                )
-
-            return DSARExportResponse(protocol=protocol, status="exported", exportPath=str(export_path), exportHash=export_hash)
-
-        return await asyncio.to_thread(_export)
+        return DSARExportResponse(protocol=protocol, status="exported", exportPath=str(export_path), exportHash=export_hash)
 
     async def secure_delete_request(self, protocol: str, payload: DSARSecureDeleteRequest | None = None) -> DSARDeleteResponse:
-        await asyncio.to_thread(ensure_database)
+        await ensure_database_async()
         reason = (payload.reason if payload else None) or "fulfilled_request"
+        request_row = await fetch_one_async(
+            """
+            SELECT protocol, export_path, export_hash
+            FROM dsar_requests
+            WHERE protocol = ?
+            """,
+            (protocol,),
+        )
 
-        def _delete() -> DSARDeleteResponse:
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                request_row = conn.execute(
-                    """
-                    SELECT protocol, export_path, export_hash
-                    FROM dsar_requests
-                    WHERE protocol = ?
-                    """,
-                    (protocol,),
-                ).fetchone()
+        if not request_row:
+            raise FileNotFoundError("request_not_found")
 
-            if not request_row:
-                raise FileNotFoundError("request_not_found")
+        export_path = str(request_row["export_path"] or "").strip()
+        export_hash = str(request_row["export_hash"] or "").strip() or None
+        deleted_export = False
+        if export_path:
+            path = Path(export_path)
+            if path.exists():
+                path.unlink()
+                deleted_export = True
 
-            export_path = str(request_row["export_path"] or "").strip()
-            export_hash = str(request_row["export_hash"] or "").strip() or None
-            deleted_export = False
-            if export_path:
-                path = Path(export_path)
-                if path.exists():
-                    path.unlink()
-                    deleted_export = True
+        deleted_at = utc_now_iso()
+        await execute_async(
+            """
+            UPDATE dsar_requests
+            SET status = ?, export_path = NULL, export_hash = NULL, deleted_at = ?, deletion_reason = ?
+            WHERE protocol = ?
+            """,
+            ("deleted", deleted_at, reason, protocol),
+        )
 
-            deleted_at = utc_now_iso()
-            with create_connection(DEFAULT_DB_FILE) as conn:
-                conn.execute(
-                    """
-                    UPDATE dsar_requests
-                    SET status = ?, export_path = NULL, export_hash = NULL, deleted_at = ?, deletion_reason = ?
-                    WHERE protocol = ?
-                    """,
-                    ("deleted", deleted_at, reason, protocol),
-                )
-
-            return DSARDeleteResponse(
-                protocol=protocol,
-                status="deleted",
-                deletedAt=deleted_at,
-                deletedExport=deleted_export,
-                exportHash=export_hash,
-                deletionReason=reason,
-            )
-
-        return await asyncio.to_thread(_delete)
+        return DSARDeleteResponse(
+            protocol=protocol,
+            status="deleted",
+            deletedAt=deleted_at,
+            deletedExport=deleted_export,
+            exportHash=export_hash,
+            deletionReason=reason,
+        )
 
 
 class ContentAuditService:

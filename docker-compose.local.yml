@@ -10,7 +10,7 @@ services:
         && rm -rf /var/lib/apt/lists/*
         && npm ci
         && python3 -m pip install --no-cache-dir -r backend/requirements-fastapi.txt
-        && python3 -m py_compile backend/api/__init__.py backend/api/config.py backend/api/deps.py backend/api/errors.py backend/api/main.py backend/api/schemas.py backend/api/schemas_compliance.py backend/api/storage.py backend/api/services/__init__.py backend/api/services/compliance.py backend/api/services/registrations.py backend/api/routers/__init__.py backend/api/routers/compliance.py backend/api/routers/health.py backend/api/routers/observability.py backend/api/routers/registrations.py
+        && python3 -m py_compile backend/api/__init__.py backend/api/config.py backend/api/deps.py backend/api/errors.py backend/api/main.py backend/api/schemas.py backend/api/schemas_compliance.py backend/api/schemas_telemetry.py backend/api/storage.py backend/api/services/__init__.py backend/api/services/compliance.py backend/api/services/registrations.py backend/api/services/telemetry.py backend/api/routers/__init__.py backend/api/routers/compliance.py backend/api/routers/health.py backend/api/routers/observability.py backend/api/routers/registrations.py backend/api/routers/telemetry.py
         && bash backend/deploy/build_static_inside_container.sh
     volumes:
       - ./:/workspace
@@ -21,7 +21,11 @@ services:
     image: python:3.11-slim
     container_name: conecta-local
     working_dir: /workspace
-    command: ["python3", "backend/server/dev_server.py", "--host", "0.0.0.0", "--port", "8080"]
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - >-
+        python3 -m pip install --no-cache-dir -r backend/requirements-fastapi.txt
+        && python3 backend/fastapi_server.py --host 0.0.0.0 --port 8080
     env_file:
       - .env
     ports:
@@ -30,6 +34,7 @@ services:
       - ./:/workspace
     environment:
       PYTHONUNBUFFERED: "1"
+      FASTAPI_RUNTIME: "1"
       TELEMETRY_FORWARD_URL: ${TELEMETRY_FORWARD_URL:-}
       TELEMETRY_FORWARD_PROVIDER: ${TELEMETRY_FORWARD_PROVIDER:-raw}
       TELEMETRY_FORWARD_AUTH_TYPE: ${TELEMETRY_FORWARD_AUTH_TYPE:-none}

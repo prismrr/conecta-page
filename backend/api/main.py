@@ -12,6 +12,7 @@ from .routers.compliance import router as compliance_router
 from .routers.health import router as health_router
 from .routers.observability import router as observability_router
 from .routers.registrations import router as registrations_router
+from .routers.telemetry import router as telemetry_router
 
 
 def create_app() -> FastAPI:
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(registrations_router)
+    app.include_router(telemetry_router)
     app.include_router(compliance_router)
     app.include_router(observability_router)
 

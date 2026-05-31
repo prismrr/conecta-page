@@ -28,7 +28,7 @@ case "$action" in
   up)
     run_compose_build
     docker compose -f "$COMPOSE_FILE" up -d --build
-    echo "[docker-dev] aplicacao disponivel em http://localhost:8080"
+    echo "[docker-dev] API FastAPI disponivel em http://localhost:8080"
     ;;
   down)
     docker compose -f "$COMPOSE_FILE" down
@@ -40,7 +40,7 @@ case "$action" in
     run_compose_build
     docker compose -f "$COMPOSE_FILE" down
     docker compose -f "$COMPOSE_FILE" up -d --build
-    echo "[docker-dev] aplicacao reiniciada em http://localhost:8080"
+    echo "[docker-dev] API FastAPI reiniciada em http://localhost:8080"
     ;;
   *)
     echo "Uso: bash scripts/dev_docker.sh [build|up|down|logs|restart]"

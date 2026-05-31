@@ -19,4 +19,5 @@ Os caminhos antigos em [scripts/dev_server.py](../scripts/dev_server.py), [scrip
 ## Migracao FastAPI
 - Novo app FastAPI em [backend/api/main.py](./api/main.py), com routers tipados, Pydantic v2 e Depends.
 - Entry point local experimental: `python3 backend/fastapi_server.py --port 8080`.
+- O container de desenvolvimento agora sobe a API FastAPI em `http://localhost:8080` via `bash scripts/dev_docker.sh up`.
 - O servidor legado em [backend/server/dev_server.py](./server/dev_server.py) continua ativo enquanto a paridade de contratos nao for concluida.
