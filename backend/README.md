@@ -15,3 +15,8 @@ Camada backend do projeto Conecta PrismRR.
 
 ## Compatibilidade
 Os caminhos antigos em [scripts/dev_server.py](../scripts/dev_server.py), [scripts/retention_job.py](../scripts/retention_job.py) e [scripts/incident_drill.py](../scripts/incident_drill.py) foram mantidos como wrappers para evitar quebra em CI, scripts npm e automacoes existentes.
+
+## Migracao FastAPI
+- Novo app FastAPI em [backend/api/main.py](./api/main.py), com routers tipados, Pydantic v2 e Depends.
+- Entry point local experimental: `python3 backend/fastapi_server.py --port 8080`.
+- O servidor legado em [backend/server/dev_server.py](./server/dev_server.py) continua ativo enquanto a paridade de contratos nao for concluida.

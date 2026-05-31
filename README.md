@@ -1,6 +1,6 @@
 # Conecta PrismRR
 
-Portal oficial do PRISM Conecta com frontend canonico em Nuxt 3 SSG, estado centralizado com Pinia, integracao contratual segura e trilha de compliance/observabilidade local.
+Portal oficial do PRISM Conecta com frontend canonico em Nuxt 3 SSG, estado centralizado com Pinia, integracao contratual segura e trilha de compliance/observabilidade local. O backend esta em transicao para FastAPI, com routers tipados e build executado em container Docker.
 
 ## Escopo implementado
 - Portal canônico em Nuxt 3 SSG para pagina inicial, inscricoes, programacao, FAQ e area legal.
@@ -13,7 +13,7 @@ Portal oficial do PRISM Conecta com frontend canonico em Nuxt 3 SSG, estado cent
 - [nuxt-app/pages](nuxt-app/pages)
 - [nuxt-app/components](nuxt-app/components)
 - [nuxt-app/stores](nuxt-app/stores)
-- [backend](backend) - servidor local, jobs e deploy
+- [backend](backend) - servidor local, API FastAPI experimental, jobs e deploy
 - [tests](tests) - unit, component, contract, integration e E2E
 - [docs](docs) - arquitetura, observabilidade e readiness
 - [scripts](scripts) - automacoes shell e utilitarios locais
@@ -23,6 +23,29 @@ Guia de organizacao frontend x backend: [docs/organizacao-projeto.md](docs/organ
 Mapa de arquitetura: [docs/arquitetura.md](docs/arquitetura.md)
 Plano de deprecacao do legado ops: [docs/deprecacao-ops.md](docs/deprecacao-ops.md)
 Readiness de corte do legado ops: [docs/readiness-corte-ops.md](docs/readiness-corte-ops.md)
+
+## Build em container
+O build canônico do artefato estatico roda dentro do container `conecta-build` via Docker Compose.
+
+Comando principal:
+
+- `bash backend/deploy/build_static.sh .deploy/dist`
+
+O wrapper em [backend/deploy/build_static.sh](backend/deploy/build_static.sh) apenas valida Docker e aciona o job de build; a geracao real ocorre em [backend/deploy/build_static_inside_container.sh](backend/deploy/build_static_inside_container.sh).
+
+O mesmo fluxo valida a camada FastAPI durante o build, instalando as dependencias definidas em [backend/requirements-fastapi.txt](backend/requirements-fastapi.txt).
+
+## Backend API
+O novo ponto de entrada experimental para a API HTTP e [backend/fastapi_server.py](backend/fastapi_server.py).
+
+Routers migrados para FastAPI:
+
+- [backend/api/routers/health.py](backend/api/routers/health.py)
+- [backend/api/routers/registrations.py](backend/api/routers/registrations.py)
+- [backend/api/routers/compliance.py](backend/api/routers/compliance.py)
+- [backend/api/routers/observability.py](backend/api/routers/observability.py)
+
+O servidor legado em [backend/server/dev_server.py](backend/server/dev_server.py) continua disponivel ate o corte final da migracao.
 
 ## Orientacoes de inscricao versionadas
 As versoes publicadas da chamada ficam em dados versionados consumidos pelo Nuxt em [nuxt-app/pages/inscricoes.vue](nuxt-app/pages/inscricoes.vue).
@@ -309,6 +332,12 @@ Ou via npm:
 - `npm run dev:docker:down`
 
 Com essa opcao, a aplicacao roda com o servidor [backend/server/dev_server.py](backend/server/dev_server.py) dentro do container, servindo o artefato Nuxt em `nuxt-app/.output/public`, e fica disponivel em `http://localhost:8080`.
+
+Opcao 4: executar apenas o build estatico em container:
+
+`bash backend/deploy/build_static.sh .deploy/dist`
+
+Esse comando gera o artefato final em `.deploy/dist` e inclui a validacao da camada FastAPI durante a execucao do container.
 
 O compose local carrega variaveis de [.env](.env) automaticamente, com fallback em [.env.example](.env.example).
 
