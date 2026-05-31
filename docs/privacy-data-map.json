@@ -1,0 +1,257 @@
+{
+  "version": "2026-05-31",
+  "project": "Conecta PrismRR",
+  "prohibitedSensitiveCategories": [
+    "cpf",
+    "biometric",
+    "health",
+    "racial_or_ethnic"
+  ],
+  "surfaces": [
+    {
+      "id": "consent_preferences_local",
+      "layer": "frontend",
+      "artifact": "nuxt-app/stores/consent.ts",
+      "dataCategory": "preference_state",
+      "fields": [
+        "version",
+        "updatedAt",
+        "status",
+        "categories.essential",
+        "categories.analytics_optional",
+        "categories.communication_optional"
+      ],
+      "purpose": "Persist opt-in and revocation state for optional processing.",
+      "legalBasis": ["consent"],
+      "storage": ["browser_local_storage"],
+      "retentionDays": null,
+      "containsSensitiveData": false,
+      "requiresRedaction": false,
+      "notes": [
+        "No names, emails, CPFs or health data are persisted."
+      ]
+    },
+    {
+      "id": "consent_records_sqlite",
+      "layer": "backend",
+      "artifact": "backend/server/dev_server.py",
+      "dataCategory": "consent_audit",
+      "fields": [
+        "recorded_at",
+        "version",
+        "updated_at",
+        "source",
+        "status",
+        "categories_json"
+      ],
+      "purpose": "Audit proof of consent state changes and revocation.",
+      "legalBasis": ["consent"],
+      "storage": ["sqlite:data/compliance.db"],
+      "retentionDays": 730,
+      "containsSensitiveData": false,
+      "requiresRedaction": false,
+      "notes": [
+        "Categories are preference flags only; no direct identifiers are required."
+      ]
+    },
+    {
+      "id": "dsar_request_local_store",
+      "layer": "frontend",
+      "artifact": "nuxt-app/stores/dsar.ts",
+      "dataCategory": "rights_request",
+      "fields": [
+        "protocol",
+        "requestType",
+        "details",
+        "createdAt",
+        "channel",
+        "status"
+      ],
+      "purpose": "Keep a local execution log of the title-holder request flow.",
+      "legalBasis": ["legal_obligation", "data_subject_rights"],
+      "storage": ["browser_local_storage"],
+      "retentionDays": null,
+      "containsSensitiveData": false,
+      "requiresRedaction": false,
+      "notes": [
+        "Contact email is collected transiently in the form but not persisted in local storage."
+      ]
+    },
+    {
+      "id": "dsar_requests_sqlite",
+      "layer": "backend",
+      "artifact": "backend/server/dev_server.py",
+      "dataCategory": "rights_request_audit",
+      "fields": [
+        "protocol",
+        "requested_at",
+        "request_type",
+        "source",
+        "status",
+        "details_hash",
+        "export_path",
+        "export_hash",
+        "exported_at",
+        "deleted_at",
+        "deletion_reason"
+      ],
+      "purpose": "Manage DSAR request lifecycle with minimal retained metadata and secure deletion tombstones.",
+      "legalBasis": ["legal_obligation", "data_subject_rights", "accountability"],
+      "storage": ["sqlite:data/compliance.db"],
+      "retentionDays": 730,
+      "containsSensitiveData": false,
+      "requiresRedaction": true,
+      "notes": [
+        "Raw email and raw free-text request details are not persisted; only hashes and lifecycle metadata are retained."
+      ]
+    },
+    {
+      "id": "dsar_export_artifacts",
+      "layer": "backend",
+      "artifact": "logs/dsar-exports/*.json",
+      "dataCategory": "rights_request_export",
+      "fields": [
+        "protocol",
+        "requestedAt",
+        "requestType",
+        "status",
+        "detailsHash",
+        "consentRecords",
+        "integrationSummary",
+        "contentAuditEvents",
+        "privacyInventory"
+      ],
+      "purpose": "Generate export bundles for DSAR fulfillment with secure deletion after use.",
+      "legalBasis": ["data_subject_rights", "accountability"],
+      "storage": ["filesystem:logs/dsar-exports"],
+      "retentionDays": 1,
+      "containsSensitiveData": false,
+      "requiresRedaction": true,
+      "notes": [
+        "Export files are temporary and must be removed by the secure-delete routine immediately after fulfillment."
+      ]
+    },
+    {
+      "id": "telemetry_events_runtime",
+      "layer": "frontend_backend",
+      "artifact": "nuxt-app/composables/useTelemetry.ts + backend/server/dev_server.py",
+      "dataCategory": "operational_telemetry",
+      "fields": [
+        "event",
+        "timestamp",
+        "page",
+        "path",
+        "release_id",
+        "environment",
+        "source_channel",
+        "session_id",
+        "data"
+      ],
+      "purpose": "Measure product events and operational health with consent gating.",
+      "legalBasis": ["consent_for_optional_events", "legitimate_interest_for_operational_events"],
+      "storage": ["window.dataLayer", "ndjson:logs/telemetry-events.ndjson", "sqlite:data/compliance.db"],
+      "retentionDays": 180,
+      "containsSensitiveData": false,
+      "requiresRedaction": true,
+      "notes": [
+        "Payload data must not include names, emails, CPFs, biometrics, health or racial/ethnic markers.",
+        "session_id is pseudonymous and scoped to the browser session."
+      ]
+    },
+    {
+      "id": "integration_monitor_events_sqlite",
+      "layer": "backend",
+      "artifact": "backend/server/dev_server.py",
+      "dataCategory": "operational_monitoring",
+      "fields": [
+        "recorded_at",
+        "outcome",
+        "signal",
+        "detail",
+        "source_page"
+      ],
+      "purpose": "Monitor external registration availability and degradations.",
+      "legalBasis": ["legitimate_interest", "security_monitoring"],
+      "storage": ["sqlite:data/compliance.db"],
+      "retentionDays": 365,
+      "containsSensitiveData": false,
+      "requiresRedaction": false,
+      "notes": [
+        "Event detail must stay operational and avoid personal identifiers."
+      ]
+    },
+    {
+      "id": "content_audit_events_sqlite",
+      "layer": "backend",
+      "artifact": "backend/server/dev_server.py + assets/js/content-audit-log.js",
+      "dataCategory": "content_audit",
+      "fields": [
+        "event_id",
+        "changed_at",
+        "content_domain",
+        "content_title",
+        "version",
+        "author",
+        "change_summary",
+        "change_type",
+        "recorded_at"
+      ],
+      "purpose": "Keep append-only evidence of critical content changes.",
+      "legalBasis": ["legitimate_interest", "accountability"],
+      "storage": ["sqlite:data/compliance.db", "ndjson:logs/telemetry-events.ndjson"],
+      "retentionDays": 365,
+      "containsSensitiveData": false,
+      "requiresRedaction": true,
+      "notes": [
+        "Authors should be role or team identifiers; personal names require explicit review."
+      ]
+    },
+    {
+      "id": "observability_alerts_sqlite",
+      "layer": "backend",
+      "artifact": "backend/server/dev_server.py",
+      "dataCategory": "operational_alerting",
+      "fields": [
+        "created_at",
+        "alert_type",
+        "severity",
+        "release_id",
+        "message",
+        "details_json",
+        "fingerprint"
+      ],
+      "purpose": "Track degraded-state spikes and incident evidence.",
+      "legalBasis": ["legitimate_interest", "security_monitoring"],
+      "storage": ["sqlite:data/compliance.db"],
+      "retentionDays": 180,
+      "containsSensitiveData": false,
+      "requiresRedaction": true,
+      "notes": [
+        "Alert details should stay free of direct identifiers."
+      ]
+    },
+    {
+      "id": "ci_artifacts_and_logs",
+      "layer": "ci_cd",
+      "artifact": ".github/workflows/ci.yml + test-results/ + playwright-report/",
+      "dataCategory": "diagnostic_evidence",
+      "fields": [
+        "traces",
+        "screenshots",
+        "error_context",
+        "ndjson_logs",
+        "summary_reports"
+      ],
+      "purpose": "Support reproducibility, failure diagnosis and security auditability.",
+      "legalBasis": ["legitimate_interest", "security_monitoring"],
+      "storage": ["github_actions_artifacts", "workspace_test_results"],
+      "retentionDays": 30,
+      "containsSensitiveData": false,
+      "requiresRedaction": true,
+      "notes": [
+        "Artifacts should be treated as potentially sensitive and kept on a short retention policy.",
+        "Do not introduce PII into screenshot baselines or trace exports."
+      ]
+    }
+  ]
+}

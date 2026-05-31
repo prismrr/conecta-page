@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import http.client
 import json
 import os
+import secrets
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -18,6 +20,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DEFAULT_STATIC_DIR = ROOT_DIR / "nuxt-app" / ".output" / "public"
 DEFAULT_LOG_FILE = ROOT_DIR / "logs" / "telemetry-events.ndjson"
 DEFAULT_DB_FILE = ROOT_DIR / "data" / "compliance.db"
+DEFAULT_DSAR_EXPORT_DIR = ROOT_DIR / "logs" / "dsar-exports"
 MAX_BODY_BYTES = 1_000_000
 DEFAULT_ALERT_FAILURE_THRESHOLD = 3
 DEFAULT_ALERT_WINDOW_MINUTES = 15
@@ -166,6 +169,21 @@ def init_database(db_file: Path) -> None:
                 status TEXT NOT NULL,
                 report_json TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS dsar_requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                protocol TEXT NOT NULL UNIQUE,
+                requested_at TEXT NOT NULL,
+                request_type TEXT NOT NULL,
+                source TEXT,
+                status TEXT NOT NULL,
+                details_hash TEXT,
+                export_path TEXT,
+                export_hash TEXT,
+                exported_at TEXT,
+                deleted_at TEXT,
+                deletion_reason TEXT
+            );
             """
         )
 
@@ -305,6 +323,221 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
             return False, {"error": "invalid_timestamp"}
 
         return True, {"ok": True}
+
+    def _create_dsar_protocol(self) -> str:
+        y = datetime.now(tz=timezone.utc).strftime("%Y%m%d")
+        suffix = secrets.token_hex(3).upper()
+        return f"DSAR-{y}-{suffix}"
+
+    def _normalize_dsar_request_type(self, request_type: str) -> str:
+        return request_type.strip().lower()
+
+    def _hash_optional_text(self, value: str | None) -> str | None:
+        normalized = (value or "").strip()
+        if not normalized:
+            return None
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+    def _store_dsar_request(self, payload: dict) -> tuple[bool, dict]:
+        request_type = self._normalize_dsar_request_type(str(payload.get("requestType", "")))
+        if request_type not in {
+            "acesso",
+            "correcao",
+            "exclusao",
+            "exportacao",
+            "revogacao_consentimento",
+        }:
+            return False, {"error": "invalid_request_type"}
+
+        protocol = self._create_dsar_protocol()
+        source = str(payload.get("source", "")).strip() or "web_form"
+        details_hash = self._hash_optional_text(str(payload.get("details", "")))
+
+        with create_connection(self.db_file) as conn:
+            conn.execute(
+                """
+                INSERT INTO dsar_requests (
+                    protocol,
+                    requested_at,
+                    request_type,
+                    source,
+                    status,
+                    details_hash,
+                    exported_at,
+                    deleted_at,
+                    deletion_reason
+                ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, NULL)
+                """,
+                (
+                    protocol,
+                    utc_now_iso(),
+                    request_type,
+                    source,
+                    "received",
+                    details_hash,
+                ),
+            )
+
+        return True, {
+            "ok": True,
+            "protocol": protocol,
+            "requestType": request_type,
+            "status": "received",
+            "requestedAt": utc_now_iso(),
+            "message": "Solicitacao DSAR recebida. Exportacao e exclusao segura ficam disponiveis via rotina operacional.",
+        }
+
+    def _list_dsar_requests(self, limit: int) -> list[dict]:
+        with create_connection(self.db_file) as conn:
+            rows = conn.execute(
+                """
+                SELECT
+                    protocol,
+                    requested_at,
+                    request_type,
+                    source,
+                    status,
+                    details_hash,
+                    export_path,
+                    export_hash,
+                    exported_at,
+                    deleted_at,
+                    deletion_reason
+                FROM dsar_requests
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+
+        return [
+            {
+                "protocol": row["protocol"],
+                "requestedAt": row["requested_at"],
+                "requestType": row["request_type"],
+                "source": row["source"],
+                "status": row["status"],
+                "detailsHash": row["details_hash"],
+                "exportPath": row["export_path"],
+                "exportHash": row["export_hash"],
+                "exportedAt": row["exported_at"],
+                "deletedAt": row["deleted_at"],
+                "deletionReason": row["deletion_reason"],
+            }
+            for row in rows
+        ]
+
+    def _read_dsar_request_row(self, protocol: str) -> sqlite3.Row | None:
+        with create_connection(self.db_file) as conn:
+            return conn.execute(
+                """
+                SELECT
+                    protocol,
+                    requested_at,
+                    request_type,
+                    source,
+                    status,
+                    details_hash,
+                    export_path,
+                    export_hash,
+                    exported_at,
+                    deleted_at,
+                    deletion_reason
+                FROM dsar_requests
+                WHERE protocol = ?
+                """,
+                (protocol,),
+            ).fetchone()
+
+    def _build_dsar_export_bundle(self, request_row: sqlite3.Row) -> dict:
+        return {
+            "protocol": request_row["protocol"],
+            "requestedAt": request_row["requested_at"],
+            "requestType": request_row["request_type"],
+            "source": request_row["source"],
+            "status": request_row["status"],
+            "detailsHash": request_row["details_hash"],
+            "exportedAt": utc_now_iso(),
+            "consentRecords": self._list_consent_records(limit=20),
+            "integrationSummary": self._read_integration_summary(),
+            "contentAuditEvents": self._list_content_audit_events(limit=20),
+            "privacyInventory": {
+                "version": "2026-05-31",
+                "artifact": "docs/privacy-data-map.json",
+            },
+        }
+
+    def _export_dsar_request(self, protocol: str) -> tuple[bool, dict]:
+        request_row = self._read_dsar_request_row(protocol)
+        if not request_row:
+            return False, {"error": "request_not_found"}
+        if str(request_row["deleted_at"] or "").strip():
+            return False, {"error": "request_deleted"}
+
+        bundle = self._build_dsar_export_bundle(request_row)
+        export_payload = json.dumps(bundle, ensure_ascii=True, indent=2)
+        export_dir = DEFAULT_DSAR_EXPORT_DIR
+        export_dir.mkdir(parents=True, exist_ok=True)
+        export_path = export_dir / f"{protocol}.json"
+        export_path.write_text(export_payload, encoding="utf-8")
+        export_hash = hashlib.sha256(export_payload.encode("utf-8")).hexdigest()
+
+        with create_connection(self.db_file) as conn:
+            conn.execute(
+                """
+                UPDATE dsar_requests
+                SET status = ?, export_path = ?, export_hash = ?, exported_at = ?
+                WHERE protocol = ?
+                """,
+                ("exported", str(export_path), export_hash, bundle["exportedAt"], protocol),
+            )
+
+        return True, {
+            "ok": True,
+            "protocol": protocol,
+            "status": "exported",
+            "exportPath": str(export_path),
+            "exportHash": export_hash,
+            "bundle": bundle,
+        }
+
+    def _secure_delete_dsar_request(self, protocol: str, reason: str | None = None) -> tuple[bool, dict]:
+        request_row = self._read_dsar_request_row(protocol)
+        if not request_row:
+            return False, {"error": "request_not_found"}
+
+        export_path = str(request_row["export_path"] or "").strip()
+        export_hash = str(request_row["export_hash"] or "").strip() or None
+        deleted_export = False
+
+        if export_path:
+            path = Path(export_path)
+            if path.exists():
+                path.unlink()
+                deleted_export = True
+
+        deletion_reason = reason or "fulfilled_request"
+        deleted_at = utc_now_iso()
+
+        with create_connection(self.db_file) as conn:
+            conn.execute(
+                """
+                UPDATE dsar_requests
+                SET status = ?, export_path = NULL, export_hash = NULL, deleted_at = ?, deletion_reason = ?
+                WHERE protocol = ?
+                """,
+                ("deleted", deleted_at, deletion_reason, protocol),
+            )
+
+        return True, {
+            "ok": True,
+            "protocol": protocol,
+            "status": "deleted",
+            "deletedAt": deleted_at,
+            "deletedExport": deleted_export,
+            "exportHash": export_hash,
+            "deletionReason": deletion_reason,
+        }
 
     def _compliance_cors_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -982,6 +1215,45 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
             self._write_json(201 if persisted else 400, payload if persisted else {"ok": False, **payload})
             return
 
+        if parsed_path.path == "/compliance/dsar-requests":
+            ok, result = self._read_json_body()
+            if not ok:
+                self._write_json(400, {"ok": False, **result})
+                return
+            persisted, payload = self._store_dsar_request(result)
+            self._write_json(201 if persisted else 400, payload if persisted else {"ok": False, **payload})
+            return
+
+        dsar_prefix = "/compliance/dsar-requests/"
+        if parsed_path.path.startswith(dsar_prefix):
+            suffix = parsed_path.path[len(dsar_prefix) :].strip("/")
+            if not suffix:
+                self.send_error(404, "Not Found")
+                return
+
+            parts = suffix.split("/")
+            protocol = parts[0].strip()
+            action = parts[1].strip() if len(parts) > 1 else ""
+
+            if not protocol or not action:
+                self.send_error(404, "Not Found")
+                return
+
+            if action == "export":
+                persisted, payload = self._export_dsar_request(protocol)
+                self._write_json(200 if persisted else 404, payload if persisted else {"ok": False, **payload})
+                return
+
+            if action == "secure-delete":
+                ok, result = self._read_json_body()
+                if ok:
+                    reason = str(result.get("reason", "")).strip() or None
+                else:
+                    reason = None
+                persisted, payload = self._secure_delete_dsar_request(protocol, reason=reason)
+                self._write_json(200 if persisted else 404, payload if persisted else {"ok": False, **payload})
+                return
+
         if parsed_path.path == "/compliance/integration-events":
             ok, result = self._read_json_body()
             if not ok:
@@ -1016,6 +1288,11 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         if parsed_path.path == "/compliance/consent-records":
             limit = self._read_limit_param(parsed_path, default=20, maximum=200)
             self._write_json(200, {"ok": True, "records": self._list_consent_records(limit)})
+            return
+
+        if parsed_path.path == "/compliance/dsar-requests":
+            limit = self._read_limit_param(parsed_path, default=20, maximum=200)
+            self._write_json(200, {"ok": True, "requests": self._list_dsar_requests(limit)})
             return
 
         if parsed_path.path == "/compliance/integration-summary":

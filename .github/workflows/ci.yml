@@ -33,6 +33,20 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      - name: Validate privacy inventory gate
+        run: npm run compliance:privacy:inventory
+
+      - name: Upload privacy inventory report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: privacy-inventory-report-ci
+          retention-days: 30
+          path: |
+            logs/privacy-data-report.md
+            logs/privacy-data-report.json
+          if-no-files-found: error
+
       - name: Run CI test flow
         run: npm run ci:tests
 

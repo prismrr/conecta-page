@@ -112,6 +112,65 @@ Erros 400:
 - missing_version
 - invalid_status
 
+#### POST /compliance/dsar-requests
+Registra uma solicitacao DSAR com metadados minimos e protocolo gerado no servidor.
+
+Campos de entrada:
+- requestType: obrigatorio, um de:
+  - acesso
+  - correcao
+  - exclusao
+  - exportacao
+  - revogacao_consentimento
+- details: string opcional, usada apenas para hash interno
+- source: string opcional, padrao `web_form`
+
+Resposta sucesso 201:
+{
+  "ok": true,
+  "protocol": "DSAR-20260531-ABC123",
+  "requestType": "exportacao",
+  "status": "received"
+}
+
+Erros 400:
+- invalid_request_type
+
+#### GET /compliance/dsar-requests?limit=20
+Lista solicitacoes DSAR e seu estado de ciclo de vida.
+
+Query param:
+- limit: inteiro, minimo 1, maximo 200, padrao 20
+
+#### POST /compliance/dsar-requests/{protocol}/export
+Gera um pacote de exportacao com dados operacionais minimizados para fulfillment do DSAR.
+
+Resposta 200:
+{
+  "ok": true,
+  "protocol": "DSAR-20260531-ABC123",
+  "status": "exported",
+  "exportPath": "logs/dsar-exports/DSAR-20260531-ABC123.json",
+  "exportHash": "sha256..."
+}
+
+#### POST /compliance/dsar-requests/{protocol}/secure-delete
+Remove o artefato temporario de exportacao e marca o ciclo como excluido com tombstone minimo.
+
+Corpo opcional:
+{
+  "reason": "fulfilled_request"
+}
+
+Resposta 200:
+{
+  "ok": true,
+  "protocol": "DSAR-20260531-ABC123",
+  "status": "deleted",
+  "deletedAt": "2026-05-31T12:00:00+00:00",
+  "deletedExport": true
+}
+
 #### GET /compliance/consent-records?limit=20
 Lista registros de consentimento (ordem decrescente).
 

@@ -15,6 +15,7 @@ DEFAULT_REPORT_FILE = ROOT_DIR / "logs" / "compliance-retention-report.json"
 
 RETENTION_POLICY = {
     "consent_records": {"column": "recorded_at", "retention_days": 730},
+    "dsar_requests": {"column": "requested_at", "retention_days": 730},
     "integration_monitor_events": {"column": "recorded_at", "retention_days": 365},
     "telemetry_events": {"column": "recorded_at", "retention_days": 180},
     "observability_alerts": {"column": "created_at", "retention_days": 180},

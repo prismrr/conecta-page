@@ -5,6 +5,7 @@ import { useDsarStore } from "../../stores/dsar";
 
 const dsarStore = useDsarStore();
 const { resultMessage } = storeToRefs(dsarStore);
+const complianceApiBase = "/compliance";
 
 const form = reactive({
   requestType: "",
@@ -17,16 +18,46 @@ onMounted(() => {
   dsarStore.hydrate();
 });
 
-const onSubmit = () => {
+const onSubmit = async () => {
   if (!form.requestType || !form.contactEmail || !form.acknowledgement) {
     resultMessage.value = "Informe tipo de solicitacao e email para gerar o protocolo.";
     return;
   }
 
-  dsarStore.submit({
-    requestType: form.requestType,
-    details: form.details
-  });
+  try {
+    const response = await $fetch(`${complianceApiBase}/dsar-requests`, {
+      method: "POST",
+      body: {
+        requestType: form.requestType,
+        details: form.details,
+        source: "nuxt_dsar_form"
+      }
+    });
+
+    if (!response?.protocol) {
+      throw new Error("missing_protocol");
+    }
+
+    dsarStore.submit({
+      requestType: form.requestType,
+      details: form.details,
+      protocol: response.protocol,
+      status: response.status || "received",
+      channel: "web_form"
+    });
+
+    resultMessage.value = response.message || `Solicitacao registrada com sucesso. Protocolo: ${response.protocol}. Prazo inicial de resposta: ate 15 dias corridos.`;
+  } catch {
+    const localRequest = dsarStore.submit({
+      requestType: form.requestType,
+      details: form.details,
+      channel: "web_form"
+    });
+
+    resultMessage.value =
+      `Solicitacao registrada localmente. Protocolo: ${localRequest.protocol}. ` +
+      "A exportacao e a exclusao segura seguem disponiveis pela rotina operacional do backend.";
+  }
 
   form.requestType = "";
   form.contactEmail = "";

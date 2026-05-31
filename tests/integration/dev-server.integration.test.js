@@ -335,6 +335,72 @@ describe("dev server integration", () => {
     expect(payload.error).toBe("invalid_status");
   });
 
+  test("dsar workflow should register, export and securely delete requests", async () => {
+    const createResponse = await fetch(`${server.baseUrl}/compliance/dsar-requests`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        requestType: "exportacao",
+        details: "Solicito exportacao dos dados disponiveis.",
+        source: "integration_test"
+      })
+    });
+
+    const createPayload = await createResponse.json();
+    expect(createResponse.status).toBe(201);
+    expect(createPayload.ok).toBe(true);
+    expect(createPayload.protocol).toMatch(/^DSAR-\d{8}-[A-Z0-9]{6}$/);
+
+    const listResponse = await fetch(`${server.baseUrl}/compliance/dsar-requests?limit=5`);
+    const listPayload = await listResponse.json();
+
+    expect(listResponse.status).toBe(200);
+    expect(listPayload.ok).toBe(true);
+    expect(Array.isArray(listPayload.requests)).toBe(true);
+    expect(listPayload.requests[0].protocol).toBe(createPayload.protocol);
+    expect(listPayload.requests[0].status).toBe("received");
+    expect(listPayload.requests[0].detailsHash).toMatch(/^[a-f0-9]{64}$/);
+
+    const exportResponse = await fetch(`${server.baseUrl}/compliance/dsar-requests/${createPayload.protocol}/export`, {
+      method: "POST"
+    });
+    const exportPayload = await exportResponse.json();
+
+    expect(exportResponse.status).toBe(200);
+    expect(exportPayload.ok).toBe(true);
+    expect(exportPayload.status).toBe("exported");
+    expect(exportPayload.exportPath).toContain("logs/dsar-exports/");
+    expect(exportPayload.bundle).toBeDefined();
+    expect(exportPayload.bundle.consentRecords).toBeDefined();
+
+    const deleteResponse = await fetch(`${server.baseUrl}/compliance/dsar-requests/${createPayload.protocol}/secure-delete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        reason: "fulfilled_request"
+      })
+    });
+    const deletePayload = await deleteResponse.json();
+
+    expect(deleteResponse.status).toBe(200);
+    expect(deletePayload.ok).toBe(true);
+    expect(deletePayload.status).toBe("deleted");
+    expect(deletePayload.deletedExport).toBe(true);
+
+    const finalListResponse = await fetch(`${server.baseUrl}/compliance/dsar-requests?limit=5`);
+    const finalListPayload = await finalListResponse.json();
+
+    expect(finalListResponse.status).toBe(200);
+    expect(finalListPayload.ok).toBe(true);
+    expect(finalListPayload.requests[0].status).toBe("deleted");
+    expect(finalListPayload.requests[0].deletedAt).toBeTruthy();
+    expect(finalListPayload.requests[0].exportPath).toBeNull();
+  });
+
   test("compliance integration summary should aggregate availability and failures", async () => {
     const events = [
       { outcome: "success", signal: "available", detail: "ok" },

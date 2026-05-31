@@ -41,15 +41,15 @@ export const useDsarStore = defineStore("dsar", {
         this.history = [];
       }
     },
-    submit(payload: { requestType: string; details?: string }) {
-      const protocol = createProtocol();
+    submit(payload: { requestType: string; details?: string; protocol?: string; channel?: string; status?: string }) {
+      const protocol = payload.protocol || createProtocol();
       const request: DsarRequest = {
         protocol,
         requestType: payload.requestType,
         details: payload.details || "",
         createdAt: new Date().toISOString(),
-        channel: "web_form",
-        status: "received"
+        channel: payload.channel || "web_form",
+        status: payload.status || "received"
       };
 
       this.history.push(request);

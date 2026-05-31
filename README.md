@@ -175,6 +175,10 @@ Integracoes no frontend:
 - resumo operacional da integracao externa passa a ser hidratado do endpoint `integration-summary`
 - trilha de auditoria tenta carregar eventos do endpoint SQL com fallback para dataset local
 
+Inventario LGPD versionado:
+
+- [docs/privacy-data-map.json](docs/privacy-data-map.json) consolida superficies, finalidade, retencao e categorias proibidas para revisao de privacidade.
+
 ## Retencao e descarte automatizados (LGPD-RF08)
 Foi adicionado um job de retencao para a base SQLite em [backend/jobs/retention_job.py](backend/jobs/retention_job.py), com relatorio auditavel por execucao.
 
@@ -227,6 +231,37 @@ Integracao com pipeline operacional:
 - etapa bloqueante no CI principal em [.github/workflows/ci.yml](.github/workflows/ci.yml)
 - workflow dedicado e agendado em [.github/workflows/compliance-incident-drill.yml](.github/workflows/compliance-incident-drill.yml)
 - artifact `compliance-incident-drill-evidence` com relatorio e base SQLite do exercicio
+
+## Rotina operacional de DSAR (LGPD-RF09)
+O canal de direitos do titular agora registra a solicitacao no backend, gera exportacao minimizada e suporta exclusao segura do artefato temporario.
+
+Fluxo operacional:
+
+1. Registrar solicitacao em `POST /compliance/dsar-requests`.
+2. Gerar pacote de exportacao em `POST /compliance/dsar-requests/{protocol}/export`.
+3. Executar exclusao segura em `POST /compliance/dsar-requests/{protocol}/secure-delete`.
+
+Evidencias geradas:
+
+- tabela `dsar_requests` em `data/compliance.db`
+- export temporario em `logs/dsar-exports/{protocol}.json`
+- tombstone minimo mantido no banco apos exclusao segura
+
+Validacao local:
+
+- `npm run test:integration -- tests/integration/dev-server.integration.test.js`
+
+Observacao:
+- o formulario em [nuxt-app/components/legal/DsarRequestForm.vue](nuxt-app/components/legal/DsarRequestForm.vue) tenta registrar a solicitacao no backend e cai para modo local apenas se o backend estiver indisponivel.
+
+## Proxima fase de endurecimento
+O plano de adequacao agora deixa explicito um Milestone 7 para controles que ainda merecem formalizacao recorrente:
+
+- RBAC/MFA em superficies administrativas e rotas sensiveis.
+- Catalogo de terceiros com base legal, escopo de dados e salvaguardas de transferencia.
+- Evidencias de criptografia, gestao de chaves, backup e restauracao.
+- Sincronia entre documentos publicos, changelog e canais de privacidade.
+- Evidencias periodicas de gestao de vulnerabilidades e revisao tecnica.
 
 ## Executar localmente
 Opcao 1: servidor local com coletor de telemetria:
@@ -574,9 +609,22 @@ Executa automaticamente em `pull_request` e `push` para `develop` e `main`.
 
 Fluxos canônicos utilizados no projeto:
 
+- `npm run compliance:privacy:inventory` (gate LGPD do inventário de dados e retenção)
 - `npm run ci:tests` (pipeline completo de testes)
 - `npm run ci:build` (build estatico + validacao do artefato)
 - `npm run build:ci` (ci:tests + ci:build)
+
+Evidencia LGPD gerada pelo gate de inventario:
+
+- relatorio Markdown em `logs/privacy-data-report.md`
+- relatorio JSON em `logs/privacy-data-report.json`
+- artifact `privacy-inventory-report-ci` no GitHub Actions
+
+O relatorio consolida superficies, retenção, categorias proibidas e pendencias de validacao para auditoria de privacidade.
+
+Checklist operacional de adequacao:
+
+- [docs/lgpd-audit-checklist.md](docs/lgpd-audit-checklist.md)
 
 Dentro do workflow, os jobs executam os comandos equivalentes abaixo:
 

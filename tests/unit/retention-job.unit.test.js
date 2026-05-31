@@ -24,12 +24,15 @@ describe("retention job", () => {
           `conn=sqlite3.connect(r'${dbFile}')`,
           "conn.executescript('''",
           "CREATE TABLE consent_records (id INTEGER PRIMARY KEY AUTOINCREMENT, recorded_at TEXT NOT NULL, version TEXT NOT NULL, updated_at TEXT, source TEXT, status TEXT NOT NULL, categories_json TEXT NOT NULL);",
+          "CREATE TABLE dsar_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, protocol TEXT NOT NULL UNIQUE, requested_at TEXT NOT NULL, request_type TEXT NOT NULL, requested_by TEXT NOT NULL, source TEXT NOT NULL, status TEXT NOT NULL, response_channel TEXT, export_path TEXT, export_generated_at TEXT, export_deleted_at TEXT, deleted_at TEXT);",
           "CREATE TABLE integration_monitor_events (id INTEGER PRIMARY KEY AUTOINCREMENT, recorded_at TEXT NOT NULL, outcome TEXT NOT NULL, signal TEXT NOT NULL, detail TEXT, source_page TEXT);",
           "CREATE TABLE telemetry_events (id INTEGER PRIMARY KEY AUTOINCREMENT, recorded_at TEXT NOT NULL, event_name TEXT NOT NULL, page TEXT, path TEXT, release_id TEXT, environment TEXT, source_channel TEXT, session_id TEXT, outcome TEXT, reason TEXT, payload_json TEXT NOT NULL, forward_status TEXT NOT NULL, forward_error TEXT);",
           "CREATE TABLE observability_alerts (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT NOT NULL, alert_type TEXT NOT NULL, severity TEXT NOT NULL, release_id TEXT, message TEXT NOT NULL, details_json TEXT NOT NULL, fingerprint TEXT NOT NULL UNIQUE);",
           "''')",
           "conn.execute(\"INSERT INTO consent_records (recorded_at, version, status, categories_json) VALUES ('2020-01-01T00:00:00Z','v1','granted','{}')\")",
           "conn.execute(\"INSERT INTO consent_records (recorded_at, version, status, categories_json) VALUES ('2099-01-01T00:00:00Z','v1','granted','{}')\")",
+          "conn.execute(\"INSERT INTO dsar_requests (protocol, requested_at, request_type, requested_by, source, status) VALUES ('DSAR-2020-0001','2020-01-01T00:00:00Z','access','channel','web','received')\")",
+          "conn.execute(\"INSERT INTO dsar_requests (protocol, requested_at, request_type, requested_by, source, status) VALUES ('DSAR-2099-0001','2099-01-01T00:00:00Z','access','channel','web','received')\")",
           "conn.commit()",
           "conn.close()"
         ].join(";")
