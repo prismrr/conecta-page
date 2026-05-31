@@ -620,6 +620,10 @@ Use os comandos abaixo para validar o empacotamento local e, quando necessario, 
 
 `npm run deploy:build`
 
+Para reproduzir localmente o mesmo fluxo de testes + build usado no CI do GitHub:
+
+`npm run build:ci`
+
 4. Opcionalmente publique em develop:
 
 `DEPLOY_HOST=staging.seudominio.example DEPLOY_USER=deploy DEPLOY_PATH=/var/www/conecta-staging DEPLOY_SSH_PRIVATE_KEY="$(cat /caminho/chave_staging)" npm run deploy:develop`
