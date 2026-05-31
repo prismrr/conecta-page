@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import http.client
 import json
 import os
 import sqlite3
@@ -12,7 +13,6 @@ from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
-from urllib.request import Request, urlopen
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 DEFAULT_STATIC_DIR = ROOT_DIR / "nuxt-app" / ".output" / "public"
@@ -386,6 +386,13 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         if not self.telemetry_forward_url:
             return "not_configured", None
 
+        parsed_url = urlparse(self.telemetry_forward_url)
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.netloc:
+            return "forward_config_error", "invalid_forward_url"
+
+        if parsed_url.username or parsed_url.password:
+            return "forward_config_error", "credentials_must_not_be_in_url"
+
         headers, auth_error = self._build_forward_headers()
         if auth_error:
             return "forward_config_error", auth_error
@@ -394,20 +401,28 @@ class ConectaRequestHandler(SimpleHTTPRequestHandler):
         if payload_error:
             return "forward_config_error", payload_error
 
-        request = Request(
-            self.telemetry_forward_url,
-            method="POST",
-            headers=headers,
-            data=body,
+        target = parsed_url.path or "/"
+        if parsed_url.query:
+            target = f"{target}?{parsed_url.query}"
+
+        connection_cls = http.client.HTTPSConnection if parsed_url.scheme == "https" else http.client.HTTPConnection
+        connection = connection_cls(
+            parsed_url.hostname,
+            parsed_url.port,
+            timeout=self.telemetry_forward_timeout_seconds,
         )
 
         try:
-            with urlopen(request, timeout=self.telemetry_forward_timeout_seconds) as response:
-                if 200 <= response.status < 300:
-                    return "forwarded", None
-                return f"forward_failed_http_{response.status}", f"http_status_{response.status}"
+            connection.request("POST", target, body=body, headers=headers)
+            response = connection.getresponse()
+            response.read()
+            if 200 <= response.status < 300:
+                return "forwarded", None
+            return f"forward_failed_http_{response.status}", f"http_status_{response.status}"
         except Exception as error:  # nosec B110 - operational fallback path
             return "forward_failed", str(error)
+        finally:
+            connection.close()
 
     def _create_basic_alerts(self, release_id: str) -> None:
         cutoff = (datetime.now(tz=timezone.utc) - timedelta(minutes=self.alert_window_minutes)).isoformat()
