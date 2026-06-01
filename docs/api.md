@@ -11,6 +11,9 @@ Contrato OpenAPI da integracao externa de inscricoes:
 Contrato OpenAPI da consulta normalizada no banco intermediario:
 - [contracts/openapi/inscricoes.v1.0.0.openapi.json](../contracts/openapi/inscricoes.v1.0.0.openapi.json)
 
+Guia operacional da ingestao e consulta de inscricoes:
+- [docs/ingestao-inscricoes.md](ingestao-inscricoes.md)
+
 ## Visao geral
 - Tipo: REST HTTP/JSON
 - Servidor local padrao: http://127.0.0.1:8080

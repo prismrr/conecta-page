@@ -23,6 +23,7 @@ Guia de organizacao frontend x backend: [docs/organizacao-projeto.md](docs/organ
 Mapa de arquitetura: [docs/arquitetura.md](docs/arquitetura.md)
 Plano de deprecacao do legado ops: [docs/deprecacao-ops.md](docs/deprecacao-ops.md)
 Readiness de corte do legado ops: [docs/readiness-corte-ops.md](docs/readiness-corte-ops.md)
+Guia de ingestao de inscricoes: [docs/ingestao-inscricoes.md](docs/ingestao-inscricoes.md)
 
 ## Build em container
 O build canônico do artefato estatico roda dentro do container `conecta-build` via Docker Compose.
