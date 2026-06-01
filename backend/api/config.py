@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Settings:
     app_name: str = "Conecta PrismRR API"
     app_version: str = "0.1.0"

@@ -10,6 +10,34 @@ describe("dev server integration", () => {
       alertFailureThreshold: 2,
       alertWindowMinutes: 60
     });
+
+    await server.seedIntermediateData({
+      batches: [
+        {
+          loteImportacao: "ING-TEST-20260531-0001",
+          checksumArquivo: "seed-checksum-0001",
+          statusLote: "concluido",
+          totalLinhas: 3,
+          linhasValidas: 3,
+          linhasInvalidas: 0,
+          registrosInseridos: 2,
+          registrosAtualizados: 1,
+          iniciadoEm: "2026-05-31T10:00:00Z",
+          finalizadoEm: "2026-05-31T10:00:05Z"
+        }
+      ],
+      inscricoes: [
+        {
+          id: "PRISM-2026-001",
+          nome: "Pessoa Teste",
+          email: "pessoa.teste@example.com",
+          status: "APROVADO",
+          dataAtualizacaoOrigem: "2026-05-24T10:00:00Z",
+          loteImportacao: "ING-TEST-20260531-0001",
+          sourceChecksum: "seed-checksum-0001"
+        }
+      ]
+    });
   });
 
   afterAll(async () => {
@@ -41,6 +69,37 @@ describe("dev server integration", () => {
     expect(response.status).toBe(200);
     expect(payload.status).toBe("UNKNOWN");
     expect(payload.updatedAt).toBeUndefined();
+  });
+
+  test("inscricoes endpoint should return normalized payload from intermediate store", async () => {
+    const response = await fetch(`${server.baseUrl}/api/inscricoes/PRISM-2026-001`);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.id).toBe("PRISM-2026-001");
+    expect(payload.status).toBe("APROVADO");
+    expect(typeof payload.ultimaAtualizacao).toBe("string");
+  });
+
+  test("inscricoes endpoint should return not_found for unknown id", async () => {
+    const response = await fetch(`${server.baseUrl}/api/inscricoes/PRISM-2026-404`);
+    const payload = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(payload.ok).toBe(false);
+    expect(payload.error).toBe("not_found");
+  });
+
+  test("inscricoes batch endpoint should expose ingestion metrics", async () => {
+    const response = await fetch(`${server.baseUrl}/api/inscricoes/lotes/ING-TEST-20260531-0001`);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.loteImportacao).toBe("ING-TEST-20260531-0001");
+    expect(payload.statusLote).toBe("concluido");
+    expect(payload.totalLinhas).toBe(3);
+    expect(payload.registrosInseridos).toBe(2);
+    expect(payload.registrosAtualizados).toBe(1);
   });
 
   test("telemetry endpoint should accept event", async () => {

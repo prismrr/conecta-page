@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
 
@@ -18,8 +18,8 @@ class ConsentCategories(CamelModel):
 
 class ConsentRecordCreate(CamelModel):
     version: StrictStr = Field(min_length=1, max_length=64)
-    updated_at: str | None = Field(default=None, alias="updatedAt")
-    source: str | None = None
+    updated_at: Optional[str] = Field(default=None, alias="updatedAt")
+    source: Optional[str] = None
     status: Literal["granted", "revoked"]
     categories: ConsentCategories
 
@@ -27,8 +27,8 @@ class ConsentRecordCreate(CamelModel):
 class ConsentRecordItem(CamelModel):
     recorded_at: datetime = Field(alias="recordedAt")
     version: StrictStr
-    updated_at: str | None = Field(default=None, alias="updatedAt")
-    source: str | None = None
+    updated_at: Optional[str] = Field(default=None, alias="updatedAt")
+    source: Optional[str] = None
     status: Literal["granted", "revoked"]
     categories: dict[str, object]
 
@@ -45,8 +45,8 @@ class ConsentRecordResponse(CamelModel):
 class IntegrationEventCreate(CamelModel):
     outcome: StrictStr = Field(min_length=1, max_length=128)
     signal: Literal["available", "degraded", "unavailable", "unknown"]
-    detail: str | None = None
-    source_page: str | None = Field(default=None, alias="sourcePage")
+    detail: Optional[str] = None
+    source_page: Optional[str] = Field(default=None, alias="sourcePage")
 
 
 class IntegrationSummaryLastEvent(CamelModel):
@@ -61,7 +61,7 @@ class IntegrationSummary(CamelModel):
     available_checks: int = Field(alias="availableChecks")
     degraded_checks: int = Field(alias="degradedChecks")
     provider_failures: int = Field(alias="providerFailures")
-    last_event: IntegrationSummaryLastEvent | None = Field(default=None, alias="lastEvent")
+    last_event: Optional[IntegrationSummaryLastEvent] = Field(default=None, alias="lastEvent")
 
 
 class IntegrationSummaryResponse(CamelModel):
@@ -71,22 +71,22 @@ class IntegrationSummaryResponse(CamelModel):
 
 class DSARRequestCreate(CamelModel):
     request_type: StrictStr = Field(alias="requestType", min_length=1, max_length=64)
-    details: str | None = None
-    source: str | None = None
+    details: Optional[str] = None
+    source: Optional[str] = None
 
 
 class DSARRequestItem(CamelModel):
     protocol: StrictStr
     requested_at: datetime = Field(alias="requestedAt")
     request_type: StrictStr = Field(alias="requestType")
-    source: str | None = None
+    source: Optional[str] = None
     status: StrictStr
-    details_hash: str | None = Field(default=None, alias="detailsHash")
-    export_path: str | None = Field(default=None, alias="exportPath")
-    export_hash: str | None = Field(default=None, alias="exportHash")
-    exported_at: datetime | None = Field(default=None, alias="exportedAt")
-    deleted_at: datetime | None = Field(default=None, alias="deletedAt")
-    deletion_reason: str | None = Field(default=None, alias="deletionReason")
+    details_hash: Optional[str] = Field(default=None, alias="detailsHash")
+    export_path: Optional[str] = Field(default=None, alias="exportPath")
+    export_hash: Optional[str] = Field(default=None, alias="exportHash")
+    exported_at: Optional[datetime] = Field(default=None, alias="exportedAt")
+    deleted_at: Optional[datetime] = Field(default=None, alias="deletedAt")
+    deletion_reason: Optional[str] = Field(default=None, alias="deletionReason")
 
 
 class DSARRequestsResponse(CamelModel):
@@ -109,11 +109,11 @@ class DSARExportResponse(CamelModel):
     status: StrictStr
     export_path: str = Field(alias="exportPath")
     export_hash: str = Field(alias="exportHash")
-    bundle: dict[str, object] | None = None
+    bundle: Optional[dict[str, object]] = None
 
 
 class DSARSecureDeleteRequest(CamelModel):
-    reason: str | None = None
+    reason: Optional[str] = None
 
 
 class DSARDeleteResponse(CamelModel):
@@ -122,8 +122,8 @@ class DSARDeleteResponse(CamelModel):
     status: StrictStr
     deleted_at: datetime = Field(alias="deletedAt")
     deleted_export: StrictBool = Field(alias="deletedExport")
-    export_hash: str | None = Field(default=None, alias="exportHash")
-    deletion_reason: str | None = Field(default=None, alias="deletionReason")
+    export_hash: Optional[str] = Field(default=None, alias="exportHash")
+    deletion_reason: Optional[str] = Field(default=None, alias="deletionReason")
 
 
 class ContentAuditEventCreate(CamelModel):
@@ -170,7 +170,7 @@ class ObservabilitySummaryByReleaseItem(CamelModel):
     release_id: StrictStr = Field(alias="releaseId")
     total_events: int = Field(alias="totalEvents")
     sync_failures: int = Field(alias="syncFailures")
-    last_seen_at: str | None = Field(default=None, alias="lastSeenAt")
+    last_seen_at: Optional[str] = Field(default=None, alias="lastSeenAt")
 
 
 class ObservabilitySummaryByEventItem(CamelModel):
@@ -201,7 +201,7 @@ class ObservabilityAlertItem(CamelModel):
     created_at: datetime = Field(alias="createdAt")
     alert_type: StrictStr = Field(alias="alertType")
     severity: StrictStr
-    release_id: str | None = Field(default=None, alias="releaseId")
+    release_id: Optional[str] = Field(default=None, alias="releaseId")
     message: StrictStr
     details: dict[str, object]
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -14,7 +14,7 @@ from .config import Settings, get_settings
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Principal:
     subject: str
     scopes: tuple[str, ...] = ()
@@ -26,7 +26,7 @@ def get_app_settings() -> Settings:
 
 
 def get_current_principal(
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)] = None,
+    credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(bearer_scheme)] = None,
 ) -> Principal:
     if credentials is None:
         return Principal(subject="anonymous")

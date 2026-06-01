@@ -10,6 +10,7 @@ import secrets
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from typing import Optional
 from urllib.parse import urlparse
 
 from ..config import Settings
@@ -129,7 +130,7 @@ class DsarService:
         suffix = secrets.token_hex(3).upper()
         return f"DSAR-{y}-{suffix}"
 
-    def _hash_optional_text(self, value: str | None) -> str | None:
+    def _hash_optional_text(self, value: Optional[str]) -> Optional[str]:
         normalized = (value or "").strip()
         if not normalized:
             return None
@@ -248,7 +249,7 @@ class DsarService:
             bundle=bundle,
         )
 
-    async def secure_delete_request(self, protocol: str, payload: DSARSecureDeleteRequest | None = None) -> DSARDeleteResponse:
+    async def secure_delete_request(self, protocol: str, payload: Optional[DSARSecureDeleteRequest] = None) -> DSARDeleteResponse:
         await ensure_database_async()
         reason = (payload.reason if payload else None) or "fulfilled_request"
         request_row = await fetch_one_async(

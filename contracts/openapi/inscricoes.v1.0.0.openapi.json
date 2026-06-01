@@ -1,0 +1,120 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Inscricoes API",
+    "version": "1.0.0",
+    "description": "Contrato de consulta normalizada de inscricoes a partir do banco intermediario.",
+    "x-contract-id": "inscricoes",
+    "x-contract-version": "1.0.0"
+  },
+  "paths": {
+    "/api/inscricoes/{id}": {
+      "get": {
+        "summary": "Consultar inscricao por id",
+        "operationId": "getInscricaoById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 64
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inscricao encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InscricaoResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inscricao nao encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Identificador invalido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Banco intermediario indisponivel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "InscricaoResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "ultimaAtualizacao"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "PRISM-2026-001"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "APROVADO",
+              "EM_ANALISE",
+              "REPROVADO"
+            ],
+            "example": "APROVADO"
+          },
+          "ultimaAtualizacao": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-24T10:00:00Z"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "ok",
+          "error"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "enum": [false]
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

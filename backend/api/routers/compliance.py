@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 
 from ..deps import get_app_settings
@@ -122,7 +124,7 @@ async def export_dsar_request(
     summary="Secure delete DSAR export",
 )
 async def secure_delete_dsar_request(
-    payload: DSARSecureDeleteRequest | None = None,
+    payload: Optional[DSARSecureDeleteRequest] = None,
     protocol: str = Path(min_length=1, max_length=80),
     service: DsarService = Depends(get_dsar_service),
 ) -> DSARDeleteResponse:

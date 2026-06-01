@@ -166,6 +166,53 @@ def init_database(db_file: Path) -> None:
                 deleted_at TEXT,
                 deletion_reason TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS inscricoes (
+                id TEXT PRIMARY KEY,
+                nome TEXT NOT NULL,
+                email_ciphertext TEXT NOT NULL,
+                email_hash TEXT NOT NULL,
+                status TEXT NOT NULL,
+                data_atualizacao_origem TEXT NOT NULL,
+                source_checksum TEXT NOT NULL,
+                lote_importacao TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS ingest_batches (
+                lote_importacao TEXT PRIMARY KEY,
+                origem_url TEXT NOT NULL,
+                checksum_arquivo TEXT NOT NULL,
+                tamanho_arquivo_bytes INTEGER NOT NULL,
+                status_lote TEXT NOT NULL,
+                iniciado_em TEXT NOT NULL,
+                finalizado_em TEXT,
+                total_linhas INTEGER NOT NULL DEFAULT 0,
+                linhas_validas INTEGER NOT NULL DEFAULT 0,
+                linhas_invalidas INTEGER NOT NULL DEFAULT 0,
+                registros_inseridos INTEGER NOT NULL DEFAULT 0,
+                registros_atualizados INTEGER NOT NULL DEFAULT 0,
+                divergencias_schema_json TEXT,
+                erro_resumo TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS ingest_batch_errors (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lote_importacao TEXT NOT NULL,
+                row_number INTEGER NOT NULL,
+                error_code TEXT NOT NULL,
+                error_message TEXT NOT NULL,
+                payload_redigido TEXT,
+                recorded_at TEXT NOT NULL
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_inscricoes_lote_importacao ON inscricoes(lote_importacao);
+            CREATE INDEX IF NOT EXISTS idx_inscricoes_updated_at ON inscricoes(updated_at);
+            CREATE INDEX IF NOT EXISTS idx_inscricoes_email_hash ON inscricoes(email_hash);
+            CREATE INDEX IF NOT EXISTS idx_ingest_batches_checksum ON ingest_batches(checksum_arquivo);
+            CREATE INDEX IF NOT EXISTS idx_ingest_batches_status ON ingest_batches(status_lote);
+            CREATE INDEX IF NOT EXISTS idx_ingest_batch_errors_lote ON ingest_batch_errors(lote_importacao);
             """
         )
 

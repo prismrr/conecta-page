@@ -1,6 +1,6 @@
 services:
   conecta-build:
-    image: node:20-bullseye
+    image: node:20-bookworm
     working_dir: /workspace
     entrypoint: ["/bin/bash", "-lc"]
     command:
@@ -8,9 +8,13 @@ services:
         apt-get update
         && apt-get install -y --no-install-recommends python3 python3-pip
         && rm -rf /var/lib/apt/lists/*
+        && python3 --version
         && npm ci
         && python3 -m pip install --no-cache-dir -r backend/requirements-fastapi.txt
-        && python3 -m py_compile backend/api/__init__.py backend/api/config.py backend/api/deps.py backend/api/errors.py backend/api/main.py backend/api/schemas.py backend/api/schemas_compliance.py backend/api/schemas_telemetry.py backend/api/storage.py backend/api/services/__init__.py backend/api/services/compliance.py backend/api/services/registrations.py backend/api/services/telemetry.py backend/api/routers/__init__.py backend/api/routers/compliance.py backend/api/routers/health.py backend/api/routers/observability.py backend/api/routers/registrations.py backend/api/routers/telemetry.py
+        && python3 -m py_compile backend/api/__init__.py backend/api/config.py backend/api/deps.py backend/api/errors.py backend/api/main.py backend/api/schemas.py backend/api/schemas_compliance.py backend/api/schemas_telemetry.py backend/api/storage.py backend/api/sqlite_utils.py backend/api/services/__init__.py backend/api/services/compliance.py backend/api/services/inscricoes.py backend/api/services/registrations.py backend/api/services/telemetry.py backend/api/routers/__init__.py backend/api/routers/compliance.py backend/api/routers/health.py backend/api/routers/inscricoes.py backend/api/routers/observability.py backend/api/routers/registrations.py backend/api/routers/telemetry.py backend/ingestion/__init__.py backend/ingestion/celery_app.py backend/ingestion/tasks.py backend/fastapi_server.py backend/jobs/retention_job.py
+        && python3 -c "import backend.api.main; import backend.ingestion.tasks"
+        && python3 -m json.tool contracts/openapi/registration-result.v1.0.0.openapi.json >/dev/null
+        && python3 -m json.tool contracts/openapi/inscricoes.v1.0.0.openapi.json >/dev/null
         && bash backend/deploy/build_static_inside_container.sh
     volumes:
       - ./:/workspace

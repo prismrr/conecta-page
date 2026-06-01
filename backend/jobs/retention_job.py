@@ -19,6 +19,8 @@ RETENTION_POLICY = {
     "integration_monitor_events": {"column": "recorded_at", "retention_days": 365},
     "telemetry_events": {"column": "recorded_at", "retention_days": 180},
     "observability_alerts": {"column": "created_at", "retention_days": 180},
+    "ingest_batches": {"column": "iniciado_em", "retention_days": 730},
+    "ingest_batch_errors": {"column": "recorded_at", "retention_days": 180},
 }
 
 
