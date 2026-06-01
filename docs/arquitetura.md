@@ -15,6 +15,13 @@ flowchart LR
     BE --> OBS[Observability APIs\n/observability/*]
     BE --> COMP[Compliance APIs\n/compliance/*]
     BE --> REG[Mock Integracao\n/api/registrations/*]
+    BE --> INS[Inscricoes Normalizadas\n/api/inscricoes/*]
+
+    CSV[CSV externo\nURL publica/autenticada] --> SRC[CSV source local\nconecta-csv-source]
+    SRC --> CEL[Celery Worker\nconecta-worker]
+    REDIS[(Redis Broker\nconecta-redis)] --> CEL
+    BEAT[Celery Beat\nconecta-beat] --> REDIS
+    CEL --> DB
 
     BE -->|Forwarding opcional| LOKI[Loki]
     LOKI --> GRAF[Grafana]
@@ -80,6 +87,28 @@ Fluxo de compliance:
 2. Backend persiste trilha append-only em SQLite.
 3. Jobs de retencao e incident drill geram evidencias.
 
+Fluxo de ingestao assincrona de inscricoes:
+1. Worker Celery baixa CSV de origem (URL publica ou autenticada).
+2. Pipeline valida encoding, schema e tipagem de cada linha.
+3. Worker executa upsert incremental no banco intermediario SQLite.
+4. API de leitura consulta apenas /api/inscricoes/* no banco intermediario.
+5. Falhas na origem nao interrompem consultas da API, que permanecem desacopladas.
+
+Diagrama dedicado do fluxo de ingestao:
+
+```mermaid
+flowchart LR
+    SOURCE[CSV externo\nCONECTA_INSCRICOES_CSV_URL] --> DL[Download + checksum]
+    REDIS[(Redis broker)] --> WORKER[Celery Worker]
+    BEAT[Celery Beat] --> REDIS
+    WORKER --> DL
+    DL --> VAL[Validacao estrita\nencoding/schema/tipos]
+    VAL --> UPSERT[Upsert incremental por ID]
+    UPSERT --> DB[(SQLite intermediario\ninscricoes + ingest_batches)]
+    API[FastAPI\n/api/inscricoes/{id}] --> DB
+    API2[FastAPI\n/api/inscricoes/lotes/{loteImportacao}] --> DB
+```
+
 Fluxo de deploy:
 1. Build estatico por [backend/deploy/build_static.sh](../backend/deploy/build_static.sh).
 2. Publicacao por [backend/deploy/deploy_static.sh](../backend/deploy/deploy_static.sh).
@@ -102,4 +131,8 @@ Campos esperados em `topBanner`:
 - Servidor local: `python3 backend/fastapi_server.py --port 8080`
 - Stack observability: `docker compose -f infra/observability/docker-compose.yml up -d`
 - Stack completa local: `npm run dev:docker:full`
+- Stack ingestao (Redis + Celery): `npm run dev:docker:ingestion:up`
+- Trigger manual da ingestao: `npm run dev:docker:ingestion:trigger`
+- Logs da ingestao: `npm run dev:docker:ingestion:logs`
+- Encerrar stack de ingestao: `npm run dev:docker:ingestion:down`
 - Build deploy: `npm run deploy:build`

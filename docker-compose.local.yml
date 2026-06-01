@@ -48,3 +48,71 @@ services:
       TELEMETRY_FORWARD_PASSWORD: ${TELEMETRY_FORWARD_PASSWORD:-}
       TELEMETRY_FORWARD_TIMEOUT_SECONDS: ${TELEMETRY_FORWARD_TIMEOUT_SECONDS:-3}
 
+  conecta-redis:
+    image: redis:7-alpine
+    container_name: conecta-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    profiles:
+      - ingestion
+
+  conecta-csv-source:
+    image: python:3.11-slim
+    container_name: conecta-csv-source
+    working_dir: /workspace/data
+    command: ["python3", "-m", "http.server", "8090", "--bind", "0.0.0.0"]
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./:/workspace
+    profiles:
+      - ingestion
+
+  conecta-worker:
+    image: python:3.11-slim
+    container_name: conecta-worker
+    working_dir: /workspace
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - >-
+        python3 -m pip install --no-cache-dir -r backend/requirements-fastapi.txt
+        && celery -A backend.ingestion.celery_app.celery_app worker --loglevel=INFO -Q ingestao_csv
+    volumes:
+      - ./:/workspace
+    environment:
+      PYTHONUNBUFFERED: "1"
+      CONECTA_COMPLIANCE_DB_FILE: /workspace/data/compliance.db
+      CONECTA_INSCRICOES_CSV_URL: ${CONECTA_INSCRICOES_CSV_URL:-http://conecta-csv-source:8090/inscricoes-seed.csv}
+      CONECTA_CELERY_BROKER_URL: ${CONECTA_CELERY_BROKER_URL:-redis://conecta-redis:6379/0}
+      CONECTA_CELERY_RESULT_BACKEND: ${CONECTA_CELERY_RESULT_BACKEND:-redis://conecta-redis:6379/0}
+      CONECTA_PII_FERNET_KEY: ${CONECTA_PII_FERNET_KEY:-YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=}
+    depends_on:
+      - conecta-redis
+      - conecta-csv-source
+    profiles:
+      - ingestion
+
+  conecta-beat:
+    image: python:3.11-slim
+    container_name: conecta-beat
+    working_dir: /workspace
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - >-
+        python3 -m pip install --no-cache-dir -r backend/requirements-fastapi.txt
+        && celery -A backend.ingestion.celery_app.celery_app beat --loglevel=INFO
+    volumes:
+      - ./:/workspace
+    environment:
+      PYTHONUNBUFFERED: "1"
+      CONECTA_INSCRICOES_CSV_URL: ${CONECTA_INSCRICOES_CSV_URL:-http://conecta-csv-source:8090/inscricoes-seed.csv}
+      CONECTA_CELERY_BROKER_URL: ${CONECTA_CELERY_BROKER_URL:-redis://conecta-redis:6379/0}
+      CONECTA_CELERY_RESULT_BACKEND: ${CONECTA_CELERY_RESULT_BACKEND:-redis://conecta-redis:6379/0}
+      CONECTA_PII_FERNET_KEY: ${CONECTA_PII_FERNET_KEY:-YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=}
+    depends_on:
+      - conecta-redis
+      - conecta-csv-source
+    profiles:
+      - ingestion
+

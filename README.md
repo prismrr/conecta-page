@@ -42,6 +42,7 @@ Routers migrados para FastAPI:
 
 - [backend/api/routers/health.py](backend/api/routers/health.py)
 - [backend/api/routers/registrations.py](backend/api/routers/registrations.py)
+- [backend/api/routers/inscricoes.py](backend/api/routers/inscricoes.py)
 - [backend/api/routers/compliance.py](backend/api/routers/compliance.py)
 - [backend/api/routers/observability.py](backend/api/routers/observability.py)
 
@@ -437,6 +438,60 @@ O teste dedicado fica em [tests/contract/registration-openapi.contract.test.js](
 - payloads de erro (401/404/503) contra schema `ErrorResponse`
 - deteccao de payload invalido de contrato no cenario `PRISM-2026-999`
 
+## Consulta normalizada de inscricoes (banco intermediario)
+Foi adicionada uma API de leitura desacoplada da planilha de origem, baseada no banco intermediario:
+
+- `GET /api/inscricoes/{id}`
+- `GET /api/inscricoes/lotes/{loteImportacao}`
+
+Contrato OpenAPI versionado:
+
+- [contracts/openapi/inscricoes.v1.0.0.openapi.json](contracts/openapi/inscricoes.v1.0.0.openapi.json)
+
+Exemplo de resposta para consulta por id:
+
+```json
+{
+	"id": "PRISM-2026-001",
+	"status": "APROVADO",
+	"ultimaAtualizacao": "2026-05-24T10:00:00Z"
+}
+```
+
+## Ingestao assincrona (Redis + Celery)
+Para validar ingestao ponta a ponta com broker Redis, worker e beat:
+
+- `npm run dev:docker:ingestion:up`
+- `npm run dev:docker:ingestion:trigger`
+- `npm run dev:docker:ingestion:logs`
+- `npm run dev:docker:ingestion:down`
+
+Comandos equivalentes via script:
+
+- `bash scripts/dev_docker.sh ingestion-up`
+- `bash scripts/dev_docker.sh ingestion-trigger`
+- `bash scripts/dev_docker.sh ingestion-logs`
+- `bash scripts/dev_docker.sh ingestion-down`
+
+Seed CSV local de teste:
+
+- [data/inscricoes-seed.csv](data/inscricoes-seed.csv)
+
+## Testes de consulta a inscricoes
+Cobertura automatizada para consulta por id e status de lote:
+
+1. Integracao (API + banco intermediario):
+
+- `npm run test:integration -- tests/integration/dev-server.integration.test.js`
+
+2. Contrato OpenAPI da consulta normalizada:
+
+- `npm run test:contract -- tests/contract/inscricoes-openapi.contract.test.js`
+
+3. Suite completa de contratos:
+
+- `npm run test:contract`
+
 ## Telemetria de eventos criticos do funil
 Implementada no frontend em [nuxt-app/plugins/telemetry.client.ts](nuxt-app/plugins/telemetry.client.ts), com configuracao em [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts).
 
@@ -633,6 +688,7 @@ Stack de testes alinhada ao `.SPECS/test_design.md`:
 
 - Unit: Vitest (regras e contrato de payload)
 - Integracao: Vitest (servidor local + endpoints mock/telemetria)
+- Contrato: Vitest (OpenAPI versionado + provider verification)
 - E2E: Playwright (fluxos criticos da pagina de inscricoes)
 
 ### Instalar dependencias
@@ -646,6 +702,7 @@ npx playwright install chromium
 ### Executar suites
 
 npm run test:unit
+npm run test:contract
 npm run test:integration
 npm run test:e2e
 

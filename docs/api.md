@@ -8,6 +8,9 @@ Implementacao principal:
 Contrato OpenAPI da integracao externa de inscricoes:
 - [contracts/openapi/registration-result.v1.0.0.openapi.json](../contracts/openapi/registration-result.v1.0.0.openapi.json)
 
+Contrato OpenAPI da consulta normalizada no banco intermediario:
+- [contracts/openapi/inscricoes.v1.0.0.openapi.json](../contracts/openapi/inscricoes.v1.0.0.openapi.json)
+
 ## Visao geral
 - Tipo: REST HTTP/JSON
 - Servidor local padrao: http://127.0.0.1:8080
@@ -413,8 +416,55 @@ Contrato formal:
 - [contracts/openapi/registration-result.v1.0.0.openapi.json](../contracts/openapi/registration-result.v1.0.0.openapi.json)
 - [contracts/registration-result.contract.json](../contracts/registration-result.contract.json)
 
+---
+
+### Consulta normalizada de inscricoes (banco intermediario)
+
+#### GET /api/inscricoes/{id}
+Retorna inscricao normalizada a partir da base intermediaria de ingestao CSV, sem consulta direta a origem.
+
+Sucesso 200:
+{
+  "id": "PRISM-2026-001",
+  "status": "APROVADO",
+  "ultimaAtualizacao": "2026-05-24T10:00:00+00:00"
+}
+
+Erro 404:
+{
+  "ok": false,
+  "error": "not_found"
+}
+
+#### GET /api/inscricoes/lotes/{loteImportacao}
+Retorna o estado operacional e as metricas consolidadas de um lote de ingestao.
+
+Sucesso 200:
+{
+  "loteImportacao": "ING-20260531120000-AB12CD34",
+  "statusLote": "concluido",
+  "checksumArquivo": "sha256...",
+  "totalLinhas": 3,
+  "linhasValidas": 3,
+  "linhasInvalidas": 0,
+  "registrosInseridos": 2,
+  "registrosAtualizados": 1,
+  "iniciadoEm": "2026-05-31T12:00:00+00:00",
+  "finalizadoEm": "2026-05-31T12:00:04+00:00"
+}
+
+Erro 404:
+{
+  "ok": false,
+  "error": "batch_not_found"
+}
+
+Contrato formal:
+- [contracts/openapi/inscricoes.v1.0.0.openapi.json](../contracts/openapi/inscricoes.v1.0.0.openapi.json)
+
 ## Referencias de teste da API
 - Integracao geral do servidor: [tests/integration/dev-server.integration.test.js](../tests/integration/dev-server.integration.test.js)
 - Smoke test CLI: [scripts/smoke_test.sh](../scripts/smoke_test.sh)
 - Contrato OpenAPI: [tests/contract/registration-openapi.contract.test.js](../tests/contract/registration-openapi.contract.test.js)
+- Contrato OpenAPI (inscricoes normalizadas): [tests/contract/inscricoes-openapi.contract.test.js](../tests/contract/inscricoes-openapi.contract.test.js)
 - Provider verification (Prism): [tests/contract/registration-provider-prism.contract.test.js](../tests/contract/registration-provider-prism.contract.test.js)
