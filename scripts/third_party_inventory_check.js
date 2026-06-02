@@ -2,10 +2,10 @@ const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { resolve } = require("node:path");
 
 const ROOT_DIR = resolve(__dirname, "..");
-const REGISTRY_PATH = resolve(ROOT_DIR, "docs/third-party-registry.json");
-const REPORT_DIR = resolve(ROOT_DIR, "logs");
-const REPORT_JSON_PATH = resolve(REPORT_DIR, "third-party-governance-report.json");
-const REPORT_MD_PATH = resolve(REPORT_DIR, "third-party-governance-report.md");
+const REGISTRY_PATH = process.env.CONECTA_THIRD_PARTY_REGISTRY_PATH || resolve(ROOT_DIR, "docs/third-party-registry.json");
+const REPORT_DIR = process.env.CONECTA_THIRD_PARTY_REPORT_DIR || resolve(ROOT_DIR, "logs");
+const REPORT_JSON_PATH = process.env.CONECTA_THIRD_PARTY_REPORT_JSON_PATH || resolve(REPORT_DIR, "third-party-governance-report.json");
+const REPORT_MD_PATH = process.env.CONECTA_THIRD_PARTY_REPORT_MD_PATH || resolve(REPORT_DIR, "third-party-governance-report.md");
 
 const registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf-8"));
 const expectedPartyIds = [

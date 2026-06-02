@@ -192,6 +192,23 @@ Campos esperados no retorno do lote:
 
 ### Teste de integração
 
+Valida a pipeline de ingestao com exercicio real da task assíncrona e consultas sobre o banco intermediario:
+
+```bash
+npm run test:integration -- tests/integration/ingestao-inscricoes.integration.test.js
+```
+
+Cobertura principal:
+
+- ingestao com CSV valido e lote concluido.
+- ingestao com CSV invalido (schema incompatível).
+- idempotencia por checksum (lote marcado como `duplicado` na segunda execucao).
+- upsert incremental por `data_atualizacao` (atualiza apenas com timestamp mais novo).
+- consulta de inscricao ingerida.
+- consulta de lote ingerido.
+
+### Teste de integração da API FastAPI
+
 Valida a API com banco intermediário populado por seed controlado:
 
 ```bash
@@ -238,5 +255,6 @@ npm run test:contract
 - [docs/api.md](api.md)
 - [docs/arquitetura.md](arquitetura.md)
 - [contracts/openapi/inscricoes.v1.0.0.openapi.json](../contracts/openapi/inscricoes.v1.0.0.openapi.json)
+- [tests/integration/ingestao-inscricoes.integration.test.js](../tests/integration/ingestao-inscricoes.integration.test.js)
 - [tests/integration/dev-server.integration.test.js](../tests/integration/dev-server.integration.test.js)
 - [tests/contract/inscricoes-openapi.contract.test.js](../tests/contract/inscricoes-openapi.contract.test.js)

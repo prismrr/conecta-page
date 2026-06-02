@@ -25,6 +25,17 @@ Plano de deprecacao do legado ops: [docs/deprecacao-ops.md](docs/deprecacao-ops.
 Readiness de corte do legado ops: [docs/readiness-corte-ops.md](docs/readiness-corte-ops.md)
 Guia de ingestao de inscricoes: [docs/ingestao-inscricoes.md](docs/ingestao-inscricoes.md)
 
+## Comandos rapidos de validacao
+
+- Ingestao assíncrona (CSV valido/invalido, idempotencia, upsert incremental e consultas):
+	- `npm run test:integration -- tests/integration/ingestao-inscricoes.integration.test.js`
+- Governanca de inventarios (privacidade e terceiros):
+	- `npm run test:integration -- tests/integration/inventory-governance.integration.test.js`
+- Gate de inventario de privacidade:
+	- `npm run compliance:privacy:inventory`
+- Gate de inventario de terceiros:
+	- `npm run compliance:third-party:inventory`
+
 ## Build em container
 O build canônico do artefato estatico roda dentro do container `conecta-build` via Docker Compose.
 
@@ -478,20 +489,56 @@ Seed CSV local de teste:
 
 - [data/inscricoes-seed.csv](data/inscricoes-seed.csv)
 
-## Testes de consulta a inscricoes
-Cobertura automatizada para consulta por id e status de lote:
+## Testes de ingestao e consulta de inscricoes
+Cobertura automatizada para ingestao, idempotencia, upsert incremental e consultas normalizadas:
 
-1. Integracao (API + banco intermediario):
+1. Integracao da ingestao (pipeline CSV + banco intermediario + servico de consulta):
+
+- `npm run test:integration -- tests/integration/ingestao-inscricoes.integration.test.js`
+
+Cenarios cobertos:
+
+- ingestao com CSV valido
+- ingestao com CSV invalido (schema incompatível)
+- idempotencia por checksum (segunda execucao marcada como duplicado)
+- upsert incremental por `data_atualizacao`
+- consulta de inscricao ingerida
+- consulta de lote ingerido
+
+2. Integracao (API FastAPI + banco intermediario seedado):
 
 - `npm run test:integration -- tests/integration/dev-server.integration.test.js`
 
-2. Contrato OpenAPI da consulta normalizada:
+3. Contrato OpenAPI da consulta normalizada:
 
 - `npm run test:contract -- tests/contract/inscricoes-openapi.contract.test.js`
 
-3. Suite completa de contratos:
+4. Suite completa de contratos:
 
 - `npm run test:contract`
+
+## Testes de governanca de inventarios (privacidade e terceiros)
+Foi adicionada uma suite de integracao para validar atualizacao dos inventarios e geracao dos relatorios de governanca:
+
+- `npm run test:integration -- tests/integration/inventory-governance.integration.test.js`
+
+Cenarios cobertos:
+
+- atualizacao de [docs/privacy-data-map.json](docs/privacy-data-map.json) em arquivo temporario e verificacao de propagacao no relatorio de privacidade
+- atualizacao de [docs/third-party-registry.json](docs/third-party-registry.json) em arquivo temporario e verificacao de propagacao no relatorio de terceiros
+
+Os scripts de gate aceitam overrides por variavel de ambiente para facilitar execucao isolada em testes de integracao:
+
+- Privacidade (`scripts/privacy_inventory_check.js`):
+	- `CONECTA_PRIVACY_INVENTORY_PATH`
+	- `CONECTA_PRIVACY_REPORT_DIR`
+	- `CONECTA_PRIVACY_REPORT_JSON_PATH`
+	- `CONECTA_PRIVACY_REPORT_MD_PATH`
+- Terceiros (`scripts/third_party_inventory_check.js`):
+	- `CONECTA_THIRD_PARTY_REGISTRY_PATH`
+	- `CONECTA_THIRD_PARTY_REPORT_DIR`
+	- `CONECTA_THIRD_PARTY_REPORT_JSON_PATH`
+	- `CONECTA_THIRD_PARTY_REPORT_MD_PATH`
 
 ## Telemetria de eventos criticos do funil
 Implementada no frontend em [nuxt-app/plugins/telemetry.client.ts](nuxt-app/plugins/telemetry.client.ts), com configuracao em [nuxt-app/nuxt.config.ts](nuxt-app/nuxt.config.ts).

@@ -2,16 +2,16 @@ const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { resolve } = require("node:path");
 
 const ROOT_DIR = resolve(__dirname, "..");
-const INVENTORY_PATH = resolve(ROOT_DIR, "docs/privacy-data-map.json");
+const INVENTORY_PATH = process.env.CONECTA_PRIVACY_INVENTORY_PATH || resolve(ROOT_DIR, "docs/privacy-data-map.json");
 const SERVER_PATH = resolve(ROOT_DIR, "backend/api/routers/compliance.py");
 const DSAR_FORM_PATH = resolve(ROOT_DIR, "nuxt-app/components/legal/DsarRequestForm.vue");
 const DSAR_STORE_PATH = resolve(ROOT_DIR, "nuxt-app/stores/dsar.ts");
 const TELEMETRY_COMPOSABLE_PATH = resolve(ROOT_DIR, "nuxt-app/composables/useTelemetry.ts");
 const RETENTION_JOB_PATH = resolve(ROOT_DIR, "backend/jobs/retention_job.py");
 const INCIDENT_DRILL_PATH = resolve(ROOT_DIR, "backend/jobs/incident_drill.py");
-const REPORT_DIR = resolve(ROOT_DIR, "logs");
-const REPORT_JSON_PATH = resolve(REPORT_DIR, "privacy-data-report.json");
-const REPORT_MD_PATH = resolve(REPORT_DIR, "privacy-data-report.md");
+const REPORT_DIR = process.env.CONECTA_PRIVACY_REPORT_DIR || resolve(ROOT_DIR, "logs");
+const REPORT_JSON_PATH = process.env.CONECTA_PRIVACY_REPORT_JSON_PATH || resolve(REPORT_DIR, "privacy-data-report.json");
+const REPORT_MD_PATH = process.env.CONECTA_PRIVACY_REPORT_MD_PATH || resolve(REPORT_DIR, "privacy-data-report.md");
 
 const inventory = JSON.parse(readFileSync(INVENTORY_PATH, "utf-8"));
 const serverCode = readFileSync(SERVER_PATH, "utf-8");

@@ -25,7 +25,15 @@ Impacto na arquitetura:
 
 Validacao:
 - `npm run compliance:privacy:inventory`
+- `npm run test:integration -- tests/integration/inventory-governance.integration.test.js`
 - relatorio gerado em `logs/privacy-data-report.md` e `logs/privacy-data-report.json`
+
+Observacao operacional:
+- o gate de privacidade aceita override de caminhos para validacao em ambiente isolado:
+	- `CONECTA_PRIVACY_INVENTORY_PATH`
+	- `CONECTA_PRIVACY_REPORT_DIR`
+	- `CONECTA_PRIVACY_REPORT_JSON_PATH`
+	- `CONECTA_PRIVACY_REPORT_MD_PATH`
 
 Evidencia esperada:
 - artifact `privacy-inventory-report-ci`
@@ -152,10 +160,18 @@ Impacto na arquitetura:
 
 Validacao:
 - `npm run compliance:third-party:inventory`
+- `npm run test:integration -- tests/integration/inventory-governance.integration.test.js`
 - `npm run compliance:backup:restore`
 - `npm run build:ci`
 - `npm run compliance:retention:dry-run`
 - `npm run compliance:incident:drill:observe`
+
+Observacao operacional:
+- o gate de terceiros aceita override de caminhos para validacao em ambiente isolado:
+	- `CONECTA_THIRD_PARTY_REGISTRY_PATH`
+	- `CONECTA_THIRD_PARTY_REPORT_DIR`
+	- `CONECTA_THIRD_PARTY_REPORT_JSON_PATH`
+	- `CONECTA_THIRD_PARTY_REPORT_MD_PATH`
 
 ## Criterios de auditoria final
 

@@ -234,6 +234,53 @@ async function startCsvServer(csvContent) {
   };
 }
 
+async function queryInscricaoService({ dbFile, queryType, value }) {
+  const output = await runPythonSnippetAsync(
+    `
+import asyncio
+import json
+import os
+
+from backend.api.services.inscricoes import (
+    IngestBatchNotFoundError,
+    InscricaoNotFoundError,
+    InscricaoService,
+)
+
+async def main():
+    service = InscricaoService()
+    query_type = os.environ["QUERY_TYPE"]
+    value = os.environ["QUERY_VALUE"]
+
+    if query_type == "inscricao":
+        try:
+            result = await service.get_by_id(value)
+            return {"ok": True, "payload": result.model_dump(mode='json', by_alias=True)}
+        except InscricaoNotFoundError:
+            return {"ok": False, "error": "not_found"}
+
+    if query_type == "lote":
+        try:
+            result = await service.get_batch_status(value)
+            return {"ok": True, "payload": result.model_dump(mode='json', by_alias=True)}
+        except IngestBatchNotFoundError:
+            return {"ok": False, "error": "batch_not_found"}
+
+    return {"ok": False, "error": "query_type_invalid"}
+
+payload = asyncio.run(main())
+print(json.dumps(payload, ensure_ascii=True))
+    `,
+    {
+      CONECTA_COMPLIANCE_DB_FILE: dbFile,
+      QUERY_TYPE: queryType,
+      QUERY_VALUE: value
+    }
+  );
+
+  return JSON.parse(output);
+}
+
 const describeIngestion = PYTHON_INGESTION_READY ? describe : describe.skip;
 
 describeIngestion("ingestao de inscricoes (integracao)", () => {
@@ -417,6 +464,79 @@ describeIngestion("ingestao de inscricoes (integracao)", () => {
       await csvServerInitial.stop();
       await csvServerNewer.stop();
       await csvServerOlder.stop();
+      await rm(dbFile, { force: true });
+    }
+  });
+
+  test("deve consultar inscricao ingerida no servico de inscricoes", async () => {
+    const dbFile = join(tmpdir(), `conecta-ingest-consulta-inscricao-${Date.now()}.db`);
+    const csvContent = [
+      "id,nome,email,status,data_atualizacao,lote_importacao",
+      "PRISM-2026-070,Pessoa Setenta,pessoa.setenta@example.com,REJECTED,2026-05-24T14:00:00Z,LOTE-EXT-CONS-1"
+    ].join("\n");
+
+    const csvServer = await startCsvServer(csvContent);
+    try {
+      const execution = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServer.url,
+        forceReprocess: true
+      });
+
+      expect(execution.ok).toBe(true);
+      const response = await queryInscricaoService({
+        dbFile,
+        queryType: "inscricao",
+        value: "PRISM-2026-070"
+      });
+
+      expect(response.ok).toBe(true);
+      const payload = response.payload;
+      expect(payload.id).toBe("PRISM-2026-070");
+      expect(payload.status).toBe("REPROVADO");
+      expect(payload.ultimaAtualizacao).toContain("2026-05-24T14:00:00");
+    } finally {
+      await csvServer.stop();
+      await rm(dbFile, { force: true });
+    }
+  });
+
+  test("deve consultar lote ingerido no servico de inscricoes", async () => {
+    const dbFile = join(tmpdir(), `conecta-ingest-consulta-lote-${Date.now()}.db`);
+    const csvContent = [
+      "id,nome,email,status,data_atualizacao,lote_importacao",
+      "PRISM-2026-080,Pessoa Oitenta,pessoa.oitenta@example.com,APPROVED,2026-05-24T15:00:00Z,LOTE-EXT-CONS-2",
+      "PRISM-2026-081,Pessoa OitentaUm,pessoa.oitentaum@example.com,UNDER_REVIEW,2026-05-24T15:10:00Z,LOTE-EXT-CONS-2"
+    ].join("\n");
+
+    const csvServer = await startCsvServer(csvContent);
+    try {
+      const execution = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServer.url,
+        forceReprocess: true
+      });
+
+      expect(execution.ok).toBe(true);
+      expect(execution.result.status).toBe("concluido");
+      const response = await queryInscricaoService({
+        dbFile,
+        queryType: "lote",
+        value: execution.result.batchId
+      });
+
+      expect(response.ok).toBe(true);
+      const payload = response.payload;
+      expect(payload.loteImportacao).toBe(execution.result.batchId);
+      expect(payload.statusLote).toBe("concluido");
+      expect(payload.totalLinhas).toBe(2);
+      expect(payload.linhasValidas).toBe(2);
+      expect(payload.linhasInvalidas).toBe(0);
+      expect(payload.registrosInseridos).toBe(2);
+      expect(payload.registrosAtualizados).toBe(0);
+      expect(typeof payload.checksumArquivo).toBe("string");
+    } finally {
+      await csvServer.stop();
       await rm(dbFile, { force: true });
     }
   });
