@@ -1,0 +1,794 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-06-02T00:00:00.000Z",
+  "__export_source": "conecta-api-qa-bootstrap",
+  "resources": [
+    {
+      "_id": "wrk_conecta_api_qa",
+      "_type": "workspace",
+      "name": "Conecta API QA",
+      "description": "Workspace base versionavel para testes manuais e exploratorios de API."
+    },
+    {
+      "_id": "env_conecta_api_qa_base",
+      "_type": "environment",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://127.0.0.1:8080",
+        "requestTimeoutMs": 10000,
+        "authEndpoint": "/auth/token",
+        "username": "qa.user",
+        "accessToken": "",
+        "correlationId": "manual-insomnia-run",
+        "registrationId": "PRISM-2026-001",
+        "inscricaoId": "PRISM-2026-001",
+        "loteImportacao": "ING-TEST-20260531-0001",
+        "dsarProtocol": "DSAR-20260531-ABC123",
+        "testRunId": "RUN-20260602-001",
+        "releaseTag": "release-candidate",
+        "tester": "qa.engineer"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseUrl",
+          "requestTimeoutMs",
+          "authEndpoint",
+          "username",
+          "accessToken",
+          "correlationId",
+          "registrationId",
+          "inscricaoId",
+          "loteImportacao",
+          "dsarProtocol",
+          "testRunId",
+          "releaseTag",
+          "tester"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": -1000
+    },
+    {
+      "_id": "env_conecta_api_qa_local",
+      "_type": "environment",
+      "parentId": "env_conecta_api_qa_base",
+      "name": "local",
+      "data": {
+        "baseUrl": "http://127.0.0.1:8080",
+        "requestTimeoutMs": 10000,
+        "username": "qa.user",
+        "tester": "qa.local"
+      },
+      "isPrivate": false,
+      "metaSortKey": -900
+    },
+    {
+      "_id": "env_conecta_api_qa_staging",
+      "_type": "environment",
+      "parentId": "env_conecta_api_qa_base",
+      "name": "staging",
+      "data": {
+        "baseUrl": "https://staging.api.example.com",
+        "requestTimeoutMs": 15000,
+        "username": "qa.service",
+        "tester": "qa.staging"
+      },
+      "isPrivate": false,
+      "metaSortKey": -800
+    },
+    {
+      "_id": "fld_00_contract_first",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "00-Contract-First",
+      "description": "Requests para validacao de aderencia a contrato OpenAPI.",
+      "metaSortKey": -700
+    },
+    {
+      "_id": "req_contract_inscricoes_get_by_id",
+      "_type": "request",
+      "parentId": "fld_00_contract_first",
+      "name": "GET /api/inscricoes/{id} (contract)",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/inscricoes/PRISM-2026-001",
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "settingSendCookies": true,
+      "settingStoreCookies": true,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "metaSortKey": -690
+    },
+    {
+      "_id": "fld_10_smoke",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "10-Smoke",
+      "description": "Validacao rapida de disponibilidade e fluxos criticos.",
+      "metaSortKey": -600
+    },
+    {
+      "_id": "req_smoke_healthz",
+      "_type": "request",
+      "parentId": "fld_10_smoke",
+      "name": "GET /healthz",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/healthz",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -590
+    },
+    {
+      "_id": "req_smoke_telemetry_post",
+      "_type": "request",
+      "parentId": "fld_10_smoke",
+      "name": "POST /telemetry/events",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/telemetry/events",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "X-Correlation-Id",
+          "value": "{{ _.correlationId }}"
+        },
+        {
+          "name": "X-Test-Run-Id",
+          "value": "{{ _.testRunId }}"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"event\": \"insomnia_smoke_event\",\n  \"timestamp\": \"2026-06-02T12:00:00Z\",\n  \"page\": \"manual\",\n  \"path\": \"/insomnia\",\n  \"release_id\": \"manual-smoke\",\n  \"environment\": \"test\",\n  \"source_channel\": \"insomnia\",\n  \"session_id\": \"manual-session\",\n  \"data\": {\n    \"outcome\": \"ok\"\n  }\n}"
+      },
+      "metaSortKey": -580
+    },
+    {
+      "_id": "fld_20_regression",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "20-Regression",
+      "description": "Cenarios de regressao funcional por dominio.",
+      "metaSortKey": -500
+    },
+    {
+      "_id": "req_regression_registration_ok",
+      "_type": "request",
+      "parentId": "fld_20_regression",
+      "name": "GET /api/registrations/{registrationId}",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/registrations/{{ _.registrationId }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -490
+    },
+    {
+      "_id": "req_regression_registration_404",
+      "_type": "request",
+      "parentId": "fld_20_regression",
+      "name": "GET /api/registrations/PRISM-2026-404",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/registrations/PRISM-2026-404",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -480
+    },
+    {
+      "_id": "req_regression_inscricoes_lote",
+      "_type": "request",
+      "parentId": "fld_20_regression",
+      "name": "GET /api/inscricoes/lotes/{loteImportacao}",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/inscricoes/lotes/{{ _.loteImportacao }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -470
+    },
+    {
+      "_id": "req_regression_inscricoes_get",
+      "_type": "request",
+      "parentId": "fld_20_regression",
+      "name": "GET /api/inscricoes/{inscricaoId}",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/inscricoes/{{ _.inscricaoId }}",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -465
+    },
+    {
+      "_id": "fld_25_compliance",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "25-Compliance-LGPD",
+      "description": "Colecao inicial para endpoints reais de compliance e DSAR.",
+      "metaSortKey": -450
+    },
+    {
+      "_id": "req_compliance_post_consent",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "POST /compliance/consent-records",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/compliance/consent-records",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"version\": \"v2\",\n  \"status\": \"granted\",\n  \"categories\": {\n    \"essential\": true,\n    \"analytics_optional\": true,\n    \"marketing_optional\": false\n  },\n  \"updatedAt\": \"2026-06-02T12:00:00Z\",\n  \"source\": \"insomnia-manual\"\n}"
+      },
+      "metaSortKey": -445
+    },
+    {
+      "_id": "req_compliance_list_consent",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "GET /compliance/consent-records?limit=20",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/compliance/consent-records?limit=20",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -444
+    },
+    {
+      "_id": "req_compliance_create_dsar",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "POST /compliance/dsar-requests",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/compliance/dsar-requests",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"requestType\": \"exportacao\",\n  \"details\": \"Solicitacao de exportacao para validacao de fluxo manual\",\n  \"source\": \"insomnia\"\n}"
+      },
+      "metaSortKey": -443
+    },
+    {
+      "_id": "req_compliance_list_dsar",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "GET /compliance/dsar-requests?limit=20",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/compliance/dsar-requests?limit=20",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -442
+    },
+    {
+      "_id": "req_compliance_export_dsar",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "POST /compliance/dsar-requests/{protocol}/export",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/compliance/dsar-requests/{{ _.dsarProtocol }}/export",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -441
+    },
+    {
+      "_id": "req_compliance_secure_delete_dsar",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "POST /compliance/dsar-requests/{protocol}/secure-delete",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/compliance/dsar-requests/{{ _.dsarProtocol }}/secure-delete",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reason\": \"qa_validation_flow\"\n}"
+      },
+      "metaSortKey": -440
+    },
+    {
+      "_id": "req_compliance_integration_event",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "POST /compliance/integration-events",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/compliance/integration-events",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"outcome\": \"ok\",\n  \"signal\": \"available\",\n  \"detail\": \"Manual QA validation\",\n  \"sourcePage\": \"insomnia\"\n}"
+      },
+      "metaSortKey": -439
+    },
+    {
+      "_id": "req_compliance_integration_summary",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "GET /compliance/integration-summary",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/compliance/integration-summary",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -438
+    },
+    {
+      "_id": "req_compliance_content_audit_post",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "POST /compliance/content-audit-events",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/compliance/content-audit-events",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"eventId\": \"AUD-20260602-001\",\n  \"changedAt\": \"2026-06-02T12:00:00Z\",\n  \"contentDomain\": \"privacy\",\n  \"contentTitle\": \"Politica de Privacidade\",\n  \"version\": \"v2026.06\",\n  \"author\": \"qa.engineer\",\n  \"changeSummary\": \"Atualizacao de texto de transparencia LGPD\",\n  \"changeType\": \"publish\"\n}"
+      },
+      "metaSortKey": -437
+    },
+    {
+      "_id": "req_compliance_content_audit_list",
+      "_type": "request",
+      "parentId": "fld_25_compliance",
+      "name": "GET /compliance/content-audit-events?limit=50",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/compliance/content-audit-events?limit=50",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -436
+    },
+    {
+      "_id": "fld_27_observability",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "27-Observability",
+      "description": "Colecao inicial para endpoints reais de saude operacional e alertas.",
+      "metaSortKey": -430
+    },
+    {
+      "_id": "req_observability_health",
+      "_type": "request",
+      "parentId": "fld_27_observability",
+      "name": "GET /observability/health",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/observability/health",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -429
+    },
+    {
+      "_id": "req_observability_summary",
+      "_type": "request",
+      "parentId": "fld_27_observability",
+      "name": "GET /observability/summary?windowMinutes=60",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/observability/summary?windowMinutes=60",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -428
+    },
+    {
+      "_id": "req_observability_alerts",
+      "_type": "request",
+      "parentId": "fld_27_observability",
+      "name": "GET /observability/alerts?limit=20",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/observability/alerts?limit=20",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -427
+    },
+    {
+      "_id": "fld_30_security_checks",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "30-Security-Checks",
+      "description": "Checks manuais de seguranca, auth e abuse cases.",
+      "metaSortKey": -400
+    },
+    {
+      "_id": "req_security_telemetry_invalid_payload",
+      "_type": "request",
+      "parentId": "fld_30_security_checks",
+      "name": "POST /telemetry/events (invalid payload)",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/telemetry/events",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"event\": \"invalid_telemetry\",\n  \"timestamp\": \"not-a-date\",\n  \"page\": \"security\",\n  \"path\": \"/api\",\n  \"release_id\": \"security-check\",\n  \"environment\": \"test\",\n  \"source_channel\": \"insomnia\",\n  \"session_id\": \"security-session\",\n  \"data\": \"invalid\"\n}"
+      },
+      "metaSortKey": -390
+    },
+    {
+      "_id": "fld_40_exploratory_charters",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "40-Exploratory-Charters",
+      "description": "Charters exploratorios por release com evidencias manuais.",
+      "metaSortKey": -300
+    },
+    {
+      "_id": "req_charter_template",
+      "_type": "request",
+      "parentId": "fld_40_exploratory_charters",
+      "name": "Template - Charter Request",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/healthz",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        },
+        {
+          "name": "X-Release-Tag",
+          "value": "{{ _.releaseTag }}"
+        },
+        {
+          "name": "X-Test-Run-Id",
+          "value": "{{ _.testRunId }}"
+        },
+        {
+          "name": "X-Tester",
+          "value": "{{ _.tester }}"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "description": "Use este request como base para charters exploratorios da sprint/release.\n\nTemplate de evidencia:\n- TestRunId: {{ _.testRunId }}\n- ReleaseTag: {{ _.releaseTag }}\n- Tester: {{ _.tester }}\n- Resultado: PASS|FAIL\n- Severidade: LOW|MEDIUM|HIGH|CRITICAL\n- Risco identificado:\n- Evidencia (request/response/log):\n- Acao recomendada:\n- Owner:\n- Prazo:",
+      "metaSortKey": -290
+    },
+    {
+      "_id": "fld_90_utilities",
+      "_type": "request_group",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "90-Utilities",
+      "description": "Requests utilitarios de setup/teardown e dados auxiliares.",
+      "metaSortKey": -200
+    },
+    {
+      "_id": "req_utils_healthz",
+      "_type": "request",
+      "parentId": "fld_90_utilities",
+      "name": "Utility - Check API Online",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/healthz",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -190
+    },
+    {
+      "_id": "req_utils_openapi",
+      "_type": "request",
+      "parentId": "fld_90_utilities",
+      "name": "Utility - GET /openapi.json",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/openapi.json",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -189
+    },
+    {
+      "_id": "req_utils_docs",
+      "_type": "request",
+      "parentId": "fld_90_utilities",
+      "name": "Utility - GET /docs",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/docs",
+      "headers": [
+        {
+          "name": "Accept",
+          "value": "text/html"
+        }
+      ],
+      "authentication": {},
+      "body": {},
+      "metaSortKey": -188
+    },
+    {
+      "_id": "uts_contract_assertions",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Contract Assertions",
+      "metaSortKey": -130
+    },
+    {
+      "_id": "ut_contract_openapi_status_paths",
+      "_type": "unit_test",
+      "parentId": "uts_contract_assertions",
+      "name": "GET /openapi.json -> status 200, header json e openapi 3.x",
+      "code": "const response = await insomnia.send('req_utils_openapi');\nexpect(response.status).to.equal(200);\nconst contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';\nexpect(contentType).to.contain('application/json');\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('openapi');\nexpect(/^3\\./.test(body.openapi)).to.equal(true);\nexpect(body).to.have.property('paths');\nexpect(body.paths).to.have.property('/api/inscricoes/{inscricao_id}');\nexpect(body.paths).to.have.property('/telemetry/events');"
+    },
+    {
+      "_id": "ut_contract_inscricoes_get",
+      "_type": "unit_test",
+      "parentId": "uts_contract_assertions",
+      "name": "GET /api/inscricoes/{id} -> contrato 200 ou 404",
+      "code": "const response = await insomnia.send('req_contract_inscricoes_get_by_id');\nconst body = JSON.parse(response.data);\nexpect([200, 404]).to.include(response.status);\nif (response.status === 200) {\n  expect(body).to.have.property('id');\n  expect(body).to.have.property('status');\n  expect(body).to.have.property('ultimaAtualizacao');\n} else {\n  expect(body).to.have.property('ok', false);\n  expect(body).to.have.property('error', 'not_found');\n}"
+    },
+    {
+      "_id": "uts_smoke_assertions",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Smoke Assertions",
+      "metaSortKey": -120
+    },
+    {
+      "_id": "ut_smoke_healthz_status_body",
+      "_type": "unit_test",
+      "parentId": "uts_smoke_assertions",
+      "name": "GET /healthz -> status 200 e body ok=true",
+      "code": "const response = await insomnia.send('req_smoke_healthz');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);"
+    },
+    {
+      "_id": "ut_smoke_healthz_header",
+      "_type": "unit_test",
+      "parentId": "uts_smoke_assertions",
+      "name": "GET /healthz -> header content-type json",
+      "code": "const response = await insomnia.send('req_smoke_healthz');\nconst contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';\nexpect(contentType).to.contain('application/json');"
+    },
+    {
+      "_id": "ut_smoke_telemetry_status_body",
+      "_type": "unit_test",
+      "parentId": "uts_smoke_assertions",
+      "name": "POST /telemetry/events -> status 202 e ok=true",
+      "code": "const response = await insomnia.send('req_smoke_telemetry_post');\nexpect(response.status).to.equal(202);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('forwardStatus');"
+    },
+    {
+      "_id": "uts_regression_assertions",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Regression Assertions",
+      "metaSortKey": -110
+    },
+    {
+      "_id": "ut_reg_registration_ok",
+      "_type": "unit_test",
+      "parentId": "uts_regression_assertions",
+      "name": "GET /api/registrations/PRISM-2026-001 -> status 200 schema basico",
+      "code": "const response = await insomnia.send('req_regression_registration_ok');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('registrationId', 'PRISM-2026-001');\nexpect(body).to.have.property('status');\nexpect(['APPROVED','UNDER_REVIEW','REJECTED']).to.include(body.status);\nexpect(body).to.have.property('updatedAt');"
+    },
+    {
+      "_id": "ut_reg_registration_404",
+      "_type": "unit_test",
+      "parentId": "uts_regression_assertions",
+      "name": "GET /api/registrations/PRISM-2026-404 -> status 404 not_found",
+      "code": "const response = await insomnia.send('req_regression_registration_404');\nexpect(response.status).to.equal(404);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', false);\nexpect(body).to.have.property('error', 'not_found');"
+    },
+    {
+      "_id": "ut_reg_inscricoes_lote",
+      "_type": "unit_test",
+      "parentId": "uts_regression_assertions",
+      "name": "GET /api/inscricoes/lotes/{lote} -> status 200 e metrica totalLinhas",
+      "code": "const response = await insomnia.send('req_regression_inscricoes_lote');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('loteImportacao');\nexpect(body).to.have.property('statusLote');\nexpect(body).to.have.property('totalLinhas');"
+    },
+    {
+      "_id": "uts_security_assertions",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Security Assertions",
+      "metaSortKey": -100
+    },
+    {
+      "_id": "ut_sec_invalid_payload",
+      "_type": "unit_test",
+      "parentId": "uts_security_assertions",
+      "name": "POST /telemetry/events invalid payload -> status 400",
+      "code": "const response = await insomnia.send('req_security_telemetry_invalid_payload');\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', false);\nexpect(body).to.have.property('error');"
+    },
+    {
+      "_id": "uts_compliance_assertions",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Compliance Assertions",
+      "metaSortKey": -95
+    },
+    {
+      "_id": "ut_compliance_consent_create",
+      "_type": "unit_test",
+      "parentId": "uts_compliance_assertions",
+      "name": "POST /compliance/consent-records -> status 201",
+      "code": "const response = await insomnia.send('req_compliance_post_consent');\nexpect(response.status).to.equal(201);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);"
+    },
+    {
+      "_id": "ut_compliance_consent_list",
+      "_type": "unit_test",
+      "parentId": "uts_compliance_assertions",
+      "name": "GET /compliance/consent-records -> status 200 e records[]",
+      "code": "const response = await insomnia.send('req_compliance_list_consent');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('records');\nexpect(Array.isArray(body.records)).to.equal(true);"
+    },
+    {
+      "_id": "ut_compliance_dsar_list",
+      "_type": "unit_test",
+      "parentId": "uts_compliance_assertions",
+      "name": "GET /compliance/dsar-requests -> status 200 e requests[]",
+      "code": "const response = await insomnia.send('req_compliance_list_dsar');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('requests');\nexpect(Array.isArray(body.requests)).to.equal(true);"
+    },
+    {
+      "_id": "ut_compliance_integration_summary",
+      "_type": "unit_test",
+      "parentId": "uts_compliance_assertions",
+      "name": "GET /compliance/integration-summary -> status 200",
+      "code": "const response = await insomnia.send('req_compliance_integration_summary');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('summary');"
+    },
+    {
+      "_id": "uts_observability_assertions",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_conecta_api_qa",
+      "name": "Observability Assertions",
+      "metaSortKey": -94
+    },
+    {
+      "_id": "ut_obs_health",
+      "_type": "unit_test",
+      "parentId": "uts_observability_assertions",
+      "name": "GET /observability/health -> status 200",
+      "code": "const response = await insomnia.send('req_observability_health');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('health');"
+    },
+    {
+      "_id": "ut_obs_summary",
+      "_type": "unit_test",
+      "parentId": "uts_observability_assertions",
+      "name": "GET /observability/summary -> status 200 e summary",
+      "code": "const response = await insomnia.send('req_observability_summary');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('summary');\nexpect(body.summary).to.have.property('windowMinutes');"
+    },
+    {
+      "_id": "ut_obs_alerts",
+      "_type": "unit_test",
+      "parentId": "uts_observability_assertions",
+      "name": "GET /observability/alerts -> status 200 e alerts[]",
+      "code": "const response = await insomnia.send('req_observability_alerts');\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\nexpect(body).to.have.property('ok', true);\nexpect(body).to.have.property('alerts');\nexpect(Array.isArray(body.alerts)).to.equal(true);"
+    }
+  ]
+}

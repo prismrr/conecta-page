@@ -1,0 +1,29 @@
+{
+  "base": {
+    "baseUrl": "http://127.0.0.1:8080",
+    "authEndpoint": "/auth/token",
+    "requestTimeoutMs": 10000,
+    "username": "qa.user",
+    "accessToken": "",
+    "correlationId": "manual-insomnia-run",
+    "registrationId": "PRISM-2026-001",
+    "inscricaoId": "PRISM-2026-001",
+    "loteImportacao": "ING-TEST-20260531-0001",
+    "dsarProtocol": "DSAR-20260531-ABC123",
+    "testRunId": "RUN-YYYYMMDD-001",
+    "releaseTag": "release-candidate",
+    "tester": "qa.engineer"
+  },
+  "local": {
+    "baseUrl": "http://127.0.0.1:8080",
+    "requestTimeoutMs": 10000,
+    "username": "qa.user",
+    "tester": "qa.local"
+  },
+  "staging": {
+    "baseUrl": "https://staging.api.example.com",
+    "requestTimeoutMs": 15000,
+    "username": "qa.service",
+    "tester": "qa.staging"
+  }
+}

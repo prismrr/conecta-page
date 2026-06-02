@@ -1,0 +1,252 @@
+name: API Quality Gates
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Base URL da API alvo
+        required: false
+        default: ""
+      openapi_file:
+        description: Caminho do contrato OpenAPI no repositório
+        required: true
+        default: contracts/openapi/inscricoes.v1.0.0.openapi.json
+
+jobs:
+  functional-karate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FastAPI runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements-fastapi.txt
+
+      - name: Start local FastAPI for Karate
+        run: |
+          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-karate-ci.db" \
+          python backend/fastapi_server.py --host 127.0.0.1 --port 8080 >/tmp/conecta-api-karate.log 2>&1 &
+          echo "API_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for API readiness
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FastAPI did not become ready in time" >&2
+          exit 1
+
+      - name: Run Karate API suite
+        run: |
+          cd tests/api/karate
+          mvn -q test -DbaseUrl="http://127.0.0.1:8080"
+
+      - name: Upload Karate report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-report
+          retention-days: 14
+          path: |
+            tests/api/karate/target/surefire-reports
+            tests/api/karate/target/karate-reports
+          if-no-files-found: ignore
+
+      - name: Upload FastAPI log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-fastapi-log
+          retention-days: 14
+          path: /tmp/conecta-api-karate.log
+          if-no-files-found: ignore
+
+      - name: Stop local FastAPI
+        if: ${{ always() }}
+        run: |
+          if [ -n "${API_PID:-}" ]; then
+            kill "$API_PID" || true
+          fi
+
+  performance-k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve target URL
+        run: |
+          if [ -n "${{ inputs.base_url }}" ]; then
+            echo "TARGET_URL=${{ inputs.base_url }}" >> "$GITHUB_ENV"
+            echo "USE_LOCAL_API=false" >> "$GITHUB_ENV"
+          else
+            echo "TARGET_URL=http://127.0.0.1:8080" >> "$GITHUB_ENV"
+            echo "USE_LOCAL_API=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup Python
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FastAPI runtime dependencies
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements-fastapi.txt
+
+      - name: Start local FastAPI for k6
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        run: |
+          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-k6-ci.db" \
+          python backend/fastapi_server.py --host 127.0.0.1 --port 8080 >/tmp/conecta-api-k6.log 2>&1 &
+          echo "API_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for API readiness
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FastAPI did not become ready in time" >&2
+          exit 1
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 baseline load test
+        run: |
+          BASE_URL="$TARGET_URL" k6 run tests/performance/k6/api-load.js
+
+      - name: Upload FastAPI log on failure
+        if: ${{ failure() && env.USE_LOCAL_API == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-fastapi-log
+          retention-days: 14
+          path: /tmp/conecta-api-k6.log
+          if-no-files-found: ignore
+
+      - name: Stop local FastAPI
+        if: ${{ always() && env.USE_LOCAL_API == 'true' }}
+        run: |
+          if [ -n "${API_PID:-}" ]; then
+            kill "$API_PID" || true
+          fi
+
+  security-zap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve target URL
+        run: |
+          if [ -n "${{ inputs.base_url }}" ]; then
+            echo "TARGET_URL=${{ inputs.base_url }}" >> "$GITHUB_ENV"
+            echo "USE_LOCAL_API=false" >> "$GITHUB_ENV"
+          else
+            echo "TARGET_URL=http://127.0.0.1:8080" >> "$GITHUB_ENV"
+            echo "USE_LOCAL_API=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FastAPI runtime dependencies
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements-fastapi.txt
+
+      - name: Start local FastAPI for ZAP
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        run: |
+          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-zap-ci.db" \
+          python backend/fastapi_server.py --host 127.0.0.1 --port 8080 >/tmp/conecta-api-zap.log 2>&1 &
+          echo "API_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for API readiness
+        if: ${{ env.USE_LOCAL_API == 'true' }}
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FastAPI did not become ready in time" >&2
+          exit 1
+
+      - name: Build effective OpenAPI with target server
+        run: |
+          mkdir -p .tmp
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import os
+
+          source = Path("${{ inputs.openapi_file }}")
+          target = Path(".tmp/zap-openapi.effective.json")
+          data = json.loads(source.read_text(encoding="utf-8"))
+          data["servers"] = [{"url": os.environ["TARGET_URL"]}]
+          target.write_text(json.dumps(data, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Run OWASP ZAP API scan
+        run: |
+          OPENAPI_FILE="$PWD/.tmp/zap-openapi.effective.json" \
+          TARGET_URL="$TARGET_URL" \
+          REPORT_DIR="$PWD/logs/zap" \
+          FAIL_ON_WARN="true" \
+          bash scripts/zap_api_scan.sh
+
+      - name: Upload ZAP report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-api-report
+          retention-days: 14
+          path: |
+            logs/zap/zap-api-report.html
+            logs/zap/zap-api-report.json
+            logs/zap/zap-api-report.xml
+          if-no-files-found: ignore
+
+      - name: Upload FastAPI log on failure
+        if: ${{ failure() && env.USE_LOCAL_API == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-fastapi-log
+          retention-days: 14
+          path: /tmp/conecta-api-zap.log
+          if-no-files-found: ignore
+
+      - name: Stop local FastAPI
+        if: ${{ always() && env.USE_LOCAL_API == 'true' }}
+        run: |
+          if [ -n "${API_PID:-}" ]; then
+            kill "$API_PID" || true
+          fi

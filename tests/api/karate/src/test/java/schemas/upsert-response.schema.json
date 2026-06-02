@@ -1,0 +1,13 @@
+{
+  "ok": "#boolean",
+  "status": "#string",
+  "batchId": "#string",
+  "metrics": {
+    "totalRows": "#number",
+    "validRows": "#number",
+    "invalidRows": "#number",
+    "insertedRows": "#number",
+    "updatedRows": "#number",
+    "fileSizeBytes": "#number"
+  }
+}

@@ -24,6 +24,10 @@ Mapa de arquitetura: [docs/arquitetura.md](docs/arquitetura.md)
 Plano de deprecacao do legado ops: [docs/deprecacao-ops.md](docs/deprecacao-ops.md)
 Readiness de corte do legado ops: [docs/readiness-corte-ops.md](docs/readiness-corte-ops.md)
 Guia de ingestao de inscricoes: [docs/ingestao-inscricoes.md](docs/ingestao-inscricoes.md)
+Guia QA + DevSecOps para APIs: [docs/qa-devsecops-api-testing.md](docs/qa-devsecops-api-testing.md)
+Checklist de execucao manual por release: [docs/checklist-execucao-manual-release.md](docs/checklist-execucao-manual-release.md)
+Runbook de execucao manual Insomnia: [docs/manual-release-insomnia-runbook.md](docs/manual-release-insomnia-runbook.md)
+Workflow manual de quality gates de API: [.github/workflows/api-quality-gates.yml](.github/workflows/api-quality-gates.yml)
 
 ## Comandos rapidos de validacao
 
@@ -35,6 +39,61 @@ Guia de ingestao de inscricoes: [docs/ingestao-inscricoes.md](docs/ingestao-insc
 	- `npm run compliance:privacy:inventory`
 - Gate de inventario de terceiros:
 	- `npm run compliance:third-party:inventory`
+- Testes funcionais API com Karate:
+	- `npm run test:api:functional:karate`
+	- `npm run test:api:functional:karate:local`
+- Testes de performance API com k6:
+	- `npm run test:api:performance:k6`
+	- `npm run test:api:performance:k6:local`
+- Scan de seguranca de API com OWASP ZAP:
+	- `npm run test:api:security:zap`
+	- `npm run test:api:security:zap:local`
+
+## Como rodar as suites no Insomnia
+
+Fluxo rapido:
+
+1. Importar workspace:
+	- `qa/insomnia/conecta-api-qa.workspace.export.json`
+2. Selecionar ambiente:
+	- `local` ou `staging`
+3. Preencher variaveis obrigatorias:
+	- `baseUrl`, `registrationId`, `inscricaoId`, `loteImportacao`, `dsarProtocol`, `testRunId`, `releaseTag`, `tester`
+4. Executar suites (menu Tests do Insomnia), nesta ordem:
+	1. `Contract Assertions`
+	2. `Smoke Assertions`
+	3. `Regression Assertions`
+	4. `Security Assertions`
+	5. `Compliance Assertions`
+	6. `Observability Assertions`
+5. Registrar evidencias e decisao de release:
+	- template: [qa/insomnia/MANUAL-RELEASE-RUN.template.md](qa/insomnia/MANUAL-RELEASE-RUN.template.md)
+	- runbook: [docs/manual-release-insomnia-runbook.md](docs/manual-release-insomnia-runbook.md)
+	- pasta padrao: `qa/evidence/releases/<releaseTag>/<testRunId>/`
+
+## Troubleshooting Insomnia
+
+Problemas comuns e correcoes rapidas:
+
+1. API offline (falhas de conexao ou timeout)
+- Sintoma: requests retornam erro de rede.
+- Verificar: `GET /healthz` no ambiente selecionado.
+- Acao: iniciar API local e confirmar `baseUrl` no environment.
+
+2. Falha em assertions por variaveis nao preenchidas
+- Sintoma: requests com URL incompleta ou IDs invalidos.
+- Verificar: `registrationId`, `inscricaoId`, `loteImportacao`, `dsarProtocol`, `testRunId`, `releaseTag`, `tester`.
+- Acao: preencher environment com base em [qa/insomnia/ENVIRONMENTS.example.json](qa/insomnia/ENVIRONMENTS.example.json).
+
+3. Resultado divergente entre suites
+- Sintoma: uma suite passa e outra falha no mesmo ambiente.
+- Verificar: dados de teste existentes no backend e ordem de execucao (Contract -> Smoke -> Regression -> Security -> Compliance -> Observability).
+- Acao: repetir execucao completa e registrar evidencia em `qa/evidence/releases/<releaseTag>/<testRunId>/`.
+
+Referencias operacionais:
+
+- [docs/manual-release-insomnia-runbook.md](docs/manual-release-insomnia-runbook.md)
+- [qa/insomnia/WORKSPACE-STRUCTURE.md](qa/insomnia/WORKSPACE-STRUCTURE.md)
 
 ## Build em container
 O build canônico do artefato estatico roda dentro do container `conecta-build` via Docker Compose.
