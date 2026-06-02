@@ -176,6 +176,40 @@ conn.close()
   return JSON.parse(output);
 }
 
+function readInscricao(dbFile, inscricaoId) {
+  const output = runPythonSnippetSync(
+    `
+import json
+import os
+import sqlite3
+
+db_path = os.environ["DB_FILE"]
+inscricao_id = os.environ["INSCRICAO_ID"]
+conn = sqlite3.connect(db_path)
+conn.row_factory = sqlite3.Row
+
+row = conn.execute(
+    """
+    SELECT id, nome, status, data_atualizacao_origem, lote_importacao
+    FROM inscricoes
+    WHERE id = ?
+    LIMIT 1
+    """,
+    (inscricao_id,)
+).fetchone()
+
+print(json.dumps(dict(row) if row else None, ensure_ascii=True))
+conn.close()
+    `,
+    {
+      DB_FILE: dbFile,
+      INSCRICAO_ID: inscricaoId
+    }
+  );
+
+  return JSON.parse(output);
+}
+
 async function startCsvServer(csvContent) {
   const server = createServer((req, res) => {
     if (req.url !== "/inscricoes.csv") {
@@ -308,6 +342,81 @@ describeIngestion("ingestao de inscricoes (integracao)", () => {
       expect(history[1].registros_inseridos).toBe(0);
     } finally {
       await csvServer.stop();
+      await rm(dbFile, { force: true });
+    }
+  });
+
+  test("deve aplicar upsert incremental por data_atualizacao", async () => {
+    const dbFile = join(tmpdir(), `conecta-ingest-upsert-${Date.now()}.db`);
+    const csvInitial = [
+      "id,nome,email,status,data_atualizacao,lote_importacao",
+      "PRISM-2026-050,Pessoa Cinquenta,pessoa.cinquenta@example.com,APPROVED,2026-05-24T10:00:00Z,LOTE-EXT-UPSERT-1"
+    ].join("\n");
+    const csvNewer = [
+      "id,nome,email,status,data_atualizacao,lote_importacao",
+      "PRISM-2026-050,Pessoa Cinquenta Atualizada,pessoa.cinquenta@example.com,UNDER_REVIEW,2026-05-24T11:00:00Z,LOTE-EXT-UPSERT-2"
+    ].join("\n");
+    const csvOlder = [
+      "id,nome,email,status,data_atualizacao,lote_importacao",
+      "PRISM-2026-050,Pessoa Cinquenta Antiga,pessoa.cinquenta@example.com,REJECTED,2026-05-24T09:00:00Z,LOTE-EXT-UPSERT-3"
+    ].join("\n");
+
+    const csvServerInitial = await startCsvServer(csvInitial);
+    const csvServerNewer = await startCsvServer(csvNewer);
+    const csvServerOlder = await startCsvServer(csvOlder);
+
+    try {
+      const firstRun = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServerInitial.url,
+        forceReprocess: true
+      });
+
+      expect(firstRun.ok).toBe(true);
+      expect(firstRun.result.status).toBe("concluido");
+      expect(firstRun.result.metrics.insertedRows).toBe(1);
+      expect(firstRun.result.metrics.updatedRows).toBe(0);
+
+      const secondRun = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServerNewer.url,
+        forceReprocess: true
+      });
+
+      expect(secondRun.ok).toBe(true);
+      expect(secondRun.result.status).toBe("concluido");
+      expect(secondRun.result.metrics.insertedRows).toBe(0);
+      expect(secondRun.result.metrics.updatedRows).toBe(1);
+
+      const updatedRecord = readInscricao(dbFile, "PRISM-2026-050");
+      expect(updatedRecord).toBeTruthy();
+      expect(updatedRecord.nome).toBe("Pessoa Cinquenta Atualizada");
+      expect(updatedRecord.status).toBe("EM_ANALISE");
+      expect(updatedRecord.data_atualizacao_origem).toBe("2026-05-24T11:00:00+00:00");
+
+      const thirdRun = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServerOlder.url,
+        forceReprocess: true
+      });
+
+      expect(thirdRun.ok).toBe(true);
+      expect(thirdRun.result.status).toBe("concluido");
+      expect(thirdRun.result.metrics.insertedRows).toBe(0);
+      expect(thirdRun.result.metrics.updatedRows).toBe(0);
+
+      const preservedRecord = readInscricao(dbFile, "PRISM-2026-050");
+      expect(preservedRecord).toBeTruthy();
+      expect(preservedRecord.nome).toBe("Pessoa Cinquenta Atualizada");
+      expect(preservedRecord.status).toBe("EM_ANALISE");
+      expect(preservedRecord.data_atualizacao_origem).toBe("2026-05-24T11:00:00+00:00");
+
+      const state = readIngestionState(dbFile);
+      expect(state.inscricoesCount).toBe(1);
+    } finally {
+      await csvServerInitial.stop();
+      await csvServerNewer.stop();
+      await csvServerOlder.stop();
       await rm(dbFile, { force: true });
     }
   });
