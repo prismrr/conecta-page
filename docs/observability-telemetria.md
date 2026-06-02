@@ -15,7 +15,7 @@ Fluxo principal:
 2. O servidor grava os eventos em NDJSON e em SQLite.
 3. Se configurado, o servidor faz forwarding dos eventos para destino externo.
 4. Endpoints de observabilidade agregam metricas e saude operacional.
-5. Opcionalmente, Loki + Grafana permitem exploracao persistente.
+5. Opcionalmente, Loki + Prometheus + Grafana permitem exploracao persistente.
 
 Componentes:
 - Emissor frontend: [nuxt-app/plugins/telemetry.client.ts](../nuxt-app/plugins/telemetry.client.ts)
@@ -128,7 +128,7 @@ Comportamento:
 - Abre alerta com severidade high quando ultrapassa o limiar.
 - Usa fingerprint por bucket de tempo para evitar duplicacao excessiva.
 
-## Stack local com Loki e Grafana
+## Stack local com Loki, Prometheus e Grafana
 Subir somente observability:
 - docker compose -f infra/observability/docker-compose.yml up -d
 
@@ -138,10 +138,15 @@ Subir app + observability:
 Acessos:
 - App: http://localhost:8080
 - Loki: http://localhost:3100/ready
+- Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000
 
 Consulta sugerida no Grafana Explore (Loki):
 - {job="conecta-telemetry"}
+
+Consulta sugerida para performance API (Prometheus + k6):
+- executar `npm run test:api:performance:k6:grafana`
+- abrir dashboard provisionado `k6 API Performance` (pasta `Performance`)
 
 Encerrar stack completa:
 - npm run dev:docker:full:down
@@ -173,6 +178,11 @@ Eventos nao aparecem no Grafana:
 - Confirmar provider loki e URL correta /loki/api/v1/push.
 - Confirmar stack Loki/Grafana em execucao.
 - Confirmar query com label job=conecta-telemetry.
+
+Metricas de k6 nao aparecem no Grafana:
+- Confirmar stack Prometheus/Grafana em execucao.
+- Confirmar execucao com `-o experimental-prometheus-rw` e `K6_PROMETHEUS_RW_SERVER_URL` apontando para `http://127.0.0.1:9090/api/v1/write`.
+- Confirmar datasource `Prometheus` provisionado no Grafana.
 
 Mount error em compose multiarquivo:
 - Garantir uso dos scripts npm full stack ja preparados para PWD.

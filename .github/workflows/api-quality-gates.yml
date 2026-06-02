@@ -276,9 +276,25 @@ jobs:
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
+      - name: Prepare k6 artifact directory
+        run: mkdir -p logs/k6
+
       - name: Run k6 baseline load test
         run: |
-          BASE_URL="$TARGET_URL" k6 run tests/performance/k6/api-load.js
+          BASE_URL="$TARGET_URL" \
+          K6_PROFILE=baseline \
+          k6 run \
+            --summary-export logs/k6/summary-ci.json \
+            tests/performance/k6/api-load.js | tee logs/k6/run-ci.log
+
+      - name: Upload k6 report artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-performance-report
+          retention-days: 14
+          path: logs/k6
+          if-no-files-found: warn
 
       - name: Upload FastAPI log on failure
         if: ${{ failure() && env.USE_LOCAL_API == 'true' }}

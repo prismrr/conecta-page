@@ -51,6 +51,9 @@ Workflow manual de quality gates de API: [.github/workflows/api-quality-gates.ym
 - Testes de performance API com k6:
 	- `npm run test:api:performance:k6`
 	- `npm run test:api:performance:k6:local`
+	- `npm run test:api:performance:k6:local:smoke`
+	- `npm run test:api:performance:k6:local:stress`
+	- `npm run test:api:performance:k6:grafana`
 - Scan de seguranca de API com OWASP ZAP:
 	- `npm run test:api:security:zap`
 	- `npm run test:api:security:zap:local`
@@ -419,8 +422,8 @@ Esse comando gera o artefato final em `.deploy/dist` e inclui a validacao da cam
 
 O compose local carrega variaveis de [.env](.env) automaticamente, com fallback em [.env.example](.env.example).
 
-### Teste completo com Docker Compose (App + Loki + Grafana)
-Esta opcao sobe a aplicacao local, o Loki e o Grafana juntos para validar o fluxo completo de telemetria e observabilidade.
+### Teste completo com Docker Compose (App + Loki + Prometheus + Grafana)
+Esta opcao sobe a aplicacao local, o Loki, o Prometheus e o Grafana juntos para validar o fluxo completo de telemetria e observabilidade.
 ## Smoke test
 O smoke test agora aponta para a API FastAPI por padrao.
 
@@ -443,13 +446,14 @@ Atalho via npm:
 - `npm run dev:docker:full:logs`
 - `npm run dev:docker:full:down`
 
-Observacao: `npm run dev:docker:full` executa build automatizado via Docker Compose antes de subir App + Loki + Grafana.
+Observacao: `npm run dev:docker:full` executa build automatizado via Docker Compose antes de subir App + Loki + Prometheus + Grafana.
 
 3. Acesse os componentes:
 
 - Aplicacao: `http://localhost:8080`
 - Grafana: `http://localhost:3000`
 - Loki API (debug): `http://localhost:3100/ready`
+- Prometheus: `http://localhost:9090`
 
 4. Gere eventos de telemetria (navegando na UI ou via curl):
 
@@ -467,6 +471,11 @@ Observacao: `npm run dev:docker:full` executa build automatizado via Docker Comp
 
 Observacao:
 - Se o forwarding estiver ativo para Loki, o endpoint `GET /observability/health` deve mostrar `forwarding.configured=true`.
+
+7. Para visualizar carga/performance no Grafana com métricas do k6:
+
+- Execute `npm run test:api:performance:k6:grafana`
+- No Grafana, abra o dashboard `k6 API Performance` (pasta `Performance`)
 
 ## Integracao real de consulta de inscricao
 O fluxo de consulta na rota Nuxt /inscricoes usa requisicao HTTP real com retry, timeout e validacao de contrato.
@@ -707,12 +716,13 @@ Health operacional:
 - ultimo evento de telemetria e ultimo alerta
 - contagens das ultimas 24h
 
-### Destino real com persistencia (Loki + Grafana)
+### Destino real com persistencia (Loki + Prometheus + Grafana)
 Para operacionalizar observabilidade persistente com stack local, foi adicionada uma composicao em [infra/observability/docker-compose.yml](infra/observability/docker-compose.yml) com:
 
 - Loki para armazenamento persistente de logs de telemetria
+- Prometheus para armazenamento de métricas de performance
 - Grafana para consulta e dashboards
-- Volumes nomeados (`loki-data`, `grafana-data`) para persistencia
+- Volumes nomeados (`loki-data`, `prometheus-data`, `grafana-data`) para persistencia
 
 Suba a stack:
 

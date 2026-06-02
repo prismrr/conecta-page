@@ -97,14 +97,11 @@ Cobertura funcional atual da suíte Karate:
 
 Implementação inicial em `tests/performance/k6/api-load.js` com:
 
-- ramp-up: 2m até 20 VUs
-- stress: 5m com 100 VUs
-- cool-down: 2m até 0
-
-Thresholds padrão:
-
-- `http_req_failed < 1%`
-- `p95 < 500ms`
+- perfis `smoke`, `baseline` e `stress` selecionados por `K6_PROFILE`
+- thresholds padrão:
+  - `http_req_failed < 1%`
+  - `p95 < 500ms`
+- saída de evidência local em `logs/k6/summary.json` e `logs/k6/summary.txt`
 
 Execução:
 
@@ -113,6 +110,16 @@ Execução:
 Execução local completa com bootstrap automático da API:
 
 `npm run test:api:performance:k6:local`
+
+Execução local por perfil:
+
+- `npm run test:api:performance:k6:local:smoke`
+- `npm run test:api:performance:k6:local:stress`
+
+Envio de métricas do k6 para Grafana (via Prometheus remote-write):
+
+- subir stack de observability: `docker compose -f infra/observability/docker-compose.yml up -d`
+- executar: `npm run test:api:performance:k6:grafana`
 
 ## 4. Segurança (OWASP ZAP)
 
@@ -182,5 +189,5 @@ Detalhe operacional:
 - `functional-karate-smoke` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios `@smoke` do Karate contra `http://127.0.0.1:8080`.
 - `functional-karate-regression` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios `@regression` do Karate contra `http://127.0.0.1:8080`.
 - `functional-karate-compliance` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios `@compliance` do Karate contra `http://127.0.0.1:8080`.
-- `performance-k6` sobe FastAPI local automaticamente quando nao ha `base_url` remoto e executa o script k6 contra localhost.
+- `performance-k6` sobe FastAPI local automaticamente quando nao ha `base_url` remoto, executa o perfil `baseline` do k6 e publica artefatos em `logs/k6` (incluindo `summary-ci.json` e `run-ci.log`).
 - `security-zap` sobe FastAPI local automaticamente quando nao ha `base_url` remoto e gera um OpenAPI efetivo com `servers.url` apontando para o alvo antes do scan.

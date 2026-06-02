@@ -5,6 +5,9 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${PORT:-4186}"
 DB_FILE="${DB_FILE:-$ROOT_DIR/data/compliance-k6-local.db}"
 TARGET_PATH="${TARGET_PATH:-/api/inscricoes/PRISM-2026-001}"
+K6_PROFILE="${K6_PROFILE:-baseline}"
+SUMMARY_DIR="${SUMMARY_DIR:-$ROOT_DIR/logs/k6}"
+SUMMARY_JSON="${SUMMARY_JSON:-$SUMMARY_DIR/summary-local.json}"
 
 if ! command -v k6 >/dev/null 2>&1; then
   echo "[k6-local] k6 nao encontrado no PATH" >&2
@@ -39,6 +42,14 @@ if ! curl -fsS "http://127.0.0.1:${PORT}/healthz" >/dev/null; then
   exit 1
 fi
 
-BASE_URL="http://127.0.0.1:${PORT}" TARGET_PATH="$TARGET_PATH" k6 run "$ROOT_DIR/tests/performance/k6/api-load.js"
+mkdir -p "$SUMMARY_DIR"
 
-echo "[k6-local] completed successfully against http://127.0.0.1:${PORT}${TARGET_PATH}"
+BASE_URL="http://127.0.0.1:${PORT}" \
+TARGET_PATH="$TARGET_PATH" \
+K6_PROFILE="$K6_PROFILE" \
+k6 run \
+  --summary-export "$SUMMARY_JSON" \
+  "$ROOT_DIR/tests/performance/k6/api-load.js"
+
+echo "[k6-local] completed successfully against http://127.0.0.1:${PORT}${TARGET_PATH} (profile=$K6_PROFILE)"
+echo "[k6-local] summary available at $SUMMARY_JSON"
