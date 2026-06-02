@@ -55,3 +55,5 @@ nuxt-app/.cache/
 .nuxt
 .nitro
 .cache
+
+celerybeat-schedule
