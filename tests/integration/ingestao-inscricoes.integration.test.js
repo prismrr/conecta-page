@@ -76,7 +76,7 @@ async function runPythonSnippetAsync(code, env = {}) {
   });
 }
 
-async function runIngestionTask({ dbFile, sourceUrl }) {
+async function runIngestionTask({ dbFile, sourceUrl, forceReprocess = true }) {
   const output = await runPythonSnippetAsync(
     `
 import json
@@ -86,17 +86,21 @@ from backend.ingestion.tasks import sync_inscricoes_from_csv
 
 payload = {}
 try:
-    result = sync_inscricoes_from_csv(source_url=os.environ["CSV_URL"], force_reprocess=True)
-    payload = {"ok": True, "result": result}
+  result = sync_inscricoes_from_csv(
+    source_url=os.environ["CSV_URL"],
+    force_reprocess=os.environ.get("FORCE_REPROCESS", "1") == "1"
+  )
+  payload = {"ok": True, "result": result}
 except Exception as exc:
-    payload = {"ok": False, "error": str(exc)}
+  payload = {"ok": False, "error": str(exc)}
 
 print(json.dumps(payload, ensure_ascii=True))
     `,
     {
       CONECTA_COMPLIANCE_DB_FILE: dbFile,
       CONECTA_PII_FERNET_KEY: TEST_FERNET_KEY,
-      CSV_URL: sourceUrl
+      CSV_URL: sourceUrl,
+      FORCE_REPROCESS: forceReprocess ? "1" : "0"
     }
   );
 
@@ -132,6 +136,36 @@ result = {
   "inscricoesCount": int(inscricoes_count)
 }
 print(json.dumps(result, ensure_ascii=True))
+conn.close()
+    `,
+    {
+      DB_FILE: dbFile
+    }
+  );
+
+  return JSON.parse(output);
+}
+
+function readBatchHistory(dbFile) {
+  const output = runPythonSnippetSync(
+    `
+import json
+import os
+import sqlite3
+
+db_path = os.environ["DB_FILE"]
+conn = sqlite3.connect(db_path)
+conn.row_factory = sqlite3.Row
+
+rows = conn.execute(
+    """
+    SELECT lote_importacao, status_lote, total_linhas, linhas_validas, linhas_invalidas, registros_inseridos, registros_atualizados, erro_resumo
+    FROM ingest_batches
+    ORDER BY iniciado_em ASC
+    """
+).fetchall()
+
+print(json.dumps([dict(row) for row in rows], ensure_ascii=True))
 conn.close()
     `,
     {
@@ -226,6 +260,52 @@ describeIngestion("ingestao de inscricoes (integracao)", () => {
       expect(state.batch).toBeNull();
       expect(state.errorsCount).toBe(0);
       expect(state.inscricoesCount).toBe(0);
+    } finally {
+      await csvServer.stop();
+      await rm(dbFile, { force: true });
+    }
+  });
+
+  test("deve manter idempotencia por checksum ao reprocessar mesmo CSV", async () => {
+    const dbFile = join(tmpdir(), `conecta-ingest-idempotencia-${Date.now()}.db`);
+    const csvContent = [
+      "id,nome,email,status,data_atualizacao,lote_importacao",
+      "PRISM-2026-021,Pessoa VinteUm,pessoa.vinteum@example.com,APPROVED,2026-05-24T10:00:00Z,LOTE-EXT-777",
+      "PRISM-2026-022,Pessoa VinteDois,pessoa.vintedois@example.com,UNDER_REVIEW,2026-05-24T10:10:00Z,LOTE-EXT-777"
+    ].join("\n");
+
+    const csvServer = await startCsvServer(csvContent);
+
+    try {
+      const firstRun = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServer.url,
+        forceReprocess: false
+      });
+
+      expect(firstRun.ok).toBe(true);
+      expect(firstRun.result.status).toBe("concluido");
+      expect(firstRun.result.metrics.insertedRows).toBe(2);
+
+      const secondRun = await runIngestionTask({
+        dbFile,
+        sourceUrl: csvServer.url,
+        forceReprocess: false
+      });
+
+      expect(secondRun.ok).toBe(true);
+      expect(secondRun.result.status).toBe("duplicado");
+
+      const state = readIngestionState(dbFile);
+      expect(state.inscricoesCount).toBe(2);
+
+      const history = readBatchHistory(dbFile);
+      expect(history).toHaveLength(2);
+      expect(history[0].status_lote).toBe("concluido");
+      expect(history[0].registros_inseridos).toBe(2);
+      expect(history[1].status_lote).toBe("duplicado");
+      expect(history[1].erro_resumo).toBe("checksum_ja_processado");
+      expect(history[1].registros_inseridos).toBe(0);
     } finally {
       await csvServer.stop();
       await rm(dbFile, { force: true });
