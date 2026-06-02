@@ -41,7 +41,13 @@ Workflow manual de quality gates de API: [.github/workflows/api-quality-gates.ym
 	- `npm run compliance:third-party:inventory`
 - Testes funcionais API com Karate:
 	- `npm run test:api:functional:karate`
+	- `npm run test:api:functional:karate:smoke`
+	- `npm run test:api:functional:karate:regression`
+	- `npm run test:api:functional:karate:compliance`
 	- `npm run test:api:functional:karate:local`
+	- `npm run test:api:functional:karate:local:smoke`
+	- `npm run test:api:functional:karate:local:regression`
+	- `npm run test:api:functional:karate:local:compliance`
 - Testes de performance API com k6:
 	- `npm run test:api:performance:k6`
 	- `npm run test:api:performance:k6:local`

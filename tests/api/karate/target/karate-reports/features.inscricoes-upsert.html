@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <link rel="stylesheet" href="res/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="res/karate-report.css" type="text/css"/>
+    <link rel="shortcut icon" href="favicon.ico"/>
+    <script type="text/javascript" src="res/jquery.min.js"></script>
+    <script type="text/javascript" src="res/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript" src="res/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="res/bootstrap.min.js"></script>
+    <script type="text/javascript" src="res/karate-report.js"></script>
+    <script type="text/javascript" src="res/Resemble.js"></script>
+    <script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phc_M6fKk3dSX9HjglkqPSybauGas45NINb7EgsPGU8N9g1',{
+  api_host:'https://app.posthog.com',
+  persistence:'localStorage',
+  autocapture:false,
+  capture_pageview:false,
+  api_transport:'sendBeacon',
+  loaded: function(posthog) { 
+    posthog.capture("report_feature",{distinct_id:"ed1e03bc-b378-4e1f-9afd-56b6e00381cf",karate_version:"1.4.1",karate_meta:null});
+  }
+});
+</script>
+
+    <title>features.inscricoes-upsert</title>
+  </head>
+  <body>
+    <div id="root-container">
+      <div id="leftnav">
+        
+        <div>
+  <div class="nav-logo">
+    <a href="https://karatelabs.io">
+      <img src="karate-labs-logo-ring.svg" alt="Karate Labs"/>
+    </a>
+    <div class="nav-count">
+      <div id="nav-pass" class="bg-success">4</div>
+      <div id="nav-fail" class="bg-danger">0</div>
+    </div>
+  </div>
+  <div id="nav-env">
+    <div></div>
+  </div>
+  <div id="nav-type">
+    <div>Scenarios</div>
+  </div>
+  <div id="nav-date">
+    <div>2026-06-02 04:18:42 PM</div>
+  </div>
+</div>
+
+        <div class="nav-container">
+          <div class="nav-item passed">
+            <a href="#[8:103]"><span>[8:103]</span> <span>Consent record create and list should work</span></a>
+          </div>
+          <div class="nav-item passed">
+            <a href="#[9:133]"><span>[9:133]</span> <span>DSAR list endpoint should return array</span></a>
+          </div>
+          <div class="nav-item passed">
+            <a href="#[10:142]"><span>[10:142]</span> <span>Integration event should update integration summary</span></a>
+          </div>
+          <div class="nav-item passed">
+            <a href="#[11:166]"><span>[11:166]</span> <span>Content audit create and list should work with unique event id</span></a>
+          </div>
+        </div>
+      </div>
+      <div id="content">
+        <div class="page-heading alert alert-primary">
+          <a href="karate-summary.html">Summary</a><span class="feature-label">|</span>
+          <a href="karate-tags.html">Tags</a><span class="feature-label">|</span>
+          <span class="feature-label">Feature:</span>
+          <span class="feature-path">features/inscricoes-upsert.feature</span><span class="feature-label">|</span>
+          <span class="feature-name">API functional smoke and regression for real endpoints</span>
+          <span class="feature-description"></span>
+        </div>
+        <div class="scenario">
+          <div class="scenario-heading" id="[8:103]">
+            <div class="heading-container">
+              <div class="scenario-tags">
+                <a class="badge badge-primary" href="karate-tags.html">compliance</a><a class="badge badge-primary" href="karate-tags.html">regression</a>
+              </div>
+              <div class="scenario-keyword">
+                Scenario: <span>[8:103]</span>
+                <span class="scenario-name">Consent record create and list should work</span>
+                <span></span>
+              </div>
+            </div>
+            <div class="scenario-time passed">
+              <span>ms:</span>&nbsp;<span>202</span>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-container" id="[8:103]bg">
+              <div class="step-ref bg-step">&gt;&gt;</div>
+              <div class="step-cell passed">Background:</div>
+            </div>
+            <div class="time-cell passed"></div>
+          </div>
+          <div data-parent="[8:103]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.4">
+      <div class="step-ref bg-step">4</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomUuid = java.util.UUID.randomUUID() + &#39;&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">20</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div data-parent="[8:103]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.5">
+      <div class="step-ref bg-step">5</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomToken = randomUuid.substring(0, 8)</span>
+      </div>
+    </div>
+    <div class="time-cell passed">3</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.104">
+      <div class="step-ref passed">104</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.105">
+      <div class="step-ref passed">105</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/consent-records&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.106">
+      <div class="step-ref passed">106</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>header Content-Type = &#39;application/json&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.107">
+      <div class="step-ref passed">107</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>request</span>
+      </div>
+    </div>
+    <div class="time-cell passed">14</div>
+  </div>
+
+   
+  
+  <div class="preformatted" data-parent="0.107">{
+  version: &#39;v2&#39;,
+  status: &#39;granted&#39;,
+  categories: {
+    essential: true,
+    analytics_optional: true,
+    marketing_optional: false
+  },
+  updatedAt: &#39;2026-06-02T12:00:00Z&#39;,
+  source: &#39;karate&#39;
+}</div>
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.121">
+      <div class="step-ref passed">121</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method post</span>
+      </div>
+    </div>
+    <div class="time-cell passed">146</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.121">16:18:42.319 request:
+1 &gt; POST http://127.0.0.1:4185/compliance/consent-records
+1 &gt; Content-Type: application/json; charset=UTF-8
+1 &gt; Content-Length: 173
+1 &gt; Host: 127.0.0.1:4185
+1 &gt; Connection: Keep-Alive
+1 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+1 &gt; Accept-Encoding: gzip,deflate
+{&quot;version&quot;:&quot;v2&quot;,&quot;status&quot;:&quot;granted&quot;,&quot;categories&quot;:{&quot;essential&quot;:true,&quot;analytics_optional&quot;:true,&quot;marketing_optional&quot;:false},&quot;updatedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;source&quot;:&quot;karate&quot;}
+
+16:18:42.341 response time in milliseconds: 20
+1 &lt; 201
+1 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+1 &lt; server: uvicorn
+1 &lt; content-length: 11
+1 &lt; content-type: application/json
+{&quot;ok&quot;:true}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.122">
+      <div class="step-ref passed">122</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 201</span>
+      </div>
+    </div>
+    <div class="time-cell passed">2</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.123">
+      <div class="step-ref passed">123</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">5</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.125">
+      <div class="step-ref passed">125</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.126">
+      <div class="step-ref passed">126</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/consent-records&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.127">
+      <div class="step-ref passed">127</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>param limit = 20</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.128">
+      <div class="step-ref passed">128</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method get</span>
+      </div>
+    </div>
+    <div class="time-cell passed">7</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.128">16:18:42.353 request:
+2 &gt; GET http://127.0.0.1:4185/compliance/consent-records?limit=20
+2 &gt; Host: 127.0.0.1:4185
+2 &gt; Connection: Keep-Alive
+2 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+2 &gt; Accept-Encoding: gzip,deflate
+
+
+16:18:42.358 response time in milliseconds: 5
+2 &lt; 200
+2 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+2 &lt; server: uvicorn
+2 &lt; content-length: 767
+2 &lt; content-type: application/json
+{&quot;ok&quot;:true,&quot;records&quot;:[{&quot;recordedAt&quot;:&quot;2026-06-02T20:18:42.330863Z&quot;,&quot;version&quot;:&quot;v2&quot;,&quot;updatedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;source&quot;:&quot;karate&quot;,&quot;status&quot;:&quot;granted&quot;,&quot;categories&quot;:{&quot;essential&quot;:true,&quot;analytics_optional&quot;:true,&quot;marketing_optional&quot;:false,&quot;communication_optional&quot;:false}},{&quot;recordedAt&quot;:&quot;2026-06-02T20:15:01.533940Z&quot;,&quot;version&quot;:&quot;v2&quot;,&quot;updatedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;source&quot;:&quot;karate&quot;,&quot;status&quot;:&quot;granted&quot;,&quot;categories&quot;:{&quot;essential&quot;:true,&quot;analytics_optional&quot;:true,&quot;marketing_optional&quot;:false,&quot;communication_optional&quot;:false}},{&quot;recordedAt&quot;:&quot;2026-06-02T20:14:36.660733Z&quot;,&quot;version&quot;:&quot;v2&quot;,&quot;updatedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;source&quot;:&quot;karate&quot;,&quot;status&quot;:&quot;granted&quot;,&quot;categories&quot;:{&quot;essential&quot;:true,&quot;analytics_optional&quot;:true,&quot;marketing_optional&quot;:false,&quot;communication_optional&quot;:false}}]}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.129">
+      <div class="step-ref passed">129</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 200</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.130">
+      <div class="step-ref passed">130</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true, records: &#39;#[]&#39; }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+        </div>
+        <div class="scenario">
+          <div class="scenario-heading" id="[9:133]">
+            <div class="heading-container">
+              <div class="scenario-tags">
+                <a class="badge badge-primary" href="karate-tags.html">compliance</a><a class="badge badge-primary" href="karate-tags.html">regression</a>
+              </div>
+              <div class="scenario-keyword">
+                Scenario: <span>[9:133]</span>
+                <span class="scenario-name">DSAR list endpoint should return array</span>
+                <span></span>
+              </div>
+            </div>
+            <div class="scenario-time passed">
+              <span>ms:</span>&nbsp;<span>8</span>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-container" id="[9:133]bg">
+              <div class="step-ref bg-step">&gt;&gt;</div>
+              <div class="step-cell passed">Background:</div>
+            </div>
+            <div class="time-cell passed"></div>
+          </div>
+          <div data-parent="[9:133]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.4">
+      <div class="step-ref bg-step">4</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomUuid = java.util.UUID.randomUUID() + &#39;&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div data-parent="[9:133]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.5">
+      <div class="step-ref bg-step">5</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomToken = randomUuid.substring(0, 8)</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.134">
+      <div class="step-ref passed">134</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.135">
+      <div class="step-ref passed">135</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/dsar-requests&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.136">
+      <div class="step-ref passed">136</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>param limit = 20</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.137">
+      <div class="step-ref passed">137</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method get</span>
+      </div>
+    </div>
+    <div class="time-cell passed">5</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.137">16:18:42.375 request:
+1 &gt; GET http://127.0.0.1:4185/compliance/dsar-requests?limit=20
+1 &gt; Host: 127.0.0.1:4185
+1 &gt; Connection: Keep-Alive
+1 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+1 &gt; Accept-Encoding: gzip,deflate
+
+
+16:18:42.379 response time in milliseconds: 4
+1 &lt; 200
+1 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+1 &lt; server: uvicorn
+1 &lt; content-length: 25
+1 &lt; content-type: application/json
+{&quot;ok&quot;:true,&quot;requests&quot;:[]}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.138">
+      <div class="step-ref passed">138</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 200</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.139">
+      <div class="step-ref passed">139</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true, requests: &#39;#[]&#39; }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+        </div>
+        <div class="scenario">
+          <div class="scenario-heading" id="[10:142]">
+            <div class="heading-container">
+              <div class="scenario-tags">
+                <a class="badge badge-primary" href="karate-tags.html">compliance</a><a class="badge badge-primary" href="karate-tags.html">regression</a>
+              </div>
+              <div class="scenario-keyword">
+                Scenario: <span>[10:142]</span>
+                <span class="scenario-name">Integration event should update integration summary</span>
+                <span></span>
+              </div>
+            </div>
+            <div class="scenario-time passed">
+              <span>ms:</span>&nbsp;<span>16</span>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-container" id="[10:142]bg">
+              <div class="step-ref bg-step">&gt;&gt;</div>
+              <div class="step-cell passed">Background:</div>
+            </div>
+            <div class="time-cell passed"></div>
+          </div>
+          <div data-parent="[10:142]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.4">
+      <div class="step-ref bg-step">4</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomUuid = java.util.UUID.randomUUID() + &#39;&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div data-parent="[10:142]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.5">
+      <div class="step-ref bg-step">5</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomToken = randomUuid.substring(0, 8)</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.143">
+      <div class="step-ref passed">143</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.144">
+      <div class="step-ref passed">144</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/integration-events&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.145">
+      <div class="step-ref passed">145</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>header Content-Type = &#39;application/json&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.146">
+      <div class="step-ref passed">146</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>request</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  <div class="preformatted" data-parent="0.146">{
+  outcome: &#39;ok&#39;,
+  signal: &#39;available&#39;,
+  detail: &#39;karate-run&#39;,
+  sourcePage: &#39;inscricoes&#39;
+}</div>
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.155">
+      <div class="step-ref passed">155</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method post</span>
+      </div>
+    </div>
+    <div class="time-cell passed">8</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.155">16:18:42.389 request:
+1 &gt; POST http://127.0.0.1:4185/compliance/integration-events
+1 &gt; Content-Type: application/json; charset=UTF-8
+1 &gt; Content-Length: 85
+1 &gt; Host: 127.0.0.1:4185
+1 &gt; Connection: Keep-Alive
+1 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+1 &gt; Accept-Encoding: gzip,deflate
+{&quot;outcome&quot;:&quot;ok&quot;,&quot;signal&quot;:&quot;available&quot;,&quot;detail&quot;:&quot;karate-run&quot;,&quot;sourcePage&quot;:&quot;inscricoes&quot;}
+
+16:18:42.395 response time in milliseconds: 6
+1 &lt; 201
+1 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+1 &lt; server: uvicorn
+1 &lt; content-length: 11
+1 &lt; content-type: application/json
+{&quot;ok&quot;:true}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.156">
+      <div class="step-ref passed">156</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 201</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.157">
+      <div class="step-ref passed">157</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.159">
+      <div class="step-ref passed">159</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.160">
+      <div class="step-ref passed">160</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/integration-summary&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.161">
+      <div class="step-ref passed">161</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method get</span>
+      </div>
+    </div>
+    <div class="time-cell passed">5</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.161">16:18:42.398 request:
+2 &gt; GET http://127.0.0.1:4185/compliance/integration-summary
+2 &gt; Host: 127.0.0.1:4185
+2 &gt; Connection: Keep-Alive
+2 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+2 &gt; Accept-Encoding: gzip,deflate
+
+
+16:18:42.402 response time in milliseconds: 3
+2 &lt; 200
+2 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+2 &lt; server: uvicorn
+2 &lt; content-length: 214
+2 &lt; content-type: application/json
+{&quot;ok&quot;:true,&quot;summary&quot;:{&quot;totalChecks&quot;:3,&quot;availableChecks&quot;:3,&quot;degradedChecks&quot;:0,&quot;providerFailures&quot;:0,&quot;lastEvent&quot;:{&quot;recordedAt&quot;:&quot;2026-06-02T20:18:42.391885Z&quot;,&quot;outcome&quot;:&quot;ok&quot;,&quot;signal&quot;:&quot;available&quot;,&quot;detail&quot;:&quot;karate-run&quot;}}}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.162">
+      <div class="step-ref passed">162</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 200</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.163">
+      <div class="step-ref passed">163</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true, summary: &#39;#object&#39; }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+        </div>
+        <div class="scenario">
+          <div class="scenario-heading" id="[11:166]">
+            <div class="heading-container">
+              <div class="scenario-tags">
+                <a class="badge badge-primary" href="karate-tags.html">compliance</a><a class="badge badge-primary" href="karate-tags.html">regression</a>
+              </div>
+              <div class="scenario-keyword">
+                Scenario: <span>[11:166]</span>
+                <span class="scenario-name">Content audit create and list should work with unique event id</span>
+                <span></span>
+              </div>
+            </div>
+            <div class="scenario-time passed">
+              <span>ms:</span>&nbsp;<span>16</span>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-container" id="[11:166]bg">
+              <div class="step-ref bg-step">&gt;&gt;</div>
+              <div class="step-cell passed">Background:</div>
+            </div>
+            <div class="time-cell passed"></div>
+          </div>
+          <div data-parent="[11:166]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.4">
+      <div class="step-ref bg-step">4</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomUuid = java.util.UUID.randomUUID() + &#39;&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div data-parent="[11:166]bg"><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.5">
+      <div class="step-ref bg-step">5</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def randomToken = randomUuid.substring(0, 8)</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.167">
+      <div class="step-ref passed">167</div>
+      
+      <div class="step-cell passed">
+        <span>*</span>&nbsp;<span>def eventId = &#39;AUD-KARATE-&#39; + randomToken</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.168">
+      <div class="step-ref passed">168</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.169">
+      <div class="step-ref passed">169</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/content-audit-events&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.170">
+      <div class="step-ref passed">170</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>header Content-Type = &#39;application/json&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.171">
+      <div class="step-ref passed">171</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>request</span>
+      </div>
+    </div>
+    <div class="time-cell passed">1</div>
+  </div>
+
+   
+  
+  <div class="preformatted" data-parent="0.171">{
+  eventId: &#39;#(eventId)&#39;,
+  changedAt: &#39;2026-06-02T12:00:00Z&#39;,
+  contentDomain: &#39;privacy&#39;,
+  contentTitle: &#39;Politica de Privacidade&#39;,
+  version: &#39;v2026.06&#39;,
+  author: &#39;qa.engineer&#39;,
+  changeSummary: &#39;Karate content audit validation&#39;,
+  changeType: &#39;publish&#39;
+}</div>
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.184">
+      <div class="step-ref passed">184</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method post</span>
+      </div>
+    </div>
+    <div class="time-cell passed">7</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.184">16:18:42.413 request:
+1 &gt; POST http://127.0.0.1:4185/compliance/content-audit-events
+1 &gt; Content-Type: application/json; charset=UTF-8
+1 &gt; Content-Length: 252
+1 &gt; Host: 127.0.0.1:4185
+1 &gt; Connection: Keep-Alive
+1 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+1 &gt; Accept-Encoding: gzip,deflate
+{&quot;eventId&quot;:&quot;AUD-KARATE-0f979452&quot;,&quot;changedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;contentDomain&quot;:&quot;privacy&quot;,&quot;contentTitle&quot;:&quot;Politica de Privacidade&quot;,&quot;version&quot;:&quot;v2026.06&quot;,&quot;author&quot;:&quot;qa.engineer&quot;,&quot;changeSummary&quot;:&quot;Karate content audit validation&quot;,&quot;changeType&quot;:&quot;publish&quot;}
+
+16:18:42.418 response time in milliseconds: 5
+1 &lt; 201
+1 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+1 &lt; server: uvicorn
+1 &lt; content-length: 11
+1 &lt; content-type: application/json
+{&quot;ok&quot;:true}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.185">
+      <div class="step-ref passed">185</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 201</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.186">
+      <div class="step-ref passed">186</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.188">
+      <div class="step-ref passed">188</div>
+      
+      <div class="step-cell passed">
+        <span>Given</span>&nbsp;<span>url baseUrl</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.189">
+      <div class="step-ref passed">189</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>path &#39;/compliance/content-audit-events&#39;</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.190">
+      <div class="step-ref passed">190</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>param limit = 50</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.191">
+      <div class="step-ref passed">191</div>
+      
+      <div class="step-cell passed">
+        <span>When</span>&nbsp;<span>method get</span>
+      </div>
+    </div>
+    <div class="time-cell passed">5</div>
+  </div>
+
+   
+  
+  
+
+  
+
+  <div class="preformatted" data-parent="0.191">16:18:42.421 request:
+2 &gt; GET http://127.0.0.1:4185/compliance/content-audit-events?limit=50
+2 &gt; Host: 127.0.0.1:4185
+2 &gt; Connection: Keep-Alive
+2 &gt; User-Agent: Apache-HttpClient/4.5.14 (Java/25.0.3)
+2 &gt; Accept-Encoding: gzip,deflate
+
+
+16:18:42.424 response time in milliseconds: 3
+2 &lt; 200
+2 &lt; date: Tue, 02 Jun 2026 20:18:41 GMT
+2 &lt; server: uvicorn
+2 &lt; content-length: 2305
+2 &lt; content-type: application/json
+{&quot;ok&quot;:true,&quot;events&quot;:[{&quot;eventId&quot;:&quot;AUD-KARATE-0f979452&quot;,&quot;changedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;contentDomain&quot;:&quot;privacy&quot;,&quot;contentTitle&quot;:&quot;Politica de Privacidade&quot;,&quot;version&quot;:&quot;v2026.06&quot;,&quot;author&quot;:&quot;qa.engineer&quot;,&quot;changeSummary&quot;:&quot;Karate content audit validation&quot;,&quot;changeType&quot;:&quot;publish&quot;},{&quot;eventId&quot;:&quot;AUD-KARATE-2f61f44c&quot;,&quot;changedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;contentDomain&quot;:&quot;privacy&quot;,&quot;contentTitle&quot;:&quot;Politica de Privacidade&quot;,&quot;version&quot;:&quot;v2026.06&quot;,&quot;author&quot;:&quot;qa.engineer&quot;,&quot;changeSummary&quot;:&quot;Karate content audit validation&quot;,&quot;changeType&quot;:&quot;publish&quot;},{&quot;eventId&quot;:&quot;AUD-KARATE-8f4610af&quot;,&quot;changedAt&quot;:&quot;2026-06-02T12:00:00Z&quot;,&quot;contentDomain&quot;:&quot;privacy&quot;,&quot;contentTitle&quot;:&quot;Politica de Privacidade&quot;,&quot;version&quot;:&quot;v2026.06&quot;,&quot;author&quot;:&quot;qa.engineer&quot;,&quot;changeSummary&quot;:&quot;Karate content audit validation&quot;,&quot;changeType&quot;:&quot;publish&quot;},{&quot;eventId&quot;:&quot;AUD-20260523-003&quot;,&quot;changedAt&quot;:&quot;2026-05-23T12:40:00Z&quot;,&quot;contentDomain&quot;:&quot;faq&quot;,&quot;contentTitle&quot;:&quot;FAQ Curada&quot;,&quot;version&quot;:&quot;v2026.1&quot;,&quot;author&quot;:&quot;Equipe Editorial Conecta&quot;,&quot;changeSummary&quot;:&quot;Publicacao de respostas oficiais consolidadas a partir das paginas criticas do portal.&quot;,&quot;changeType&quot;:&quot;publish&quot;},{&quot;eventId&quot;:&quot;AUD-20260523-002&quot;,&quot;changedAt&quot;:&quot;2026-05-23T11:05:00Z&quot;,&quot;contentDomain&quot;:&quot;privacy_policy&quot;,&quot;contentTitle&quot;:&quot;Politica de Privacidade&quot;,&quot;version&quot;:&quot;v2026.1&quot;,&quot;author&quot;:&quot;Time de Compliance&quot;,&quot;changeSummary&quot;:&quot;Atualizacao de vigencia, changelog e transparencia de cookies por categoria.&quot;,&quot;changeType&quot;:&quot;revision&quot;},{&quot;eventId&quot;:&quot;AUD-20260523-001&quot;,&quot;changedAt&quot;:&quot;2026-05-23T09:10:00Z&quot;,&quot;contentDomain&quot;:&quot;terms_of_use&quot;,&quot;contentTitle&quot;:&quot;Termos de Uso&quot;,&quot;version&quot;:&quot;v2026.1&quot;,&quot;author&quot;:&quot;Time Juridico e Compliance&quot;,&quot;changeSummary&quot;:&quot;Publicacao versionada com regras de uso aceitavel e limites de responsabilidade.&quot;,&quot;changeType&quot;:&quot;publish&quot;},{&quot;eventId&quot;:&quot;AUD-20260520-001&quot;,&quot;changedAt&quot;:&quot;2026-05-20T10:30:00Z&quot;,&quot;contentDomain&quot;:&quot;registration_guidance&quot;,&quot;contentTitle&quot;:&quot;Orientacoes de Inscricao&quot;,&quot;version&quot;:&quot;v2026.2&quot;,&quot;author&quot;:&quot;Comite de Programa PRISM&quot;,&quot;changeSummary&quot;:&quot;Consolidacao de criterios, vigencia e fluxo oficial para submissao externa.&quot;,&quot;changeType&quot;:&quot;publish&quot;},{&quot;eventId&quot;:&quot;AUD-20260512-001&quot;,&quot;changedAt&quot;:&quot;2026-05-12T14:20:00Z&quot;,&quot;contentDomain&quot;:&quot;privacy_policy&quot;,&quot;contentTitle&quot;:&quot;Politica de Privacidade&quot;,&quot;version&quot;:&quot;v2026.0&quot;,&quot;author&quot;:&quot;Time de Compliance&quot;,&quot;changeSummary&quot;:&quot;Publicacao inicial do resumo de privacidade do portal.&quot;,&quot;changeType&quot;:&quot;publish&quot;}]}
+
+</div>   
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.192">
+      <div class="step-ref passed">192</div>
+      
+      <div class="step-cell passed">
+        <span>Then</span>&nbsp;<span>status 200</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+          <div><div>
+  
+
+  
+
+  <div class="step-row">
+    <div class="step-container" id="0.193">
+      <div class="step-ref passed">193</div>
+      
+      <div class="step-cell passed">
+        <span>And</span>&nbsp;<span>match response == { ok: true, events: &#39;#[]&#39; }</span>
+      </div>
+    </div>
+    <div class="time-cell passed">0</div>
+  </div>
+
+   
+  
+  
+
+  
+
+     
+
+  
+
+</div>
+</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+

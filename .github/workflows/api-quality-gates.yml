@@ -13,7 +13,7 @@ on:
         default: contracts/openapi/inscricoes.v1.0.0.openapi.json
 
 jobs:
-  functional-karate:
+  functional-karate-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -35,10 +35,10 @@ jobs:
       - name: Install FastAPI runtime dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements-fastapi.txt
 
-      - name: Start local FastAPI for Karate
+      - name: Start local FastAPI for Karate smoke
         run: |
-          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-karate-ci.db" \
-          python backend/fastapi_server.py --host 127.0.0.1 --port 8080 >/tmp/conecta-api-karate.log 2>&1 &
+          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-karate-smoke-ci.db" \
+          python -m backend.fastapi_server --host 127.0.0.1 --port 8080 >/tmp/conecta-api-karate-smoke.log 2>&1 &
           echo "API_PID=$!" >> "$GITHUB_ENV"
 
       - name: Wait for API readiness
@@ -52,29 +52,171 @@ jobs:
           echo "FastAPI did not become ready in time" >&2
           exit 1
 
-      - name: Run Karate API suite
+      - name: Run Karate smoke suite
         run: |
           cd tests/api/karate
-          mvn -q test -DbaseUrl="http://127.0.0.1:8080"
+          mvn -q test -DbaseUrl="http://127.0.0.1:8080" -Dkarate.tags=@smoke
 
-      - name: Upload Karate report
+      - name: Upload Karate smoke report
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: karate-report
+          name: karate-report-smoke
           retention-days: 14
           path: |
             tests/api/karate/target/surefire-reports
             tests/api/karate/target/karate-reports
           if-no-files-found: ignore
 
-      - name: Upload FastAPI log on failure
+      - name: Upload FastAPI smoke log on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: karate-fastapi-log
+          name: karate-fastapi-log-smoke
           retention-days: 14
-          path: /tmp/conecta-api-karate.log
+          path: /tmp/conecta-api-karate-smoke.log
+          if-no-files-found: ignore
+
+      - name: Stop local FastAPI
+        if: ${{ always() }}
+        run: |
+          if [ -n "${API_PID:-}" ]; then
+            kill "$API_PID" || true
+          fi
+
+  functional-karate-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FastAPI runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements-fastapi.txt
+
+      - name: Start local FastAPI for Karate regression
+        run: |
+          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-karate-regression-ci.db" \
+          python -m backend.fastapi_server --host 127.0.0.1 --port 8080 >/tmp/conecta-api-karate-regression.log 2>&1 &
+          echo "API_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for API readiness
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FastAPI did not become ready in time" >&2
+          exit 1
+
+      - name: Run Karate regression suite
+        run: |
+          cd tests/api/karate
+          mvn -q test -DbaseUrl="http://127.0.0.1:8080" -Dkarate.tags=@regression
+
+      - name: Upload Karate regression report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-report-regression
+          retention-days: 14
+          path: |
+            tests/api/karate/target/surefire-reports
+            tests/api/karate/target/karate-reports
+          if-no-files-found: ignore
+
+      - name: Upload FastAPI regression log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-fastapi-log-regression
+          retention-days: 14
+          path: /tmp/conecta-api-karate-regression.log
+          if-no-files-found: ignore
+
+      - name: Stop local FastAPI
+        if: ${{ always() }}
+        run: |
+          if [ -n "${API_PID:-}" ]; then
+            kill "$API_PID" || true
+          fi
+
+  functional-karate-compliance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FastAPI runtime dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements-fastapi.txt
+
+      - name: Start local FastAPI for Karate compliance
+        run: |
+          CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-karate-compliance-ci.db" \
+          python -m backend.fastapi_server --host 127.0.0.1 --port 8080 >/tmp/conecta-api-karate-compliance.log 2>&1 &
+          echo "API_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for API readiness
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:8080/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "FastAPI did not become ready in time" >&2
+          exit 1
+
+      - name: Run Karate compliance suite
+        run: |
+          cd tests/api/karate
+          mvn -q test -DbaseUrl="http://127.0.0.1:8080" -Dkarate.tags=@compliance
+
+      - name: Upload Karate compliance report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-report-compliance
+          retention-days: 14
+          path: |
+            tests/api/karate/target/surefire-reports
+            tests/api/karate/target/karate-reports
+          if-no-files-found: ignore
+
+      - name: Upload FastAPI compliance log on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: karate-fastapi-log-compliance
+          retention-days: 14
+          path: /tmp/conecta-api-karate-compliance.log
           if-no-files-found: ignore
 
       - name: Stop local FastAPI
@@ -116,7 +258,7 @@ jobs:
         if: ${{ env.USE_LOCAL_API == 'true' }}
         run: |
           CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-k6-ci.db" \
-          python backend/fastapi_server.py --host 127.0.0.1 --port 8080 >/tmp/conecta-api-k6.log 2>&1 &
+          python -m backend.fastapi_server --host 127.0.0.1 --port 8080 >/tmp/conecta-api-k6.log 2>&1 &
           echo "API_PID=$!" >> "$GITHUB_ENV"
 
       - name: Wait for API readiness
@@ -185,7 +327,7 @@ jobs:
         if: ${{ env.USE_LOCAL_API == 'true' }}
         run: |
           CONECTA_COMPLIANCE_DB_FILE="$PWD/data/compliance-zap-ci.db" \
-          python backend/fastapi_server.py --host 127.0.0.1 --port 8080 >/tmp/conecta-api-zap.log 2>&1 &
+          python -m backend.fastapi_server --host 127.0.0.1 --port 8080 >/tmp/conecta-api-zap.log 2>&1 &
           echo "API_PID=$!" >> "$GITHUB_ENV"
 
       - name: Wait for API readiness

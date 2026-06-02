@@ -6,6 +6,11 @@ class KarateApiTest {
 
     @Karate.Test
     Karate runApiScenarios() {
-        return Karate.run("classpath:features/inscricoes-upsert.feature");
+        String karateTags = System.getProperty("karate.tags");
+        Karate runner = Karate.run("classpath:features/inscricoes-upsert.feature");
+        if (karateTags != null && !karateTags.isBlank()) {
+            return runner.tags(karateTags);
+        }
+        return runner;
     }
 }

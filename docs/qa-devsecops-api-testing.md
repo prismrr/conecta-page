@@ -48,26 +48,50 @@ Observacao:
 
 ## 2. Automação funcional (Karate)
 
-Implementação inicial em `tests/api/karate` com:
+Implementação em `tests/api/karate` com:
 
 - `karate-config.js`
-- cenário funcional real em `features/inscricoes-upsert.feature`
-- runner JUnit5 em `runners/KarateApiTest.java`
+- suíte funcional em `features/inscricoes-upsert.feature`
+- runner JUnit5 em `runners/KarateApiTest.java` com suporte a filtro por tags (`-Dkarate.tags`)
 
 Execução:
 
 `cd tests/api/karate && mvn test`
 
+Execução por tag (smoke/regression/compliance):
+
+- `npm run test:api:functional:karate:smoke`
+- `npm run test:api:functional:karate:regression`
+- `npm run test:api:functional:karate:compliance`
+
 Execução local completa com bootstrap automático da API:
 
 `npm run test:api:functional:karate:local`
+
+Execução local por tag:
+
+`npm run test:api:functional:karate:local:smoke`
+
+- `npm run test:api:functional:karate:local:regression`
+- `npm run test:api:functional:karate:local:compliance`
 
 Cobertura funcional atual da suíte Karate:
 
 - `GET /healthz`
 - `GET /api/registrations/{registrationId}` (sucesso e not_found)
-- `POST /telemetry/events`
+- `POST /telemetry/events` (payload válido e inválido)
 - `GET /api/inscricoes/{id}` (not_found)
+- `GET /api/inscricoes/lotes/{loteImportacao}` (200 ou batch_not_found)
+- Compliance:
+  - `POST/GET /compliance/consent-records`
+  - `GET /compliance/dsar-requests`
+  - `POST /compliance/integration-events`
+  - `GET /compliance/integration-summary`
+  - `POST/GET /compliance/content-audit-events`
+- Observability:
+  - `GET /observability/health`
+  - `GET /observability/summary`
+  - `GET /observability/alerts`
 
 ## 3. Carga e performance (k6)
 
@@ -132,7 +156,7 @@ Pasta padrao de evidencia versionavel:
 
 ## Workflow de execução no GitHub Actions
 
-Foi adicionado um workflow manual para executar os três gates de API de forma controlada:
+Foi adicionado um workflow manual para executar os gates de API de forma controlada:
 
 - `.github/workflows/api-quality-gates.yml`
 
@@ -147,12 +171,16 @@ Observacao:
 
 Jobs executados:
 
-- `functional-karate`
+- `functional-karate-smoke`
+- `functional-karate-regression`
+- `functional-karate-compliance`
 - `performance-k6`
 - `security-zap`
 
 Detalhe operacional:
 
-- `functional-karate` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios Karate contra `http://127.0.0.1:8080`.
+- `functional-karate-smoke` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios `@smoke` do Karate contra `http://127.0.0.1:8080`.
+- `functional-karate-regression` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios `@regression` do Karate contra `http://127.0.0.1:8080`.
+- `functional-karate-compliance` sobe o FastAPI local automaticamente no job, aguarda `GET /healthz` e executa os cenarios `@compliance` do Karate contra `http://127.0.0.1:8080`.
 - `performance-k6` sobe FastAPI local automaticamente quando nao ha `base_url` remoto e executa o script k6 contra localhost.
 - `security-zap` sobe FastAPI local automaticamente quando nao ha `base_url` remoto e gera um OpenAPI efetivo com `servers.url` apontando para o alvo antes do scan.
